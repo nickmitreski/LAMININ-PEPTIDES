@@ -1,0 +1,17 @@
+:root {
+  /* Brand Colors - Pure Black */
+  --color-carbon: #000000;
+  --color-accent: #89d1d1;
+  --color-grey: #f1f2f2;
+  --color-white: #ffffff;
+
+  /* Semantic Tokens */
+  --surface-primary: #f1f2f2;     /* Page background (Grey/Platinum) */
+  --surface-elevated: #ffffff;    /* Cards, elevated elements (White) */
+  --surface-muted: #ededee;       /* Subtle background sections (Neutral 100) */
+
+  --text-primary: #000000;        /* Body text (Pure Black) */
+  --text-muted: #7a7b7b;          /* Secondary text (Neutral 500) */
+
+  --border-subtle: rgba(0, 0, 0, 0.10);
+}

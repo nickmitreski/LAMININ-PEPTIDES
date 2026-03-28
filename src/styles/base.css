@@ -1,0 +1,29 @@
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 300;
+  color: var(--text-primary);
+}
+
+::selection {
+  background-color: rgba(137, 209, 209, 0);
+  color: var(--text-primary);
+}
