@@ -4,6 +4,7 @@ import SectionTitle from '../ui/SectionTitle';
 import Button from '../ui/Button';
 import { Label, Text } from '../ui/Typography';
 import { featuredProducts } from '../../data/featuredProducts';
+import { getProductSlug } from '../../data/productContent';
 
 export default function FeaturedProducts() {
   return (
@@ -13,21 +14,24 @@ export default function FeaturedProducts() {
         title="High Purity Peptides for Advanced Research Applications"
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+      <div className="mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6">
         {featuredProducts.map((product) => (
           <Link
-            key={product.name}
-            to="/library"
-            className="group flex flex-col transition-transform duration-300 hover:-translate-y-1"
+            key={product.peptideId}
+            to={`/products/${getProductSlug(product.peptideId)}`}
+            className="group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1"
           >
-            <div className="aspect-square bg-neutral-50 rounded-lg overflow-hidden mb-4">
+            <div className="mb-3 aspect-square overflow-hidden rounded-lg bg-neutral-50 sm:mb-4">
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                className="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
               />
             </div>
-            <Label inheritColor className="text-carbon-900 mb-1">
+            <Label
+              inheritColor
+              className="mb-1 line-clamp-2 text-[0.65rem] leading-tight text-carbon-900 sm:text-xs"
+            >
               {product.name}
             </Label>
             <Text variant="caption" muted>

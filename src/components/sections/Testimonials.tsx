@@ -13,7 +13,7 @@ export default function Testimonials() {
         title="What Scientists Say About Our Work"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
         {testimonials.map((testimonial, index) => (
           <Card key={index} padding="lg" className="relative">
             <div className="absolute top-6 right-6 text-grey">

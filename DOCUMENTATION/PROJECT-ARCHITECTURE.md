@@ -20,7 +20,7 @@
 │   │   └── ui/              # Reusable UI components (Button, Card, Typography)
 │   │
 │   ├── data/                # Static data files
-│   ├── pages/               # Page components (Home, Library, COA, Contact)
+│   ├── pages/               # Page components (Home, Library, COA, Contact, FAQ)
 │   ├── styles/              # CSS files (tokens, base, components, utilities)
 │   ├── App.tsx              # Main app component with routing
 │   ├── main.tsx             # Entry point
@@ -125,7 +125,10 @@ App.tsx
 │   ├── Routes
 │   │   ├── / → Home.tsx
 │   │   ├── /library → Library.tsx
+│   │   ├── /faq → FAQ.tsx
+│   │   ├── /collection → redirect to /faq
 │   │   ├── /coa → COA.tsx
+│   │   ├── /guarantee → Guarantee.tsx
 │   │   ├── /contact → Contact.tsx
 │   │   └── * → NotFound.tsx
 │   │
@@ -143,7 +146,7 @@ Home.tsx
 ├── Hero (Aqua background, white buttons, larger text)
 ├── TrustBar
 ├── FeaturedProducts
-├── PeptideToggleSection (Aqua active tabs)
+├── PeptideToggleSection (three pillar cards)
 ├── ResearchCategories
 ├── Disclaimer (Black box with white text)
 └── CTASection (Aqua background, text and buttons only)
@@ -161,7 +164,7 @@ Home.tsx
 | **Header** | Top navigation bar | None | Height: h-20 md:h-24, Logo: h-10 md:h-12, Nav: text-sm |
 | **Footer** | Bottom site footer | None | 100% white text opacity |
 | **Section** | Page section wrapper | background, spacing, container, className, id | |
-| **Container** | Content width container | children, className | Max-width: 1280px |
+| **Container** | Content width container | children, className, size | Default max-width: 1600px (`max-w-[1600px]`) |
 
 ### Section Components
 **Location:** `src/components/sections/`
@@ -171,7 +174,7 @@ Home.tsx
 | **Hero** | Main hero section | Hardcoded | `accent` (aqua) | White buttons, larger text sizes |
 | **TrustBar** | Trust indicators | Hardcoded | `dark` | |
 | **FeaturedProducts** | Product showcase grid | `data/featuredProducts.ts` | `white` | |
-| **PeptideToggleSection** | Filterable peptide list | `data/peptides.ts` | `neutral` | Aqua active tabs |
+| **PeptideToggleSection** | Three pillar cards (placeholders + copy) | Hardcoded in section | `neutral` | Same grid as former peptide strip |
 | **ResearchCategories** | Category showcase | Hardcoded | `accent` (aqua) | |
 | **Disclaimer** | Legal disclaimer | Hardcoded | `white` | Black box with white text |
 | **CTASection** | Call-to-action | Hardcoded | `accent` (aqua) | Text and buttons only, no cards |
@@ -214,7 +217,7 @@ Home.tsx
 | File | Purpose | Used By | Status |
 |------|---------|---------|--------|
 | **featuredProducts.ts** | Featured product data | FeaturedProducts.tsx | ✅ Active |
-| **peptides.ts** | All peptide data | PeptideToggleSection.tsx, Library.tsx | ✅ Active |
+| **peptides.ts** | All peptide data | Library.tsx, PeptideCard, COA page, homepage sections using peptides | ✅ Active |
 | **features.ts** | Feature descriptions | ❌ None | ⚠️ Unused |
 | **trustBadges.ts** | Trust badge data | ❌ None | ⚠️ Unused |
 | **testimonials.ts** | Testimonial data | ❌ None | ⚠️ Unused |
@@ -325,11 +328,7 @@ Features
 
 PeptideToggleSection
 ├── Section
-├── SectionTitle
-├── ToggleTabs
-└── PeptideCard
-    ├── Card
-    ├── Badge
+└── Card (×3)
     ├── Heading
     └── Text
 
@@ -350,8 +349,7 @@ Data Files (src/data/)
 │   └── imported by → FeaturedProducts.tsx
 │
 ├── peptides.ts
-│   ├── imported by → PeptideToggleSection.tsx
-│   └── imported by → Library.tsx
+│   └── imported by → Library.tsx (and other peptide views)
 │
 └── [unused data files]
 ```
@@ -365,7 +363,7 @@ Header            bg-carbon-900  (#000000 black)
 Hero              bg-accent      (#89D1D1 aqua) - White buttons, larger text
 TrustBar          bg-dark        (#000000 black)
 FeaturedProducts  bg-white       (#FFFFFF white)
-PeptideToggle     bg-neutral     (#EDEDEE grey) - Aqua active tabs
+PeptideToggle     bg-neutral     (#EDEDEE grey) - Three pillar cards
 ResearchCat       bg-accent      (#89D1D1 aqua)  ← BOLD moment
 Disclaimer        bg-white       (#FFFFFF white) - Black box with white text
 CTASection        bg-accent      (#89D1D1 aqua) - Text and buttons only

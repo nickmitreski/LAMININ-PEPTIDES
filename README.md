@@ -183,8 +183,10 @@ npm run lint       # Run ESLint
 
 - **/** - Homepage with all sections
 - **/library** - Peptide library with filtering
-- **/collection** - Alias for /library
+- **/faq** - Frequently asked questions (accordion; single item open at a time)
+- **/collection** - Redirects to **/faq** (legacy URL)
 - **/coa** - Certificates of Analysis
+- **/guarantee** - Purity assurance guarantee (placeholder page)
 - **/contact** - Contact form
 
 ---
@@ -196,7 +198,7 @@ npm run lint       # Run ESLint
 1. **Hero** - Main brand statement with CTAs (Aqua background, white buttons, larger text)
 2. **TrustBar** - Trust indicators (Black background)
 3. **FeaturedProducts** - 8 featured products grid (White background)
-4. **PeptideToggleSection** - Filterable peptide display (Grey background, aqua active tabs)
+4. **PeptideToggleSection** - Three quality pillars with 4:3 placeholders, titles, and subtext; no section heading (Grey background)
 5. **ResearchCategories** - Category showcase (Aqua background)
 6. **Disclaimer** - Legal disclaimer (White background with black box)
 7. **CTASection** - Final call-to-action (Aqua background, text and buttons only)

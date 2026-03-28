@@ -5,22 +5,25 @@ import { Text, Label } from '../ui/Typography';
 export default function Footer() {
   const footerLinks = {
     'Research Areas': [
-      { label: 'Peptides', path: '/library?category=Peptides' },
-      { label: 'Peptide Blends', path: '/library?category=Blends' },
-      { label: 'Metabolic Compounds', path: '/library?category=Metabolic' },
-      { label: 'Neuropeptides', path: '/library?category=Neuropeptides' },
+      { label: 'All compounds', path: '/library?category=All' },
+      { label: 'Healing & tissue', path: '/library?category=Healing' },
+      { label: 'Cognitive', path: '/library?category=Cognitive' },
+      { label: 'Metabolic', path: '/library?category=Metabolic' },
+      { label: 'Performance', path: '/library?category=Performance' },
+      { label: 'Longevity', path: '/library?category=Longevity' },
     ],
     'Resources': [
       { label: 'Certificate of Analysis', path: '/coa' },
       { label: 'Research Library', path: '/library' },
+      { label: 'FAQ', path: '/faq' },
       { label: 'Contact', path: '/contact' },
     ],
   };
 
   return (
-    <footer className="bg-carbon-900 text-white border-t border-white/5">
+    <footer className="border-t border-white/5 bg-carbon-900 text-white pb-safe">
       <Container>
-        <div className="py-16 lg:py-20">
+        <div className="py-12 lg:py-20 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="md:col-span-2">
               <img
@@ -64,18 +67,24 @@ export default function Footer() {
               <Text variant="caption" className="text-white">
                 All products are intended for laboratory research use only.
               </Text>
-              <div className="flex items-center gap-6">
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
                 <Link
                   to="/privacy"
-                  className="text-xs text-white hover:text-accent transition-colors"
+                  className="text-xs text-white transition-colors hover:text-accent"
                 >
-                  Privacy
+                  Privacy Policy
                 </Link>
                 <Link
                   to="/terms-and-conditions"
-                  className="text-xs text-white hover:text-accent transition-colors"
+                  className="text-xs text-white transition-colors hover:text-accent"
                 >
-                  Terms
+                  Terms &amp; Conditions
+                </Link>
+                <Link
+                  to="/guarantee"
+                  className="text-xs text-white transition-colors hover:text-accent"
+                >
+                  Purity guarantee
                 </Link>
               </div>
             </div>

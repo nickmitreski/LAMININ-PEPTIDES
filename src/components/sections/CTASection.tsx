@@ -13,7 +13,7 @@ export default function CTASection() {
         <Text
           variant="body"
           weight="light"
-          className="mb-10 max-w-2xl mx-auto text-carbon-900"
+          className="mb-10 max-w-3xl mx-auto text-carbon-900"
         >
           Explore our complete catalogue of laboratory-grade peptides backed
           by third-party verification and comprehensive analysis

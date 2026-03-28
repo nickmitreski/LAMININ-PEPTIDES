@@ -1,20 +1,46 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import ToggleTabs from '../components/ui/ToggleTabs';
 import PeptideCard from '../components/peptides/PeptideCard';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import Input from '../components/ui/Input';
+import SearchField from '../components/ui/SearchField';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
-import { peptideCategories, getPeptidesByCategory } from '../data/peptides';
-import { Search } from 'lucide-react';
+import {
+  peptideCategories,
+  getPeptidesByCategory,
+  libraryCategorySubtitles,
+} from '../data/peptides';
 
 export default function Library() {
-  const [activeCategory, setActiveCategory] = useState(peptideCategories[0]);
+  const location = useLocation();
+  const [, setSearchParams] = useSearchParams();
+  const [activeCategory, setActiveCategory] = useState<string>(peptideCategories[0]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const param = new URLSearchParams(location.search).get('category');
+    if (
+      param &&
+      (peptideCategories as readonly string[]).includes(param)
+    ) {
+      setActiveCategory(param as string);
+    } else if (!param) {
+      setActiveCategory('All' as string);
+    }
+  }, [location.search]);
+
+  const handleCategoryChange = (tab: string) => {
+    setActiveCategory(tab as string);
+    if (tab === 'All') {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ category: tab }, { replace: true });
+    }
+  };
 
   const categoryPeptides = getPeptidesByCategory(activeCategory);
   const filteredPeptides = searchTerm
@@ -31,45 +57,72 @@ export default function Library() {
           subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity"
         />
 
-        <div className="max-w-xl mx-auto mb-12">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Search compounds..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-carbon-900/35" />
-          </div>
+        <div className="mx-auto mb-8 max-w-xl md:mb-12">
+          <SearchField
+            type="search"
+            placeholder="Search compounds..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            autoComplete="off"
+            aria-label="Search compounds"
+          />
         </div>
 
-        <ToggleTabs
-          tabs={peptideCategories}
-          activeTab={activeCategory}
-          onTabChange={setActiveCategory}
-        />
+        <div className="mb-8 md:mb-12">
+          <ToggleTabs
+            tabs={[...peptideCategories]}
+            activeTab={activeCategory}
+            onTabChange={handleCategoryChange}
+            className="mb-3"
+          />
+          <Text
+            variant="caption"
+            muted
+            className="mx-auto block max-w-md px-1 text-center leading-snug tracking-wide text-carbon-700"
+          >
+            {
+              libraryCategorySubtitles[
+                activeCategory as keyof typeof libraryCategorySubtitles
+              ]
+            }
+          </Text>
+        </div>
 
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <Text variant="caption" muted>
             {filteredPeptides.length} compounds found
           </Text>
-          <TextLink to="/coa">View all certificates →</TextLink>
+          <TextLink to="/coa" className="shrink-0 self-start sm:self-auto">
+            View all certificates →
+          </TextLink>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
           {filteredPeptides.map((peptide) => (
             <PeptideCard key={peptide.id} peptide={peptide} />
           ))}
         </div>
 
         {filteredPeptides.length === 0 && (
-          <div className="text-center py-16">
-            <Text variant="small" muted>No compounds found matching your search.</Text>
+          <div className="py-12 text-center sm:py-16">
+            <Text variant="small" muted className="mb-4 block">
+              No compounds found matching your search.
+            </Text>
+            {searchTerm ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => setSearchTerm('')}
+                className="touch-manipulation"
+              >
+                Clear search
+              </Button>
+            ) : null}
           </div>
         )}
 
-        <Card padding="lg" className="mt-16 bg-grey">
+        <Card padding="lg" className="mt-12 bg-grey sm:mt-16">
           <div className="max-w-xl">
             <Heading level={5} className="mb-3">
               Need Help Finding a Compound?

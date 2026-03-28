@@ -20,7 +20,9 @@ export default function SectionTitle({
   const alignment = centered ? 'text-center items-center' : 'text-left items-start';
 
   return (
-    <div className={`mb-12 flex flex-col gap-3 ${alignment} ${className}`}>
+    <div
+      className={`mb-8 flex flex-col gap-3 md:mb-12 ${alignment} ${className}`}
+    >
       {label && (
         <Label
           inheritColor={dark}
@@ -40,7 +42,7 @@ export default function SectionTitle({
           variant="body"
           weight="light"
           tone={dark ? 'inverse-muted' : 'muted'}
-          className={`max-w-2xl ${centered ? 'mx-auto' : ''}`}
+          className={`max-w-3xl ${centered ? 'mx-auto' : ''}`}
         >
           {subtitle}
         </Text>

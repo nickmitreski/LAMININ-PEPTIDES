@@ -608,21 +608,22 @@
    src/components/layout/Container.tsx
    ```
 
-2. **Find max-width class**
-   ```tsx
-   <div className="max-w-screen-xl mx-auto px-6 md:px-8">
-   ```
+2. **Find the `sizes` map** (default rail is `xl`)
 
 3. **Change max-width**
    ```tsx
-   // Options:
+   // Default site rail (xl) uses:
+   max-w-[1600px]    // 1600px (current default — wider “zoomed in” layout)
+
+   // Other common options:
    max-w-screen-sm   // 640px
    max-w-screen-md   // 768px
    max-w-screen-lg   // 1024px
-   max-w-screen-xl   // 1280px (current)
-   max-w-screen-2xl  // 1536px (wider)
-   max-w-7xl         // 1280px (same as xl)
+   max-w-screen-xl   // 1280px (narrower than current default)
+   max-w-7xl         // 80rem — scales with root font size
    ```
+
+4. **Optional — global “zoom”:** `src/index.css` applies `html { font-size: 106.25%; }` from `md` up. Adjust that percentage (or remove the rule) if you want tighter control than the container width alone.
 
 **Warning:** This affects EVERY section that uses Container.
 

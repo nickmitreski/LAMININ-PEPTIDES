@@ -245,7 +245,9 @@
 
 ### Content Width
 
-**Container max-width:** 1280px (`max-w-screen-xl`)
+**Default site rail (Container `size="xl"`):** `max-w-[1600px]` — **1600px** fixed width, centered. This is wider than the old `max-w-7xl` (1280px) so header, grids, and section content use more horizontal space on large monitors without changing component structure.
+
+**Horizontal padding:** `px-4 sm:px-5 md:px-6 lg:px-8` on `<Container>` (slightly tighter small breakpoints so the rail feels fuller at the same proportions).
 
 **When to constrain width:**
 ```tsx
@@ -264,11 +266,15 @@
 ```tsx
 // Full-width backgrounds, images
 <Section container={false}>
-  <div className="max-w-7xl mx-auto px-6">
+  <div className="max-w-[1600px] mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
     Custom width constraint
   </div>
 </Section>
 ```
+
+### Visual scale (“zoomed in” look)
+
+From **`md` (768px) and up**, `src/index.css` sets `html { font-size: 106.25%; }` (17px root vs 16px). Because Tailwind spacing and typography use **rem**, padding, gaps, and type scale up together—similar to a small browser zoom—while breakpoints stay the same. Mobile stays at 100% for comfort.
 
 ---
 
@@ -696,7 +702,7 @@ xl:  1280px  - Desktops
 Hero              → Aqua    (#89D1D1) - White buttons, larger text
 TrustBar          → Black   (#000000)
 FeaturedProducts  → White   (#FFFFFF)
-PeptideToggle     → Grey    (#EDEDEE) - Aqua active tabs
+PeptideToggle     → Grey    (#EDEDEE) - Three pillar cards
 ResearchCat       → Aqua    (#89D1D1) ← BOLD moment
 Disclaimer        → White   (#FFFFFF) - Black box with white text
 CTASection        → Aqua    (#89D1D1) - Text and buttons only

@@ -188,19 +188,16 @@ import { Heading, Text } from '../ui/Typography'
 
 **Imports:**
 ```typescript
-import { useState } from 'react'
 import Section from '../layout/Section'
-import SectionTitle from '../ui/SectionTitle'
-import ToggleTabs from '../ui/ToggleTabs'
-import PeptideCard from '../peptides/PeptideCard'
-import { peptideCategories, getPeptidesByCategory } from '../../data/peptides'
+import Card from '../ui/Card'
+import { Heading, Text } from '../ui/Typography'
 ```
 
 **Imported By:**
 - `src/pages/Home.tsx`
 
 **Data Dependencies:**
-- `src/data/peptides.ts`
+- None (pillar copy is defined in the section file)
 
 ---
 
@@ -348,7 +345,6 @@ import { Label, Heading, Text } from './Typography'
 - None (pure component)
 
 **Imported By:**
-- `src/components/sections/PeptideToggleSection.tsx`
 - `src/pages/Library.tsx`
 
 ---
@@ -413,7 +409,7 @@ import Container from './Container'
 - `src/components/layout/Footer.tsx`
 - `src/pages/Library.tsx`
 
-**Purpose:** Content width container (max-width: 1280px)
+**Purpose:** Content width container (default max-width: 1600px via `max-w-[1600px]`; see `size` prop for narrower rails)
 
 ---
 
@@ -429,11 +425,11 @@ import Button from '../ui/Button'
 ```
 
 **Assets Used:**
-- `/images/brand/logo-white.png`
+- `/images/brand/logo-reverse.png`
 
 **Sizing:**
 - Header height: `h-20 md:h-24` (80px mobile, 96px desktop)
-- Logo height: `h-10 md:h-12` (40px mobile, 48px desktop) - **Increased**
+- Logo height: `h-[3.47875rem] md:h-[4.1745rem]` with `w-auto` (aspect preserved)
 - Nav link text: `text-sm` (14px) - **Increased from text-xs**
 - Nav link padding: `px-5 py-2.5` - **Increased**
 - Search button: `size="md"` - **Increased from size="sm"**
@@ -496,8 +492,10 @@ export function getPeptidesByCategory(category: string): Peptide[]
 ```
 
 **Imported By:**
-- `src/components/sections/PeptideToggleSection.tsx`
 - `src/pages/Library.tsx`
+- `src/components/peptides/PeptideCard.tsx`
+- `src/pages/COA.tsx`
+- Other peptide-related views
 
 **Content:** All peptide data with categories, prices, descriptions
 
@@ -625,7 +623,7 @@ export const testimonials: Array<{ name, role, quote }>
 - `symbol-dark.png` - Dark symbol
 
 **Used By:**
-- `src/components/layout/Header.tsx` → logo-white.png
+- `src/components/layout/Header.tsx` → logo-reverse.png
 - `src/components/layout/Footer.tsx` → logo-white.png
 - `src/components/sections/Features.tsx` → symbol-teal-circle.png
 - `index.html` → symbol-dark.png (favicon)

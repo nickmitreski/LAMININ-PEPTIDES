@@ -1,89 +1,101 @@
 import Section from '../layout/Section';
-import { Heading } from '../ui/Typography';
+import { productImageFile, cfgProductFiles } from '../../data/peptides';
 
-interface ResearchCategory {
-  label: string;
-  image: string;
-  alt: string;
+const tileFrame =
+  'group relative h-full w-full overflow-hidden rounded-2xl border-2 border-white/70 bg-white shadow-lg shadow-carbon-900/10 ring-1 ring-white/50';
+
+const tileImage =
+  [
+    'absolute inset-0 z-0 h-full w-full object-cover',
+    'grayscale opacity-70 brightness-110',
+    'transition-[filter,opacity,transform] duration-500 ease-out',
+    'group-hover:opacity-100 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-[1.02]',
+  ].join(' ');
+
+/** Extra wash so tiles read almost white at rest; fades on hover */
+const tileWash =
+  'pointer-events-none absolute inset-0 z-[1] bg-white/45 transition-opacity duration-500 ease-out group-hover:opacity-0';
+
+const titleWrap =
+  'pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-2.5 py-3 sm:px-4 sm:py-5';
+
+/** Compact type + tighter aqua label so tiles stay image-forward */
+const tileTitle =
+  [
+    'max-w-[min(100%,16.5rem)] text-balance text-center sm:max-w-[min(100%,19rem)] md:max-w-[min(100%,23rem)]',
+    'rounded-md px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5',
+    'bg-accent font-semibold uppercase tracking-[0.08em] text-carbon-900',
+    'text-[length:clamp(0.8125rem,1.35vw+0.4rem,1.625rem)]',
+    'sm:text-[length:clamp(0.9375rem,1.15vw+0.48rem,1.875rem)]',
+    'md:text-[length:clamp(1rem,1vw+0.55rem,2.125rem)]',
+    'leading-snug shadow-sm shadow-carbon-900/10 ring-1 ring-white/50',
+    'transition-opacity duration-300 ease-out',
+    'group-hover:opacity-0',
+  ].join(' ');
+
+function CategoryTile({
+  imageSrc,
+  title,
+}: {
+  imageSrc: string;
+  title: string;
+}) {
+  return (
+    <div className={tileFrame}>
+      <img
+        src={imageSrc}
+        alt=""
+        className={tileImage}
+        loading="lazy"
+        decoding="async"
+      />
+      <div className={tileWash} aria-hidden />
+      <div className={titleWrap}>
+        <h3 className={tileTitle}>{title}</h3>
+      </div>
+    </div>
+  );
 }
-
-const categories: ResearchCategory[] = [
-  {
-    label: 'METABOLIC RESEARCH',
-    image: '/images/products/retatrutide-10mg.png',
-    alt: 'Retatrutide 20MG',
-  },
-  {
-    label: 'TISSUE REGENERATION',
-    image: '/images/products/bpc157-tb500-20mg.png',
-    alt: 'BPC-157 / TB-500 Blend',
-  },
-  {
-    label: 'PERFORMANCE BIOLOGY',
-    image: '/images/products/cjc1295-ipa-20mg.png',
-    alt: 'CJC-1295 / Ipamorelin Blend',
-  },
-];
 
 export default function ResearchCategories() {
   return (
     <Section background="none" spacing="xl" className="bg-accent">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        {/* Left - Large hero image (Metabolic Research) */}
-        <div className="md:col-span-2 md:row-span-2">
-          <div className="h-full flex flex-col">
-            <Heading
-              level={3}
-              className="text-white tracking-hero mb-4 md:mb-6"
-            >
-              {categories[0].label}
-            </Heading>
-            <div className="flex-1 rounded-lg overflow-hidden bg-white">
-              <img
-                src={categories[0].image}
-                alt={categories[0].alt}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+      <h2 className="sr-only">Research focus areas</h2>
+      <div
+        className="
+          grid grid-cols-1 gap-4 md:gap-6
+          md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(12rem,auto)]
+        "
+      >
+        <div className="md:col-span-2 md:row-start-1 md:min-h-[18rem] min-h-[12rem]">
+          <CategoryTile
+            imageSrc={productImageFile(cfgProductFiles.retatrutide)}
+            title="Metabolic research"
+          />
         </div>
-
-        {/* Right top - Tissue Regeneration */}
-        <div className="md:col-span-1">
-          <div className="h-full flex flex-col">
-            <Heading
-              level={4}
-              className="text-white tracking-hero mb-3 md:mb-4"
-            >
-              {categories[1].label}
-            </Heading>
-            <div className="flex-1 rounded-lg overflow-hidden bg-white">
-              <img
-                src={categories[1].image}
-                alt={categories[1].alt}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+        <div className="md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]">
+          <CategoryTile
+            imageSrc={productImageFile(cfgProductFiles.nad)}
+            title="Longevity & cellular research"
+          />
         </div>
-
-        {/* Right bottom - Performance Biology */}
-        <div className="md:col-span-1">
-          <div className="h-full flex flex-col">
-            <Heading
-              level={4}
-              className="text-white tracking-hero mb-3 md:mb-4"
-            >
-              {categories[2].label}
-            </Heading>
-            <div className="flex-1 rounded-lg overflow-hidden bg-white">
-              <img
-                src={categories[2].image}
-                alt={categories[2].alt}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+        <div className="md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]">
+          <CategoryTile
+            imageSrc={productImageFile(cfgProductFiles.semax)}
+            title="Cognitive & neurological research"
+          />
+        </div>
+        <div className="md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]">
+          <CategoryTile
+            imageSrc={productImageFile(cfgProductFiles.bpcTb)}
+            title="Tissue regeneration"
+          />
+        </div>
+        <div className="md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]">
+          <CategoryTile
+            imageSrc={productImageFile(cfgProductFiles.cjcNoDac)}
+            title="Performance biology"
+          />
         </div>
       </div>
     </Section>

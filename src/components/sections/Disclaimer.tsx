@@ -1,5 +1,4 @@
 import Section from '../layout/Section';
-import Card from '../ui/Card';
 import { Heading, Text } from '../ui/Typography';
 import IconTile from '../ui/IconTile';
 import { AlertTriangle } from 'lucide-react';
@@ -7,7 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 export default function Disclaimer() {
   return (
     <Section background="white">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="bg-carbon-900 rounded-xl p-8 md:p-10">
           <div className="flex items-start gap-5">
             <IconTile tone="light" className="bg-white/10 border-white/20">

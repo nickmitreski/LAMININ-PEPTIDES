@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import Container from './Container';
-import Button from '../ui/Button';
+import CartDrawer from '../cart/CartDrawer';
+import { useCart } from '../../context/CartContext';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const location = useLocation();
+  const { state } = useCart();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -14,13 +17,13 @@ export default function Header() {
     { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
     { path: '/coa', label: 'Certificate of Analysis' },
-    { path: '/collection', label: 'Collection' },
+    { path: '/faq', label: 'FAQ' },
   ];
 
   return (
-    <header className="bg-carbon-900 sticky top-0 z-50 border-b border-white/5">
+    <header className="bg-carbon-900 sticky top-0 z-50 border-b border-white/5 pt-safe">
       <Container>
-        <div className="flex justify-between items-center h-20 md:h-24">
+        <div className="flex min-h-[4.25rem] items-center justify-between py-2 md:min-h-24 md:py-0">
           <div className="flex-shrink-0">
             <Link
               to="/"
@@ -28,9 +31,9 @@ export default function Header() {
               className="group flex items-center"
             >
               <img
-                src="/images/brand/logo-white.png"
+                src="/images/brand/logo-reverse.png"
                 alt="Laminin Peptide Lab"
-                className="h-10 md:h-12 transition-opacity group-hover:opacity-90"
+                className="h-11 w-auto max-h-[2.75rem] transition-opacity group-hover:opacity-90 sm:h-[3.47875rem] sm:max-h-none md:h-[4.1745rem]"
               />
             </Link>
           </div>
@@ -54,17 +57,32 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center space-x-3">
-            <Link to="/library" className="hidden lg:block">
-              <Button variant="white" size="md">
-                Search
-              </Button>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Link
+              to="/library"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 touch-manipulation active:bg-white/15"
+              aria-label="Search library"
+            >
+              <Search className="h-5 w-5" strokeWidth={2} aria-hidden />
             </Link>
+            <button
+              type="button"
+              onClick={() => setIsCartDrawerOpen(true)}
+              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 touch-manipulation active:bg-white/15"
+              aria-label={`Shopping cart with ${state.itemCount} items`}
+            >
+              <ShoppingCart className="h-5 w-5" strokeWidth={2} aria-hidden />
+              {state.itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold text-carbon-900 bg-accent rounded-full">
+                  {state.itemCount > 99 ? '99+' : state.itemCount}
+                </span>
+              )}
+            </button>
             <button
               type="button"
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2.5 text-white/50 hover:text-white hover:bg-white/5 rounded-sm transition-colors"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white touch-manipulation active:bg-white/10 lg:hidden"
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -75,14 +93,14 @@ export default function Header() {
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-carbon-900 border-t border-white/5 animate-fadeIn">
           <Container>
-            <nav className="py-6 space-y-1">
+            <nav className="space-y-1 py-4 pb-safe sm:py-6">
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
                   to={link.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`
-                    block px-4 py-3 text-sm font-medium tracking-wide rounded-sm transition-all duration-200
+                    block min-h-12 px-4 py-3.5 text-sm font-medium leading-snug tracking-wide rounded-sm transition-all duration-200 touch-manipulation
                     ${
                       isActive(link.path)
                         ? 'text-carbon-900 bg-accent'
@@ -93,21 +111,12 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <div className="pt-4">
-                <Link
-                  to="/library"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block"
-                >
-                  <Button variant="white" size="md" className="w-full">
-                    Search
-                  </Button>
-                </Link>
-              </div>
             </nav>
           </Container>
         </div>
       )}
+
+      <CartDrawer isOpen={isCartDrawerOpen} onClose={() => setIsCartDrawerOpen(false)} />
     </header>
   );
 }

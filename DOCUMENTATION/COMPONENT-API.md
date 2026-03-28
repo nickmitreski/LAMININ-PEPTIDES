@@ -544,7 +544,7 @@ interface SectionTitleProps {
 **Rendering:**
 - Label: Uses `<Label>` component
 - Title: Uses `<Heading level={2}>`
-- Subtitle: Uses `<Text variant="lead">`
+- Subtitle: Uses `<Text variant="body">` with `max-w-3xl` (centered layouts use `mx-auto`)
 - Spacing: `mb-12` bottom margin
 
 ---
@@ -637,6 +637,8 @@ Content width container with max-width.
 interface ContainerProps {
   children: ReactNode;
   className?: string;
+  /** Width rail — default is `xl` (full site width) */
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 ```
 
@@ -652,9 +654,12 @@ interface ContainerProps {
 ```
 
 **Styling:**
-- Max width: `max-w-screen-xl` (1280px)
-- Horizontal padding: `px-6 md:px-8`
+- Default (`size="xl"`): `max-w-[1600px]` (**1600px**)
+- Other sizes: `sm` → `max-w-3xl`, `md` → `max-w-5xl`, `lg` → `max-w-6xl`, `full` → `max-w-full`
+- Horizontal padding: `px-4 sm:px-5 md:px-6 lg:px-8`
 - Centered: `mx-auto`
+
+**Related:** From `md` breakpoint, global `html { font-size: 106.25%; }` in `src/index.css` scales rem-based spacing and typography slightly (see DESIGN-GUIDELINES.md).
 
 ---
 
@@ -706,9 +711,11 @@ Main hero section with title, subtitle, and CTAs.
 
 **Content Structure:**
 - Aqua background (`background="accent"`)
+- Inner content wrapper: `max-w-6xl` centered (uses more of the widened site rail)
+- Subtitle: `max-w-2xl` centered under the headline
 - Large heading: "LABORATORY VERIFIED PEPTIDES"
 - Subtitle about purity and testing
-- Two CTAs: "Browse Collection" and "View Lab Results"
+- Two CTAs: "Browse Library" and "View Certificates"
 
 ---
 
@@ -780,9 +787,9 @@ Analytical transparency section with watermark.
 #### `<PeptideToggleSection>`
 **Location:** `src/components/sections/PeptideToggleSection.tsx`
 
-Filterable peptide display with category tabs.
+Three pillar cards with no section heading: **4:3** media area, title (`Heading` level 5), muted subtitle (`Text` small), **`pt-3`** above a full-width **aqua link** (analytical + COA: “View reports” → `/coa`; purity: “View guarantee” → `/guarantee`). Equal layout via **`items-stretch`**, **`h-full flex flex-col`**, and a **`flex-1`** spacer before the CTA row. COA card includes the sample COA image.
 
-**Props:** None (uses data from `src/data/peptides.ts`)
+**Props:** None
 
 **Usage:**
 ```tsx
@@ -790,9 +797,8 @@ Filterable peptide display with category tabs.
 ```
 
 **Features:**
-- Grey background
-- Category tabs for filtering
-- Shows 6 peptides per category
+- Neutral/grey section background
+- Three cards: `aspect-square` placeholder, then title + subtext
 - Responsive grid layout
 
 ---

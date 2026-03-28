@@ -7,7 +7,7 @@ export default function Features() {
     <Section background="neutral" spacing="xl" className="relative overflow-hidden">
       {/* Laminin symbol watermark - positioned right, partially clipped */}
       <img
-        src="/images/brand/symbol-teal-circle.png"
+        src="/images/brand/symbol-teal-circle.svg"
         alt=""
         className="absolute right-0 md:right-[-5%] top-1/2 -translate-y-1/2 w-[300px] md:w-[400px] opacity-[0.18] pointer-events-none select-none"
         aria-hidden="true"
