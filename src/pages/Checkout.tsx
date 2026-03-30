@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import CartSummary from '../components/cart/CartSummary';
@@ -8,6 +8,13 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
+import { cartLineKey } from '../types/cart';
+import PaymentForm, {
+  type CheckoutPaymentPhase,
+} from '../components/checkout/PaymentForm';
+import CheckoutPaymentErrorBoundary from '../components/checkout/CheckoutPaymentErrorBoundary';
+import { redirectToProteinStore, checkoutLog } from '../services/proteinCheckout';
 
 interface ShippingFormData {
   firstName: string;
@@ -24,7 +31,9 @@ interface ShippingFormData {
 export default function Checkout() {
   const { state, clearCart } = useCart();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showToast } = useToast();
+  const [paymentPhase, setPaymentPhase] = useState<CheckoutPaymentPhase>('idle');
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [formData, setFormData] = useState<ShippingFormData>({
     firstName: '',
     lastName: '',
@@ -47,32 +56,65 @@ export default function Checkout() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setPaymentError(null);
+    setPaymentPhase('redirecting');
+
+    const shipping = 15.0;
+    const tax = state.total * 0.1;
+    const grand_total = state.total + shipping + tax;
 
     try {
-      // TODO: Implement actual payment processing with Stripe
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { redirectUrl, peptide_order_id } = await redirectToProteinStore(
+        state.items,
+        {
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          postcode: formData.postcode,
+          country: formData.country,
+        },
+        {
+          subtotal: state.total,
+          shipping,
+          tax,
+          grand_total,
+        }
+      );
 
-      console.log('Order submitted:', {
-        shipping: formData,
-        items: state.items,
-        total: state.total,
-      });
-
-      // Clear cart and navigate to success page
+      checkoutLog('redirect', { redirectUrl, peptide_order_id });
       clearCart();
-      // TODO: Navigate to order confirmation page with order ID
-      alert('Order placed successfully! (This is a demo - no actual payment processed)');
-      navigate('/');
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Failed to process order. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+
+      const target = new URL(redirectUrl, window.location.href);
+      const isSameOrigin = target.origin === window.location.origin;
+      const isOrderConfirm =
+        target.pathname.includes('order-confirmation');
+
+      if (isSameOrigin && isOrderConfirm) {
+        navigate(`${target.pathname}${target.search}${target.hash}`);
+      } else {
+        window.location.assign(redirectUrl);
+      }
+    } catch (err) {
+      checkoutLog('checkout failed', err);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Could not start secure checkout. Please try again.';
+      setPaymentError(msg);
+      setPaymentPhase('error');
+      showToast(msg, 'error', 6000);
     }
   };
 
-  // Redirect if cart is empty
+  const handleRetry = () => {
+    setPaymentPhase('idle');
+    setPaymentError(null);
+  };
+
   if (state.items.length === 0) {
     return (
       <div className="min-h-screen">
@@ -95,14 +137,13 @@ export default function Checkout() {
     );
   }
 
-  const shipping = 15.0; // Flat rate shipping
-  const tax = state.total * 0.1; // 10% GST
+  const shipping = 15.0;
+  const tax = state.total * 0.1;
 
   return (
     <div className="min-h-screen bg-platinum">
       <Section background="white" spacing="lg">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <Link
               to="/cart"
@@ -116,9 +157,7 @@ export default function Checkout() {
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Shipping Form */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Contact Information */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
                     Contact Information
@@ -132,6 +171,7 @@ export default function Checkout() {
                         value={formData.firstName}
                         onChange={handleChange}
                         required
+                        disabled={paymentPhase === 'redirecting'}
                       />
                       <Input
                         id="lastName"
@@ -140,6 +180,7 @@ export default function Checkout() {
                         value={formData.lastName}
                         onChange={handleChange}
                         required
+                        disabled={paymentPhase === 'redirecting'}
                       />
                     </div>
                     <Input
@@ -150,6 +191,7 @@ export default function Checkout() {
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      disabled={paymentPhase === 'redirecting'}
                     />
                     <Input
                       id="phone"
@@ -159,11 +201,11 @@ export default function Checkout() {
                       value={formData.phone}
                       onChange={handleChange}
                       required
+                      disabled={paymentPhase === 'redirecting'}
                     />
                   </div>
                 </Card>
 
-                {/* Shipping Address */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
                     Shipping Address
@@ -176,6 +218,7 @@ export default function Checkout() {
                       value={formData.address}
                       onChange={handleChange}
                       required
+                      disabled={paymentPhase === 'redirecting'}
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <Input
@@ -185,6 +228,7 @@ export default function Checkout() {
                         value={formData.city}
                         onChange={handleChange}
                         required
+                        disabled={paymentPhase === 'redirecting'}
                       />
                       <Input
                         id="state"
@@ -193,6 +237,7 @@ export default function Checkout() {
                         value={formData.state}
                         onChange={handleChange}
                         required
+                        disabled={paymentPhase === 'redirecting'}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -203,9 +248,13 @@ export default function Checkout() {
                         value={formData.postcode}
                         onChange={handleChange}
                         required
+                        disabled={paymentPhase === 'redirecting'}
                       />
                       <div>
-                        <label htmlFor="country" className="block text-xs font-medium uppercase tracking-wide text-carbon-900 mb-2">
+                        <label
+                          htmlFor="country"
+                          className="mb-2 block text-xs font-medium uppercase tracking-wide text-carbon-900"
+                        >
                           Country
                         </label>
                         <select
@@ -214,7 +263,8 @@ export default function Checkout() {
                           value={formData.country}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-2.5 text-sm border border-carbon-900/20 rounded-sm focus:outline-none focus:ring-2 focus:ring-carbon-900 focus:border-transparent transition-colors"
+                          disabled={paymentPhase === 'redirecting'}
+                          className="w-full rounded-sm border border-carbon-900/20 px-4 py-2.5 text-sm transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-carbon-900"
                         >
                           <option value="Australia">Australia</option>
                           <option value="New Zealand">New Zealand</option>
@@ -227,45 +277,36 @@ export default function Checkout() {
                   </div>
                 </Card>
 
-                {/* Payment Method (Placeholder) */}
-                <Card padding="lg">
-                  <Heading level={5} className="mb-4">
-                    Payment Method
-                  </Heading>
-                  <div className="flex items-start gap-3 p-4 bg-accent/10 border border-accent/30 rounded-sm">
-                    <Lock className="w-5 h-5 text-accent-dark flex-shrink-0 mt-0.5" />
-                    <div>
-                      <Text variant="small" weight="medium" className="text-carbon-900 mb-1">
-                        Secure Payment Processing
-                      </Text>
-                      <Text variant="caption" muted>
-                        Payment integration with Stripe is coming soon. For now, this is a demo
-                        checkout flow.
-                      </Text>
-                    </div>
-                  </div>
-                </Card>
+                <CheckoutPaymentErrorBoundary>
+                  <Card padding="lg">
+                    <Heading level={5} className="mb-4">
+                      Payment
+                    </Heading>
+                    <Text variant="caption" muted className="mb-4 block leading-relaxed">
+                      Complete your purchase from the order summary — you will be
+                      redirected to our secure partner checkout.
+                    </Text>
+                  </Card>
+                </CheckoutPaymentErrorBoundary>
               </div>
 
-              {/* Order Summary */}
               <div className="lg:col-span-1">
                 <Card padding="lg" className="sticky top-24">
                   <Heading level={5} className="mb-6">
                     Order Summary
                   </Heading>
 
-                  {/* Order Items */}
                   <div className="mb-6 space-y-4">
                     {state.items.map((item) => (
-                      <div key={item.peptideId} className="flex gap-3">
-                        <div className="w-12 h-12 bg-neutral-50 rounded-sm flex-shrink-0 overflow-hidden">
+                      <div key={cartLineKey(item)} className="flex gap-3">
+                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-sm bg-neutral-50">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-full object-contain p-1"
+                            className="h-full w-full object-contain p-1"
                           />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <Text variant="caption" weight="medium" className="text-carbon-900">
                             {item.name}
                           </Text>
@@ -280,30 +321,21 @@ export default function Checkout() {
                     ))}
                   </div>
 
-                  <CartSummary subtotal={state.total} shipping={shipping} tax={tax} className="mb-6" />
+                  <CartSummary
+                    subtotal={state.total}
+                    shipping={shipping}
+                    tax={tax}
+                    className="mb-6"
+                  />
 
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    disabled={isSubmitting}
-                    className="w-full"
-                  >
-                    {isSubmitting ? (
-                      'Processing...'
-                    ) : (
-                      <>
-                        <Lock className="w-4 h-4 inline-block mr-2" />
-                        Place Order
-                      </>
-                    )}
-                  </Button>
+                  <PaymentForm
+                    phase={paymentPhase}
+                    errorMessage={paymentError}
+                    onRetry={handleRetry}
+                    submitLabel="Proceed to secure payment"
+                  />
 
-                  <Text variant="caption" muted className="text-center block mt-4">
-                    Your payment information is secure and encrypted
-                  </Text>
-
-                  <div className="mt-6 pt-6 border-t border-carbon-900/10">
+                  <div className="mt-6 border-t border-carbon-900/10 pt-6">
                     <Text variant="caption" muted className="leading-relaxed">
                       All products are intended for laboratory research use only.
                     </Text>

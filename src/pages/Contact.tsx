@@ -140,7 +140,13 @@ export default function Contact() {
 
           <div className="mt-12 pt-10 border-t border-carbon-900/10 text-center space-y-1.5">
             <Text variant="caption" muted>
-              <span className="font-medium text-carbon-900">Email:</span>{' '}info@lamininpeptidelab.com.au
+              <span className="font-medium text-carbon-900">Email:</span>{' '}
+              <a
+                href="mailto:info@lamininpeplab.com.au"
+                className="text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
+              >
+                info@lamininpeplab.com.au
+              </a>
             </Text>
             <Text variant="caption" muted>
               <span className="font-medium text-carbon-900">Response Time:</span>{' '}Within 24 hours

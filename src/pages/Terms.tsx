@@ -143,7 +143,13 @@ export default function Terms() {
               For questions about these Terms & Conditions, please contact us at:
             </Text>
             <Text variant="body" className="text-neutral-600 mt-2">
-              Email: info@lamininpeptidelab.com.au
+              Email:{' '}
+              <a
+                href="mailto:info@lamininpeplab.com.au"
+                className="font-medium text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
+              >
+                info@lamininpeplab.com.au
+              </a>
             </Text>
           </div>
         </div>

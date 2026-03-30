@@ -1,17 +1,18 @@
 import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CartItem as CartItemType } from '../../types/cart';
+import { CartItem as CartItemType, cartLineKey } from '../../types/cart';
 import { Text, Label } from '../ui/Typography';
 import { getProductSlug } from '../../data/productContent';
 
 interface CartItemProps {
   item: CartItemType;
-  onUpdateQuantity: (peptideId: string, quantity: number) => void;
-  onRemove: (peptideId: string) => void;
+  onUpdateQuantity: (lineKey: string, quantity: number) => void;
+  onRemove: (lineKey: string) => void;
 }
 
 export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
   const productSlug = getProductSlug(item.peptideId);
+  const lineKey = cartLineKey(item);
 
   return (
     <div className="flex gap-4 py-4 border-b border-carbon-900/10 last:border-0">
@@ -22,6 +23,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
         <img
           src={item.image}
           alt={item.name}
+          loading="lazy"
           className="w-full h-full object-contain p-2"
         />
       </Link>
@@ -35,7 +37,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           </Link>
           <button
             type="button"
-            onClick={() => onRemove(item.peptideId)}
+            onClick={() => onRemove(lineKey)}
             className="flex-shrink-0 p-1 text-neutral-500 hover:text-carbon-900 transition-colors"
             aria-label="Remove item"
           >
@@ -51,7 +53,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => onUpdateQuantity(item.peptideId, item.quantity - 1)}
+              onClick={() => onUpdateQuantity(lineKey, item.quantity - 1)}
               disabled={item.quantity <= 1}
               className="w-8 h-8 flex items-center justify-center border border-carbon-900/20 rounded-sm hover:bg-grey disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               aria-label="Decrease quantity"
@@ -65,7 +67,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
 
             <button
               type="button"
-              onClick={() => onUpdateQuantity(item.peptideId, item.quantity + 1)}
+              onClick={() => onUpdateQuantity(lineKey, item.quantity + 1)}
               className="w-8 h-8 flex items-center justify-center border border-carbon-900/20 rounded-sm hover:bg-grey transition-colors"
               aria-label="Increase quantity"
             >

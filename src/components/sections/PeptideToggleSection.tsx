@@ -21,6 +21,9 @@ const pillars: Pillar[] = [
     title: 'Analytical verification',
     subtitle:
       'Each compound undergoes analytical verification to confirm purity and research-grade consistency.',
+    imageSrc: '/images/coa.png',
+    imageAlt:
+      'Sample test report and certificate-style documentation from analytical laboratory',
     cta: { label: 'View reports', to: '/coa' },
   },
   {
@@ -28,9 +31,9 @@ const pillars: Pillar[] = [
     title: 'COA transparency',
     subtitle:
       'Certificates of Analysis available for every compound supplied.',
-    imageSrc: '/images/extra/COA%20transperancy.png',
+    imageSrc: `/images/extra/${encodeURIComponent('COA transperancy.png')}`,
     imageAlt:
-      'Sample test report and certificate-style documentation from analytical laboratory',
+      'Certificates of analysis and transparency documentation for supplied compounds',
     cta: { label: 'View reports', to: '/coa' },
   },
   {
@@ -38,6 +41,9 @@ const pillars: Pillar[] = [
     title: 'Purity assurance guarantee',
     subtitle:
       'Strict quality standards backed by our Purity Assurance Guarantee.',
+    imageSrc: '/images/purity.png',
+    imageAlt:
+      'Laboratory scale measuring a sealed vial for precise quality control',
     cta: { label: 'View guarantee', to: '/guarantee' },
   },
 ];

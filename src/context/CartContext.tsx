@@ -1,6 +1,12 @@
 import { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { CartItem, CartState, CartContextType } from '../types/cart';
+import {
+  CartItem,
+  CartState,
+  CartContextType,
+  cartLineKey,
+  matchesCartLine,
+} from '../types/cart';
 
 const CartContext = createContext<CartContextType | null>(null);
 
@@ -23,43 +29,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (item: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
       setItems((currentItems) => {
-        const existingItem = currentItems.find((i) => i.peptideId === item.peptideId);
+        const key = cartLineKey(item);
+        const existingItem = currentItems.find((i) => cartLineKey(i) === key);
 
         if (existingItem) {
-          // Update quantity if item exists
           return currentItems.map((i) =>
-            i.peptideId === item.peptideId
-              ? { ...i, quantity: i.quantity + quantity }
-              : i
+            cartLineKey(i) === key ? { ...i, quantity: i.quantity + quantity } : i
           );
         }
 
-        // Add new item
         return [...currentItems, { ...item, quantity }];
       });
     },
     [setItems]
   );
 
-  // Remove item from cart
   const removeItem = useCallback(
-    (peptideId: string) => {
-      setItems((currentItems) => currentItems.filter((item) => item.peptideId !== peptideId));
+    (lineKey: string) => {
+      setItems((currentItems) =>
+        currentItems.filter((item) => cartLineKey(item) !== lineKey)
+      );
     },
     [setItems]
   );
 
-  // Update item quantity
   const updateQuantity = useCallback(
-    (peptideId: string, quantity: number) => {
+    (lineKey: string, quantity: number) => {
       if (quantity <= 0) {
-        removeItem(peptideId);
+        removeItem(lineKey);
         return;
       }
 
       setItems((currentItems) =>
         currentItems.map((item) =>
-          item.peptideId === peptideId ? { ...item, quantity } : item
+          cartLineKey(item) === lineKey ? { ...item, quantity } : item
         )
       );
     },
@@ -73,16 +76,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Check if item is in cart
   const isInCart = useCallback(
-    (peptideId: string) => {
-      return items.some((item) => item.peptideId === peptideId);
+    (peptideId: string, variantId?: string) => {
+      return items.some((item) => matchesCartLine(item, peptideId, variantId));
     },
     [items]
   );
 
-  // Get item quantity
   const getItemQuantity = useCallback(
-    (peptideId: string) => {
-      const item = items.find((i) => i.peptideId === peptideId);
+    (peptideId: string, variantId?: string) => {
+      const item = items.find((i) => matchesCartLine(i, peptideId, variantId));
       return item ? item.quantity : 0;
     },
     [items]

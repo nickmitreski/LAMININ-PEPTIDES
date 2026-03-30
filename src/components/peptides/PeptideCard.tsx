@@ -3,6 +3,7 @@ import Button from '../ui/Button';
 import { Label, Text } from '../ui/Typography';
 import { Peptide } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
+import { getDisplayPriceForPeptide } from '../../data/productPricing';
 import { ArrowRight, Plus, ShoppingCart } from 'lucide-react';
 
 interface PeptideCardProps {
@@ -15,6 +16,7 @@ const addToCartClass =
 export default function PeptideCard({ peptide }: PeptideCardProps) {
   const title = peptide.name.toUpperCase();
   const productPath = `/products/${getProductSlug(peptide.id)}`;
+  const priceLabel = getDisplayPriceForPeptide(peptide.id);
 
   return (
     <div className="group flex h-full flex-col motion-safe:transition-transform motion-safe:duration-300 md:hover:-translate-y-1">
@@ -23,6 +25,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
           <img
             src={peptide.image}
             alt={`${peptide.name} — laboratory vial`}
+            loading="lazy"
             className="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
           />
           <span
@@ -43,6 +46,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
       <Text variant="caption" muted className="mb-2 line-clamp-2 text-[0.65rem] leading-snug sm:mb-3 sm:text-xs">
         {peptide.category}
         {peptide.coaVerified ? ' · COA verified' : ''} · {peptide.purity} purity
+        {priceLabel ? ` · ${priceLabel}` : ''}
       </Text>
 
       <div className="mt-auto flex flex-col gap-2">

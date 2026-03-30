@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { Heading, Text } from '../components/ui/Typography';
 import { useCart } from '../context/CartContext';
+import { cartLineKey } from '../types/cart';
 
 export default function Cart() {
   const { state, updateQuantity, removeItem, clearCart } = useCart();
@@ -56,7 +57,7 @@ export default function Cart() {
                 <div className="divide-y divide-carbon-900/10">
                   {state.items.map((item) => (
                     <CartItem
-                      key={item.peptideId}
+                      key={cartLineKey(item)}
                       item={item}
                       onUpdateQuantity={updateQuantity}
                       onRemove={removeItem}

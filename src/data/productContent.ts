@@ -1,6 +1,6 @@
 /**
- * PDP copy and URL slugs. Hero imagery uses catalogue renders in-app
- * (`ProductHeroVisual`), not shop screenshot PNGs.
+ * PDP copy and URL slugs. Hero imagery is each compound’s catalogue render
+ * (`peptide.image` → /images/products/ CFG line).
  */
 
 export type ProductCopyEntry = {
@@ -323,7 +323,7 @@ export const PRODUCT_HEADLINE: Record<string, string> = {
   selank: 'SELANK 10MG',
   'ss-31': 'SS-31 50MG',
   glow: 'GLOW 70MG',
-  'ghk-cu': 'GHK-CU 100MG',
+  'ghk-cu': 'GHK-CU',
   'igf-1-lr3': 'IGF-1 LR3 1MG',
   cerebrolysin: 'CEREBROLYSIN 60MG',
   'tb-500': 'TB-500 10MG',
@@ -335,7 +335,7 @@ export const PRODUCT_HEADLINE: Record<string, string> = {
   'bacteriostatic-water': 'BAC WATER 3ML',
   'ara-290': 'ARA-290 10MG',
   ipamorelin: 'IPAMORELIN 10MG',
-  'bpc-157': 'BPC-157 10MG',
+  'bpc-157': 'BPC-157',
   'nad-plus': 'NAD+ 1000MG',
   semax: 'SEMAX 10MG',
   klow: 'KLOW 80MG',

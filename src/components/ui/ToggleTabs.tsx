@@ -1,7 +1,12 @@
 import Button from './Button';
 
+export type ToggleTabItem = { id: string; label: string };
+
 interface ToggleTabsProps {
-  tabs: string[];
+  /** Prefer `items` when labels differ from ids (e.g. library filters). */
+  items?: ToggleTabItem[];
+  /** @deprecated use `items` with id === label when strings are enough */
+  tabs?: string[];
   activeTab: string;
   onTabChange: (tab: string) => void;
   /** Merged onto the tabs row wrapper (e.g. spacing when a subtitle sits below). */
@@ -9,11 +14,18 @@ interface ToggleTabsProps {
 }
 
 export default function ToggleTabs({
+  items,
   tabs,
   activeTab,
   onTabChange,
   className = '',
 }: ToggleTabsProps) {
+  const resolved: ToggleTabItem[] =
+    items ??
+    (tabs ?? []).map((t) => ({
+      id: t,
+      label: t,
+    }));
   return (
     <div
       className={[
@@ -32,23 +44,23 @@ export default function ToggleTabs({
         role="tablist"
         aria-label="Filter catalogue"
       >
-        {tabs.map((tab) => (
+        {resolved.map(({ id, label }) => (
           <Button
-            key={tab}
+            key={id}
             type="button"
             role="tab"
-            aria-selected={activeTab === tab}
-            onClick={() => onTabChange(tab)}
-            variant={activeTab === tab ? 'primary' : 'outline'}
+            aria-selected={activeTab === id}
+            onClick={() => onTabChange(id)}
+            variant={activeTab === id ? 'primary' : 'outline'}
             size="md"
             className={[
               'shrink-0 snap-start min-h-11 touch-manipulation px-4 py-2.5 text-xs sm:min-h-0 sm:px-6 sm:text-sm',
-              activeTab === tab
+              activeTab === id
                 ? 'bg-accent hover:bg-accent-dark text-carbon-900'
                 : 'bg-white',
             ].join(' ')}
           >
-            {tab}
+            {label}
           </Button>
         ))}
       </div>

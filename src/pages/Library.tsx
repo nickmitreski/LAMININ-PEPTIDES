@@ -11,8 +11,9 @@ import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
 import {
   peptideCategories,
+  libraryTabItems,
   getPeptidesByCategory,
-  libraryCategorySubtitles,
+  filterPeptidesByName,
 } from '../data/peptides';
 
 export default function Library() {
@@ -22,7 +23,12 @@ export default function Library() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const param = new URLSearchParams(location.search).get('category');
+    const params = new URLSearchParams(location.search);
+    const param = params.get('category');
+    const q = params.get('q');
+    if (q !== null) {
+      setSearchTerm(q);
+    }
     if (
       param &&
       (peptideCategories as readonly string[]).includes(param)
@@ -35,19 +41,16 @@ export default function Library() {
 
   const handleCategoryChange = (tab: string) => {
     setActiveCategory(tab as string);
+    const q = searchTerm.trim();
     if (tab === 'All') {
-      setSearchParams({}, { replace: true });
+      setSearchParams(q ? { q } : {}, { replace: true });
     } else {
-      setSearchParams({ category: tab }, { replace: true });
+      setSearchParams(q ? { category: tab, q } : { category: tab }, { replace: true });
     }
   };
 
   const categoryPeptides = getPeptidesByCategory(activeCategory);
-  const filteredPeptides = searchTerm
-    ? categoryPeptides.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : categoryPeptides;
+  const filteredPeptides = filterPeptidesByName(searchTerm, categoryPeptides);
 
   return (
     <div className="min-h-screen">
@@ -70,22 +73,10 @@ export default function Library() {
 
         <div className="mb-8 md:mb-12">
           <ToggleTabs
-            tabs={[...peptideCategories]}
+            items={libraryTabItems}
             activeTab={activeCategory}
             onTabChange={handleCategoryChange}
-            className="mb-3"
           />
-          <Text
-            variant="caption"
-            muted
-            className="mx-auto block max-w-md px-1 text-center leading-snug tracking-wide text-carbon-700"
-          >
-            {
-              libraryCategorySubtitles[
-                activeCategory as keyof typeof libraryCategorySubtitles
-              ]
-            }
-          </Text>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">

@@ -3,11 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import Container from './Container';
 import CartDrawer from '../cart/CartDrawer';
+import HeaderSearch from './HeaderSearch';
 import { useCart } from '../../context/CartContext';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const { state } = useCart();
 
@@ -58,13 +60,14 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-0.5 sm:gap-1">
-            <Link
-              to="/library"
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 touch-manipulation active:bg-white/15"
-              aria-label="Search library"
+              aria-label="Search catalogue"
             >
               <Search className="h-5 w-5" strokeWidth={2} aria-hidden />
-            </Link>
+            </button>
             <button
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
@@ -117,6 +120,7 @@ export default function Header() {
       )}
 
       <CartDrawer isOpen={isCartDrawerOpen} onClose={() => setIsCartDrawerOpen(false)} />
+      <HeaderSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }

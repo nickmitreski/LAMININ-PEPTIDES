@@ -2,6 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { CartProvider } from './context/CartContext';
+import { ToastProvider } from './context/ToastContext';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
+import './utils/dataValidation';
 import './index.css';
 import './styles/tokens.css';
 import './styles/base.css';
@@ -11,8 +14,12 @@ import './styles/utilities.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <CartProvider>
-      <App />
-    </CartProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   </StrictMode>
 );

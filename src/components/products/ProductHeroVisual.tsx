@@ -1,5 +1,5 @@
 /**
- * PDP hero — catalogue vial on the section white, aligned toward the buy column on large screens.
+ * PDP hero — catalogue vial render from /images/products/ (peptide.image).
  */
 interface ProductHeroVisualProps {
   imageSrc: string;
@@ -16,6 +16,7 @@ export default function ProductHeroVisual({
         <img
           src={imageSrc}
           alt={`${productName} — laboratory vial`}
+          loading="eager"
           className="h-auto w-full max-h-[min(28rem,58vh)] object-contain object-center"
         />
       </div>

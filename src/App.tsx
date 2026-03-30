@@ -7,6 +7,7 @@ import {
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollToTop from './components/layout/ScrollToTop';
+import SkipLink from './components/layout/SkipLink';
 import Home from './pages/Home';
 import Library from './pages/Library';
 import COA from './pages/COA';
@@ -16,19 +17,23 @@ import Guarantee from './pages/Guarantee';
 import NotFound from './pages/NotFound';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import ProductPage from './pages/ProductPage';
+import AdminInventory from './pages/AdminInventory';
 import EntryGate from './components/entry/EntryGate';
 
 function App() {
   return (
     <Router>
       <EntryGate>
+        <SkipLink />
         <ScrollToTop />
         <div className="min-h-screen bg-platinum text-carbon-900">
           <Header />
-          <Routes>
+          <main id="main-content">
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/library" element={<Library />} />
             <Route path="/products/:slug" element={<ProductPage />} />
@@ -39,10 +44,13 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-confirmation" element={<OrderConfirmation />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
+            <Route path="/admin/inventory" element={<AdminInventory />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </main>
           <Footer />
         </div>
       </EntryGate>

@@ -35,3 +35,16 @@ coverage
 
 # Build
 build
+
+# Documentation (keep only README.md and QUICK_START.md)
+AUDIT-*.md
+CHANGELOG-*.md
+COMPREHENSIVE-*.md
+FIX-*.md
+IMPLEMENTATION-*.md
+VISUAL-*.md
+DOCUMENTATION-*.md
+*-SUMMARY.md
+DOCUMENTATION/
+credentials.md
+design-notes/

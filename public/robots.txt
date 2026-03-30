@@ -1,4 +1,9 @@
+# Laminin Peptide Lab - Robots.txt
 User-agent: *
 Allow: /
 
-Sitemap: https://lamininpeptidelab.com.au/sitemap.xml
+# Disallow admin routes
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://laminincollective.com/sitemap.xml

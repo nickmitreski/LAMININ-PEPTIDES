@@ -33,18 +33,27 @@ export const peptideCategories = [
   'Longevity',
 ] as const;
 
-/** Shown under library toggles for the active filter (collection naming). */
-export const libraryCategorySubtitles: Record<
-  (typeof peptideCategories)[number],
-  string
-> = {
-  All: 'in alphabetical order',
-  Healing: 'tissue regeneration',
-  Cognitive: 'cognitive and neurological research',
-  Metabolic: 'metabolic research',
-  Performance: 'performance biology',
-  Longevity: 'longevity and cellular research',
-};
+export type LibraryCategoryId = (typeof peptideCategories)[number];
+
+/** Library filter tabs: stable `id` for URL/query + data; `label` shown in UI. */
+export const libraryTabItems: { id: LibraryCategoryId; label: string }[] = [
+  { id: 'All', label: 'All' },
+  { id: 'Healing', label: 'Tissue regeneration' },
+  { id: 'Cognitive', label: 'Cognitive and neurological research' },
+  { id: 'Metabolic', label: 'Metabolic Research' },
+  { id: 'Performance', label: 'Performance biology' },
+  { id: 'Longevity', label: 'Longevity and cellular research' },
+];
+
+/** Acetic acid water & bacteriostatic water — liquid ancillaries (specs differ on PDP). */
+export const LIQUID_ANCILLARY_PEPTIDE_IDS = [
+  'acetic-acid-water',
+  'bacteriostatic-water',
+] as const;
+
+export function isLiquidAncillaryPeptide(peptideId: string): boolean {
+  return (LIQUID_ANCILLARY_PEPTIDE_IDS as readonly string[]).includes(peptideId);
+}
 
 // Filenames match assets in public/images/products/ (CFG product line).
 export const cfgProductFiles = {
@@ -52,10 +61,11 @@ export const cfgProductFiles = {
   mt1: 'CFG-002_69 — Melanotan-1 10mg.png',
   mt2: 'CFG-003_69 — Melanotan-2 10mg.png',
   kpv: 'CFG-004_79 — KPV 10mg.png',
-  cjcIpa: 'CFG-005_179 — CJC-1295 + Ipamorelin.png',
+  /** ASCII copies of CFG-005 / CFG-010 — same art; avoids + / em dash / spaces in URLs on some hosts */
+  cjcIpa: 'cjc1295-ipa-20mg.png',
   epithalon: 'CFG-006_179 — Epithalon 50mg.png',
   amino1mq: 'CFG-009_99 — 5-amino-1MQ 10mg.png',
-  bpcTb: 'CFG-010_149 — BPC-157 + TB-500 blend.png',
+  bpcTb: 'bpc157-tb500-20mg.png',
   selank: 'CFG-011_79 — Selank 10mg.png',
   ss31: 'CFG-012_249 — SS-31 50mg.png',
   glow: 'CFG-015_179 — GLOW 70mg.png',
@@ -72,7 +82,7 @@ export const cfgProductFiles = {
   ara290: 'CFG-029_99 — Ara-290 10mg.png',
   ipamorelin: 'CFG-030_89 — Ipamorelin 10mg.png',
   bpc157: 'CFG-031_99 — BPC-157 10mg.png',
-  /** ASCII filename copy avoids + / special chars in URLs on some hosts */
+  /** ASCII filename; avoids + and special chars in URLs on some hosts */
   nad: 'CFG-032-NAD-1000mg.png',
   semax: 'CFG-034_79 — Semax 10mg.png',
   klow: 'CFG-035_189 — KLOW 80mg.png',
@@ -255,7 +265,7 @@ export const peptides: Peptide[] = [
     name: 'Acetic Acid Water 10ml',
     category: 'Healing',
     libraryFilters: ['Healing'],
-    purity: '99%+',
+    purity: 'N/A',
     coaVerified: true,
     image: productImageFile(cfgProductFiles.acetic),
   },
@@ -264,7 +274,7 @@ export const peptides: Peptide[] = [
     name: 'Bacteriostatic Water 3ml',
     category: 'Healing',
     libraryFilters: ['Healing'],
-    purity: '99%+',
+    purity: 'N/A',
     coaVerified: true,
     image: productImageFile(cfgProductFiles.bacWater),
   },
@@ -345,4 +355,14 @@ export function getPeptidesByCategory(category: string): Peptide[] {
   return category === 'All'
     ? sortPeptidesByName(list)
     : list.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Same rule as the library search field: substring on display name, case-insensitive. */
+export function filterPeptidesByName(
+  searchTerm: string,
+  peptidesList: Peptide[]
+): Peptide[] {
+  const q = searchTerm.trim().toLowerCase();
+  if (!q) return peptidesList;
+  return peptidesList.filter((p) => p.name.toLowerCase().includes(q));
 }

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { X, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { cartLineKey } from '../../types/cart';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
 import Button from '../ui/Button';
@@ -96,7 +97,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <div className="py-3 sm:py-4">
                 {state.items.map((item) => (
                   <CartItem
-                    key={item.peptideId}
+                    key={cartLineKey(item)}
                     item={item}
                     onUpdateQuantity={updateQuantity}
                     onRemove={removeItem}

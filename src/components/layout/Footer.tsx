@@ -6,11 +6,17 @@ export default function Footer() {
   const footerLinks = {
     'Research Areas': [
       { label: 'All compounds', path: '/library?category=All' },
-      { label: 'Healing & tissue', path: '/library?category=Healing' },
-      { label: 'Cognitive', path: '/library?category=Cognitive' },
-      { label: 'Metabolic', path: '/library?category=Metabolic' },
-      { label: 'Performance', path: '/library?category=Performance' },
-      { label: 'Longevity', path: '/library?category=Longevity' },
+      { label: 'Tissue regeneration', path: '/library?category=Healing' },
+      {
+        label: 'Cognitive and neurological research',
+        path: '/library?category=Cognitive',
+      },
+      { label: 'Metabolic Research', path: '/library?category=Metabolic' },
+      { label: 'Performance biology', path: '/library?category=Performance' },
+      {
+        label: 'Longevity and cellular research',
+        path: '/library?category=Longevity',
+      },
     ],
     'Resources': [
       { label: 'Certificate of Analysis', path: '/coa' },

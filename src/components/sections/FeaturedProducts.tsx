@@ -3,7 +3,10 @@ import Section from '../layout/Section';
 import SectionTitle from '../ui/SectionTitle';
 import Button from '../ui/Button';
 import { Label, Text } from '../ui/Typography';
-import { featuredProducts } from '../../data/featuredProducts';
+import {
+  featuredProducts,
+  getDisplayPriceForPeptide,
+} from '../../data/featuredProducts';
 import { getProductSlug } from '../../data/productContent';
 
 export default function FeaturedProducts() {
@@ -25,6 +28,7 @@ export default function FeaturedProducts() {
               <img
                 src={product.image}
                 alt={product.name}
+                loading="lazy"
                 className="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
               />
             </div>
@@ -35,10 +39,8 @@ export default function FeaturedProducts() {
               {product.name}
             </Label>
             <Text variant="caption" muted>
-              {product.pricePrefix && (
-                <span className="mr-1">{product.pricePrefix}</span>
-              )}
-              {product.price}
+              {getDisplayPriceForPeptide(product.peptideId) ??
+                'Contact for pricing'}
             </Text>
           </Link>
         ))}

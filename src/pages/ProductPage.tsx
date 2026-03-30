@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Section from '../components/layout/Section';
 import Container from '../components/layout/Container';
 import ProductHeroVisual from '../components/products/ProductHeroVisual';
@@ -11,30 +11,47 @@ import ProductPageAccordion, {
 import ProductDescriptionModal from '../components/products/ProductDescriptionModal';
 import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
-import { allPeptides } from '../data/peptides';
+import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
 import {
   getPeptideIdFromSlug,
   getProductCopy,
   getProductHeadline,
 } from '../data/productContent';
 import { coaPdfFilenameForPeptide, coaPdfPublicUrl } from '../data/coaPdfs';
-import { getDisplayPriceForPeptide } from '../data/featuredProducts';
+import {
+  getDisplayPriceForPeptide,
+  getDisplayPriceForVariant,
+  getNumericPriceForVariantOrPeptide,
+  getVariants,
+} from '../data/productPricing';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
+import { ProductStructuredData } from '../components/seo/StructuredData';
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { addItem, isInCart } = useCart();
+  const { showToast } = useToast();
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
-  const [showAddedMessage, setShowAddedMessage] = useState(false);
 
   const peptideId = slug ? getPeptideIdFromSlug(slug) : undefined;
   const peptide = peptideId
     ? allPeptides.find((p) => p.id === peptideId)
     : undefined;
   const copy = peptideId ? getProductCopy(peptideId) : undefined;
+
+  useEffect(() => {
+    if (!peptideId) {
+      setSelectedVariantId(undefined);
+      return;
+    }
+    const v = getVariants(peptideId);
+    setSelectedVariantId(v?.[0]?.id);
+  }, [peptideId]);
 
   useEffect(() => {
     if (!copy) return;
@@ -72,25 +89,49 @@ export default function ProductPage() {
     );
   }
 
-  const priceLine = getDisplayPriceForPeptide(peptide.id);
-  const coaFile = coaPdfFilenameForPeptide(peptide.id);
+  const variants = getVariants(peptide.id);
+  const effectiveVariantId = variants?.length
+    ? (selectedVariantId ?? variants[0].id)
+    : undefined;
+  const selectedVariant = variants?.find((v) => v.id === effectiveVariantId);
+
+  const priceLine = variants?.length && effectiveVariantId
+    ? getDisplayPriceForVariant(peptide.id, effectiveVariantId)
+    : getDisplayPriceForPeptide(peptide.id);
+
+  const coaFile = coaPdfFilenameForPeptide(
+    peptide.id,
+    variants?.length ? effectiveVariantId : undefined
+  );
   const headline = getProductHeadline(peptide.id, peptide.name);
+  const liquidAncillary = isLiquidAncillaryPeptide(peptide.id);
+  const price = getNumericPriceForVariantOrPeptide(
+    peptide.id,
+    variants?.length ? effectiveVariantId : undefined
+  );
+  const productPath = `/products/${slug}`;
 
   const goBack = () => {
     navigate(-1);
   };
 
   const handleAddToCart = () => {
-    if (!peptide || !priceLine) return;
+    if (!peptide) return;
+    const price = getNumericPriceForVariantOrPeptide(
+      peptide.id,
+      variants?.length ? effectiveVariantId : undefined
+    );
+    if (price === null) return;
 
-    // Parse price from string (e.g., "FROM $149.00" or "$79.00")
-    const priceMatch = priceLine.match(/\$([0-9.]+)/);
-    const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+    const cartName = selectedVariant
+      ? `${peptide.name} (${selectedVariant.label})`
+      : peptide.name;
 
     addItem(
       {
         peptideId: peptide.id,
-        name: peptide.name,
+        variantId: selectedVariant ? effectiveVariantId : undefined,
+        name: cartName,
         price,
         image: peptide.image,
         purity: peptide.purity,
@@ -98,9 +139,8 @@ export default function ProductPage() {
       quantity
     );
 
-    // Show success message
-    setShowAddedMessage(true);
-    setTimeout(() => setShowAddedMessage(false), 3000);
+    // Show success notification
+    showToast(`${cartName} added to cart successfully!`, 'success', 3000);
 
     // Reset quantity
     setQuantity(1);
@@ -108,6 +148,16 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-platinum pb-20">
+      <ProductStructuredData
+        name={headline}
+        description={copy.paragraphs[0] || ''}
+        image={peptide.image}
+        price={price !== null ? price : undefined}
+        purity={peptide.purity}
+        category={peptide.category}
+        sku={peptide.id}
+        url={productPath}
+      />
       <div className="sticky top-[calc(env(safe-area-inset-top,0px)+5.25rem)] z-40 border-b border-carbon-900/10 bg-white/95 backdrop-blur-sm md:top-24">
         <Container>
           <div className="flex min-h-12 items-center py-1 md:h-16 md:py-0">
@@ -138,6 +188,30 @@ export default function ProductPage() {
               <h1 className="text-2xl font-bold uppercase leading-[1.15] tracking-[0.06em] text-carbon-900 sm:text-3xl md:text-4xl md:tracking-[0.07em]">
                 {headline}
               </h1>
+
+              {variants && variants.length > 0 && (
+                <div className="mt-4 max-w-xs">
+                  <Label
+                    tone="muted"
+                    className="mb-2 block text-[0.65rem] tracking-[0.18em] sm:text-xs"
+                  >
+                    STRENGTH
+                  </Label>
+                  <select
+                    id="product-variant"
+                    className="w-full rounded-sm border border-carbon-900/20 bg-white px-3 py-2.5 text-sm font-medium text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2"
+                    value={effectiveVariantId}
+                    onChange={(e) => setSelectedVariantId(e.target.value)}
+                    aria-label="Select product strength"
+                  >
+                    {variants.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.label} — ${v.price.toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-6 sm:gap-y-2">
                 {priceLine ? (
@@ -171,15 +245,6 @@ export default function ProductPage() {
                   onChange={setQuantity}
                 />
 
-                {showAddedMessage && (
-                  <div className="flex items-center gap-2 px-4 py-3 bg-accent/20 border border-accent rounded-sm animate-fadeIn">
-                    <CheckCircle2 className="w-5 h-5 text-accent-dark flex-shrink-0" strokeWidth={2} />
-                    <Text variant="small" weight="medium" className="text-carbon-900">
-                      Added to cart successfully!
-                    </Text>
-                  </div>
-                )}
-
                 <Button
                   variant="primary"
                   size="lg"
@@ -187,7 +252,12 @@ export default function ProductPage() {
                   onClick={handleAddToCart}
                   className="w-full py-3.5 uppercase tracking-button md:py-4"
                 >
-                  {isInCart(peptide.id) ? 'Add More to Cart' : 'Add to Cart'}
+                  {isInCart(
+                    peptide.id,
+                    variants?.length ? effectiveVariantId : undefined
+                  )
+                    ? 'Add More to Cart'
+                    : 'Add to Cart'}
                 </Button>
 
                 <Text variant="small" className="leading-relaxed text-neutral-600">
@@ -224,14 +294,21 @@ export default function ProductPage() {
                         <strong className="text-carbon-900">Compound:</strong>{' '}
                         {peptide.name}
                       </Text>
+                      {selectedVariant && (
+                        <Text variant="body" className="text-neutral-600">
+                          <strong className="text-carbon-900">Strength:</strong>{' '}
+                          {selectedVariant.label}
+                        </Text>
+                      )}
                       <Text variant="body" className="text-neutral-600">
                         <strong className="text-carbon-900">Appearance:</strong>{' '}
-                        Lyophilised powder (research grade), unless otherwise
-                        stated for ancillary products.
+                        {liquidAncillary
+                          ? 'Liquid'
+                          : 'Lyophilised powder (research grade), unless otherwise stated for ancillary products.'}
                       </Text>
                       <Text variant="body" className="text-neutral-600">
                         <strong className="text-carbon-900">Purity (stated):</strong>{' '}
-                        {peptide.purity}
+                        {liquidAncillary ? 'N/A' : peptide.purity}
                       </Text>
                       <Text variant="body" muted className="text-sm italic">
                         Extended specification tables and lot-specific data may
@@ -281,16 +358,26 @@ export default function ProductPage() {
                   title: 'STORAGE & HANDLING',
                   content: (
                     <div className="space-y-3">
-                      <Text variant="body" className="text-neutral-600">
-                        Store in line with standard laboratory practice: cool,
-                        dry, and protected from light where applicable. Many
-                        lyophilised peptides are held refrigerated prior to
-                        reconstitution.
-                      </Text>
-                      <Text variant="body" className="text-neutral-600">
-                        After reconstitution, follow your institution’s SOPs and
-                        relevant literature for stability and handling.
-                      </Text>
+                      {liquidAncillary ? (
+                        <Text variant="body" className="text-neutral-600">
+                          Store sealed liquid ancillaries in line with the label
+                          and standard laboratory practice: cool, dry, and
+                          protected from light unless otherwise directed.
+                        </Text>
+                      ) : (
+                        <>
+                          <Text variant="body" className="text-neutral-600">
+                            Store in line with standard laboratory practice: cool,
+                            dry, and protected from light where applicable. Many
+                            lyophilised peptides are held refrigerated prior to
+                            reconstitution.
+                          </Text>
+                          <Text variant="body" className="text-neutral-600">
+                            After reconstitution, follow your institution’s SOPs
+                            and relevant literature for stability and handling.
+                          </Text>
+                        </>
+                      )}
                     </div>
                   ),
                 },
