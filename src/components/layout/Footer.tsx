@@ -57,7 +57,7 @@ export default function Footer() {
                     <li key={link.path}>
                       <Link
                         to={link.path}
-                        className="text-xs text-white hover:text-accent transition-colors"
+                        className="inline-flex min-h-10 max-w-full items-center py-1.5 text-xs text-white transition-colors hover:text-accent touch-manipulation"
                       >
                         {link.label}
                       </Link>
@@ -76,19 +76,19 @@ export default function Footer() {
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
                 <Link
                   to="/privacy"
-                  className="text-xs text-white transition-colors hover:text-accent"
+                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   to="/terms-and-conditions"
-                  className="text-xs text-white transition-colors hover:text-accent"
+                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
                 >
                   Terms &amp; Conditions
                 </Link>
                 <Link
                   to="/guarantee"
-                  className="text-xs text-white transition-colors hover:text-accent"
+                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
                 >
                   Purity guarantee
                 </Link>

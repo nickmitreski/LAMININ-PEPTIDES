@@ -221,11 +221,18 @@ export async function redirectToProteinStore(
     ''
   );
   const apiKey = import.meta.env.VITE_PROTEIN_STORE_API_KEY as string | undefined;
+  const softLaunch = import.meta.env.VITE_CHECKOUT_SOFT_LAUNCH === 'true';
 
-  if (!baseUrl) {
-    checkoutLog('VITE_PROTEIN_STORE_URL missing — using return-only flow');
-    const fallback = `${window.location.origin}/order-confirmation?order_id=${encodeURIComponent(peptide_order_id)}`;
-    return { redirectUrl: fallback, peptide_order_id };
+  const orderConfirmWithFlag = (id: string) =>
+    `${window.location.origin}/order-confirmation?order_id=${encodeURIComponent(id)}&pending_payment=1`;
+
+  if (!baseUrl || softLaunch) {
+    if (softLaunch) {
+      checkoutLog('VITE_CHECKOUT_SOFT_LAUNCH — skipping partner redirect');
+    } else {
+      checkoutLog('VITE_PROTEIN_STORE_URL missing — using return-only flow');
+    }
+    return { redirectUrl: orderConfirmWithFlag(peptide_order_id), peptide_order_id };
   }
 
   const apiUrl = `${baseUrl}${DEFAULT_API_PATH}`;

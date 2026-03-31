@@ -38,10 +38,10 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           <button
             type="button"
             onClick={() => onRemove(lineKey)}
-            className="flex-shrink-0 p-1 text-neutral-500 hover:text-carbon-900 transition-colors"
+            className="-m-1.5 flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 touch-manipulation"
             aria-label="Remove item"
           >
-            <X className="w-4 h-4" strokeWidth={2} />
+            <X className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -55,10 +55,10 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
               type="button"
               onClick={() => onUpdateQuantity(lineKey, item.quantity - 1)}
               disabled={item.quantity <= 1}
-              className="w-8 h-8 flex items-center justify-center border border-carbon-900/20 rounded-sm hover:bg-grey disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey disabled:cursor-not-allowed disabled:opacity-30 touch-manipulation sm:h-9 sm:w-9"
               aria-label="Decrease quantity"
             >
-              <span className="text-sm font-medium">−</span>
+              <span className="text-base font-medium sm:text-sm">−</span>
             </button>
 
             <Text variant="small" weight="medium" className="min-w-[2ch] text-center">
@@ -68,10 +68,10 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
             <button
               type="button"
               onClick={() => onUpdateQuantity(lineKey, item.quantity + 1)}
-              className="w-8 h-8 flex items-center justify-center border border-carbon-900/20 rounded-sm hover:bg-grey transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey touch-manipulation sm:h-9 sm:w-9"
               aria-label="Increase quantity"
             >
-              <span className="text-sm font-medium">+</span>
+              <span className="text-base font-medium sm:text-sm">+</span>
             </button>
           </div>
 

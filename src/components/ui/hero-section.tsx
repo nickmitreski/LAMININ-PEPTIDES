@@ -102,7 +102,7 @@ export function FinancialHero({
       />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-[72vh] w-full max-w-6xl flex-col items-center gap-12 px-6 py-16 sm:min-h-[78vh] sm:py-20 lg:flex-row lg:items-center lg:justify-between lg:gap-16"
+        className="relative z-10 mx-auto flex min-h-[72vh] w-full max-w-6xl flex-col items-center gap-12 px-6 py-20 sm:min-h-[78vh] sm:py-20 lg:flex-row lg:items-center lg:justify-between lg:gap-16"
         initial="hidden"
         animate="visible"
         variants={v.container}
@@ -110,21 +110,21 @@ export function FinancialHero({
         <div className="flex w-full flex-col items-center text-center lg:w-1/2 lg:items-start lg:text-left">
           <motion.div
             variants={v.item}
-            className="font-sans text-2xl font-bold uppercase leading-snug tracking-[0.12em] text-carbon-900 sm:text-3xl sm:tracking-[0.18em] md:text-4xl md:tracking-[0.22em] lg:text-5xl lg:tracking-[0.26em]"
+            className="font-sans text-2xl font-bold uppercase leading-[1.25] tracking-[0.12em] text-carbon-900 sm:text-3xl sm:leading-snug sm:tracking-[0.18em] md:text-4xl md:tracking-[0.22em] lg:text-5xl lg:tracking-[0.26em]"
           >
             {title}
           </motion.div>
 
           <motion.p
             variants={v.item}
-            className="mt-6 max-w-xl font-sans text-sm leading-relaxed text-carbon-900/85 sm:text-base md:text-lg"
+            className="mt-6 max-w-xl font-sans text-base leading-relaxed text-carbon-900/85 sm:text-base md:text-lg"
           >
             {description}
           </motion.p>
 
           <motion.div
             variants={v.item}
-            className="mt-8 flex w-full max-w-md flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:justify-start lg:max-w-none"
+            className="mt-10 flex w-full max-w-md flex-col items-stretch justify-center gap-4 sm:mt-8 sm:flex-row sm:items-center sm:justify-start sm:gap-3 lg:max-w-none"
           >
             <Link
               to={primaryButtonTo}
@@ -133,7 +133,7 @@ export function FinancialHero({
               <Button
                 variant="white"
                 size="lg"
-                className="inline-flex w-full items-center justify-center gap-2 uppercase tracking-button sm:w-auto"
+                className="inline-flex min-h-14 w-full items-center justify-center gap-2 uppercase tracking-button sm:min-h-0 sm:w-auto"
               >
                 {primaryButtonText}
                 <ArrowRight className="h-5 w-5 shrink-0" strokeWidth={2} />
@@ -147,7 +147,7 @@ export function FinancialHero({
                 <Button
                   variant="white"
                   size="lg"
-                  className="w-full uppercase tracking-button sm:w-auto"
+                  className="min-h-14 w-full uppercase tracking-button sm:min-h-0 sm:w-auto"
                 >
                   {secondaryButtonText}
                 </Button>

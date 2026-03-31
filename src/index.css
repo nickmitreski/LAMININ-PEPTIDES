@@ -4,15 +4,33 @@
 
 /* Slightly larger UI on tablet/desktop: scales rem-based spacing/type (~6% vs browser default). */
 @layer base {
+  html {
+    /* Prevent iOS from inflating small text past the layout we designed */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Anchor jumps clear sticky header + notch */
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 4.75rem);
+  }
+
   @media (min-width: 768px) {
     html {
       font-size: 106.25%;
+      scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 6rem);
     }
   }
 
   /* Prevent accidental horizontal scroll on narrow viewports */
   body {
     overflow-x: hidden;
+  }
+
+  /* Subtle tap feedback without the default grey flash */
+  a,
+  button,
+  [role='button'],
+  input[type='submit'],
+  label {
+    -webkit-tap-highlight-color: rgba(137, 209, 209, 0.15);
   }
 }
 

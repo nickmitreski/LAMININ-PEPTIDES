@@ -1,0 +1,35 @@
+---
+description: Mobile UX and layout — touch targets, forms, safe areas, Tailwind patterns for this Vite/React app
+alwaysApply: true
+---
+
+# Mobile optimization (this project)
+
+When editing UI, components, or global styles, **default to mobile-first** and verify behavior on a narrow viewport (≤390px) mentally or via devtools.
+
+## Technical (required)
+
+- **Inputs / textareas** (`.input`): use **≥16px** computed font size on small viewports (`text-base` then `md:text-sm` if smaller on desktop). Prevents iOS zoom-on-focus. Keep **min-height ~44px** for single-line fields (`min-h-11`).
+- **Tap targets**: interactive controls **≥44×44px** on mobile (`min-h-11 min-w-11`); scale down with `sm:` only where density is safe. Use **`touch-manipulation`** on buttons/links that are primary tap targets (see `.btn`).
+- **Safe areas**: notch/home indicator — reuse **`pt-safe`**, **`pb-safe`**, **`px-safe`** on fixed/sticky UI (header, drawers, bottom bars). Viewport already uses **`viewport-fit=cover`** in `index.html`.
+- **Sticky header**: in-page anchors must clear the bar — **`scroll-padding-top`** on `html` must account for **`env(safe-area-inset-top)`** + header height (see `src/index.css`); update if header height changes.
+- **Motion**: do not force **`scroll-behavior: smooth`** globally without **`prefers-reduced-motion: no-preference`** (see `src/styles/base.css`).
+- **Horizontal overflow**: avoid content wider than the viewport; **`body`** uses **`overflow-x: hidden`** — fix the source, don’t rely on clipping alone.
+- **Theme**: keep **`theme-color`** meta in `index.html` aligned with page chrome (light/dark).
+
+## Layout patterns (Tailwind)
+
+- Form rows: **`grid-cols-1 sm:grid-cols-2`**, not tight two-column grids on phones.
+- Sticky sidebars / order summary: **`lg:sticky lg:top-24`** only; avoid sticky on small screens when it fights the keyboard.
+- Section padding: **`Container`** uses **`px-4`** minimum on small screens — don’t shrink horizontal padding below that for main content.
+
+## Visual design (mobile)
+
+- **Readable line length**: cap prose with **`max-w-prose`** or **`max-w-md`/`max-w-lg`** where appropriate; avoid full-bleed long paragraphs on phone.
+- **Hierarchy**: slightly larger **headings or key CTAs** on mobile if hierarchy feels flat; use **`text-base`/`sm:text-sm`** patterns for critical copy, not microscopic captions for primary messages.
+- **Spacing**: slightly **more vertical rhythm** between tappable blocks on mobile (`gap-4` → `gap-5`/`gap-6` for thumb reach).
+- **Contrast**: keep text/background contrast strong; muted text only for **secondary** content, not primary actions or warnings.
+
+## After changes
+
+- Mention if **Cart**, **Checkout**, **Header** (menu/search/cart), or **drawers** were affected and that **touch targets** and **input font size** were checked.

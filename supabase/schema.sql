@@ -123,7 +123,5 @@ VALUES
 ON CONFLICT (cfg_code) DO NOTHING;
 
 -- ============================================================================
--- DONE! Now add your credentials to .env.local:
+-- DONE! Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env.local (Dashboard → Settings → API).
 -- ============================================================================
--- VITE_SUPABASE_URL=https://ytacbvfcltikxzudlkzn.supabase.co
--- VITE_SUPABASE_ANON_KEY=sb_publishable_jRLtLGh7uslmqubJ_qQY7w_ogbknh7D

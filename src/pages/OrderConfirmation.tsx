@@ -22,10 +22,12 @@ type UiState =
   | { kind: 'ready'; order: OrderReferenceRow }
   | { kind: 'local_only'; snapshot: NonNullable<ReturnType<typeof getLocalOrderSnapshot>> };
 
-function statusMessage(status: string): string {
+function statusMessage(status: string, partnerCheckoutExpected: boolean): string {
   switch (status) {
     case 'pending':
-      return 'Awaiting payment at the partner checkout.';
+      return partnerCheckoutExpected
+        ? 'Awaiting payment at the partner checkout.'
+        : 'Awaiting payment — our team will contact you shortly with next steps.';
     case 'paid':
       return 'Payment received. Your order is being prepared.';
     case 'processing':
@@ -41,12 +43,15 @@ function statusMessage(status: string): string {
   }
 }
 
-function deliveryHint(status: string): string {
+function deliveryHint(status: string, pendingPaymentQuery: boolean): string {
   if (status === 'shipped' || status === 'delivered') {
     return 'Standard delivery is typically 3–7 business days after dispatch, depending on your location.';
   }
   if (status === 'paid' || status === 'processing') {
     return 'We usually dispatch within 1–2 business days once payment is confirmed.';
+  }
+  if (status === 'pending' && pendingPaymentQuery) {
+    return 'When checkout is ready, we will contact you with a secure way to pay. Most orders ship within 1–2 business days after payment clears.';
   }
   return 'After payment, most orders ship within 1–2 business days.';
 }
@@ -57,6 +62,7 @@ export default function OrderConfirmation() {
     searchParams.get('order_id') ??
     searchParams.get('order') ??
     '';
+  const pendingPaymentFlag = searchParams.get('pending_payment') === '1';
 
   const [ui, setUi] = useState<UiState>({ kind: 'loading' });
 
@@ -139,6 +145,8 @@ export default function OrderConfirmation() {
 
   const status =
     ui.kind === 'ready' ? ui.order.status : 'pending';
+  const partnerCheckoutExpected =
+    status !== 'pending' || !pendingPaymentFlag;
   const displayId =
     ui.kind === 'ready' ? ui.order.peptide_order_id : ui.snapshot.peptide_order_id;
   const email =
@@ -162,22 +170,38 @@ export default function OrderConfirmation() {
   return (
     <div className="min-h-screen bg-platinum">
       <Section background="white" spacing="xl">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-2xl px-4 sm:px-0">
           <div className="mb-8 text-center">
             <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-10 w-10 text-green-600" strokeWidth={2} />
             </div>
-            <Heading level={3} className="mb-3">
+            <Heading level={3} className="mb-3 text-2xl sm:text-3xl">
               Order reference created
             </Heading>
-            <Text variant="body" muted className="mx-auto max-w-md">
-              {status === 'pending'
-                ? 'If you were not redirected, complete payment using the link from your confirmation email or return to checkout.'
-                : 'Thank you — your order status is below.'}
+            <Text
+              variant="body"
+              muted
+              className="mx-auto max-w-md text-base leading-relaxed sm:text-sm"
+            >
+              {status === 'pending' && pendingPaymentFlag
+                ? 'Online card payment is not live yet — often just a few days while we restock and connect secure checkout. Your order details are saved and we will contact you at the email and phone you provided as soon as you can pay.'
+                : status === 'pending'
+                  ? 'If you were not redirected, complete payment using the link from your confirmation email or return to checkout.'
+                  : 'Thank you — your order status is below.'}
             </Text>
           </div>
 
           {supabaseNote}
+
+          {status === 'pending' && pendingPaymentFlag ? (
+            <Card padding="lg" className="mb-6 border-amber-200/90 bg-amber-50/95">
+              <Text variant="small" className="text-base leading-relaxed text-amber-950 sm:text-sm">
+                <span className="font-medium">What happens next:</span> no charge has been made. We
+                will reach out with payment instructions — any day now — using the contact details
+                from your checkout. Keep this page or your order ID handy.
+              </Text>
+            </Card>
+          ) : null}
 
           <Card padding="lg" className="mb-6">
             <div className="space-y-6">
@@ -208,12 +232,12 @@ export default function OrderConfirmation() {
                 </div>
               </div>
 
-              <div className="rounded-sm border border-carbon-900/10 bg-grey/30 p-4">
-                <Text variant="small" className="text-carbon-900">
-                  {statusMessage(status)}
+              <div className="rounded-sm border border-carbon-900/10 bg-grey/30 p-4 sm:p-5">
+                <Text variant="small" className="text-base text-carbon-900 sm:text-sm">
+                  {statusMessage(status, partnerCheckoutExpected)}
                 </Text>
-                <Text variant="caption" muted className="mt-2 block">
-                  {deliveryHint(status)}
+                <Text variant="caption" muted className="mt-2 block text-sm leading-relaxed">
+                  {deliveryHint(status, pendingPaymentFlag)}
                 </Text>
               </div>
 
@@ -301,19 +325,27 @@ export default function OrderConfirmation() {
               type="button"
               variant="outline"
               size="md"
-              className="w-full sm:w-auto"
+              className="min-h-12 w-full touch-manipulation sm:min-h-0 sm:w-auto"
               onClick={() => load()}
             >
               <RefreshCw className="mr-2 inline-block h-4 w-4" />
               Check order status
             </Button>
             <Link to="/library" className="w-full sm:w-auto">
-              <Button variant="primary" size="md" className="w-full">
+              <Button
+                variant="primary"
+                size="md"
+                className="min-h-12 w-full touch-manipulation sm:min-h-0"
+              >
                 Continue shopping
               </Button>
             </Link>
             <Link to="/contact" className="w-full sm:w-auto">
-              <Button variant="outline" size="md" className="w-full">
+              <Button
+                variant="outline"
+                size="md"
+                className="min-h-12 w-full touch-manipulation sm:min-h-0"
+              >
                 Contact support
               </Button>
             </Link>

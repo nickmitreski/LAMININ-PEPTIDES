@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import {
   PRODUCT_MAPPINGS,
@@ -127,11 +128,12 @@ export async function getOrderStatus(
 
 export async function updateOrderStatus(
   peptideOrderId: string,
-  status: OrderStatus
+  status: OrderStatus,
+  client: SupabaseClient | null = supabase
 ): Promise<boolean> {
-  if (!supabase) return false;
+  if (!client) return false;
 
-  const { error } = await supabase
+  const { error } = await client
     .from('order_references')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('peptide_order_id', peptideOrderId);
@@ -164,4 +166,77 @@ export async function createCustomer(
   }
 
   return data.id as string;
+}
+
+/** Admin: Get all orders (paginated). Pass authenticated admin client so JWT is sent when RLS uses auth.uid(). */
+export async function getAllOrders(
+  limit = 50,
+  offset = 0,
+  client: SupabaseClient | null = supabase
+): Promise<OrderReferenceRow[]> {
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('order_references')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error || !data) {
+    console.error('[supabase] getAllOrders', error);
+    return [];
+  }
+
+  return data as OrderReferenceRow[];
+}
+
+/** Admin: Get orders by status */
+export async function getOrdersByStatus(
+  status: OrderStatus,
+  client: SupabaseClient | null = supabase
+): Promise<OrderReferenceRow[]> {
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('order_references')
+    .select('*')
+    .eq('status', status)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    console.error('[supabase] getOrdersByStatus', error);
+    return [];
+  }
+
+  return data as OrderReferenceRow[];
+}
+
+/** Admin: Get all product mappings (including inactive) */
+export async function getAllProductMappings(
+  client: SupabaseClient | null = supabase
+): Promise<
+  Array<{
+    id: string;
+    cfg_code: string;
+    peptide_name: string;
+    protein_name: string;
+    price: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  }>
+> {
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('product_mappings')
+    .select('*')
+    .order('cfg_code', { ascending: true });
+
+  if (error || !data) {
+    console.error('[supabase] getAllProductMappings', error);
+    return [];
+  }
+
+  return data;
 }

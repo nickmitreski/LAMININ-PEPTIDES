@@ -66,7 +66,7 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
         aria-label="Close search"
       />
       <div
-        className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-sm border border-carbon-900/10 bg-white p-4 shadow-xl sm:top-[18%]"
+        className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-sm border border-carbon-900/10 bg-white p-4 shadow-xl sm:top-[18%] overscroll-contain"
         role="dialog"
         aria-modal="true"
         aria-labelledby="header-search-title"

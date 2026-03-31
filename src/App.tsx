@@ -22,38 +22,81 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import ProductPage from './pages/ProductPage';
 import AdminInventory from './pages/AdminInventory';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminProducts from './pages/AdminProducts';
+import ProtectedRoute from './components/admin/ProtectedRoute';
+import { AdminAuthProvider } from './context/AdminAuthContext';
 import EntryGate from './components/entry/EntryGate';
 
 function App() {
   return (
     <Router>
-      <EntryGate>
-        <SkipLink />
-        <ScrollToTop />
-        <div className="min-h-screen bg-platinum text-carbon-900">
-          <Header />
-          <main id="main-content">
+      <AdminAuthProvider>
+        <EntryGate>
+          <SkipLink />
+          <ScrollToTop />
+          <div className="min-h-screen bg-platinum text-carbon-900">
             <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/products/:slug" element={<ProductPage />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/collection" element={<Navigate to="/faq" replace />} />
-            <Route path="/coa" element={<COA />} />
-            <Route path="/guarantee" element={<Guarantee />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/order-confirmation" element={<OrderConfirmation />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms-and-conditions" element={<Terms />} />
-            <Route path="/admin/inventory" element={<AdminInventory />} />
-            <Route path="*" element={<NotFound />} />
+              {/* Admin Routes (no header/footer) */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute>
+                    <AdminProducts />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Public Routes (with header/footer) */}
+              <Route
+                path="/*"
+                element={
+                  <>
+                    <Header />
+                    <main id="main-content">
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/library" element={<Library />} />
+                        <Route path="/products/:slug" element={<ProductPage />} />
+                        <Route path="/faq" element={<FAQ />} />
+                        <Route path="/collection" element={<Navigate to="/faq" replace />} />
+                        <Route path="/coa" element={<COA />} />
+                        <Route path="/guarantee" element={<Guarantee />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                        <Route path="/privacy" element={<Privacy />} />
+                        <Route path="/terms-and-conditions" element={<Terms />} />
+                        <Route
+                          path="/admin/inventory"
+                          element={
+                            <ProtectedRoute>
+                              <AdminInventory />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                    <Footer />
+                  </>
+                }
+              />
             </Routes>
-          </main>
-          <Footer />
-        </div>
-      </EntryGate>
+          </div>
+        </EntryGate>
+      </AdminAuthProvider>
     </Router>
   );
 }

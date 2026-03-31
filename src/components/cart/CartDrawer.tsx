@@ -54,7 +54,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
       {/* Drawer */}
       <div
-        className="fixed right-0 top-0 z-[100] flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col bg-white shadow-xl animate-slideInRight pt-safe px-safe"
+        className="fixed right-0 top-0 z-[100] flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col bg-white shadow-xl animate-slideInRight pt-safe px-safe overscroll-contain"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
@@ -84,8 +84,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <Text variant="small" muted className="mb-6">
               Browse our library to add research-grade peptides.
             </Text>
-            <Link to="/library" onClick={onClose}>
-              <Button variant="primary" size="md">
+            <Link to="/library" onClick={onClose} className="block">
+              <Button variant="primary" size="md" className="min-h-12 w-full sm:min-h-0 sm:w-auto">
                 Browse Library
               </Button>
             </Link>
@@ -112,12 +112,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
               <div className="space-y-2">
                 <Link to="/checkout" onClick={onClose} className="block">
-                  <Button variant="primary" size="lg" className="w-full">
+                  <Button variant="primary" size="lg" className="min-h-12 w-full sm:min-h-0">
                     Proceed to Checkout
                   </Button>
                 </Link>
                 <Link to="/cart" onClick={onClose} className="block">
-                  <Button variant="outline" size="md" className="w-full">
+                  <Button variant="outline" size="md" className="min-h-12 w-full sm:min-h-0">
                     View Full Cart
                   </Button>
                 </Link>

@@ -16,6 +16,12 @@ import PaymentForm, {
 import CheckoutPaymentErrorBoundary from '../components/checkout/CheckoutPaymentErrorBoundary';
 import { redirectToProteinStore, checkoutLog } from '../services/proteinCheckout';
 
+const partnerCheckoutConfigured = Boolean(
+  (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)?.trim()
+);
+const checkoutSoftLaunch =
+  import.meta.env.VITE_CHECKOUT_SOFT_LAUNCH === 'true' || !partnerCheckoutConfigured;
+
 interface ShippingFormData {
   firstName: string;
   lastName: string;
@@ -141,7 +147,7 @@ export default function Checkout() {
   const tax = state.total * 0.1;
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="min-h-screen bg-platinum overscroll-contain">
       <Section background="white" spacing="lg">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -156,14 +162,14 @@ export default function Checkout() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
+              <div className="space-y-6 lg:col-span-2">
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
                     Contact Information
                   </Heading>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Input
                         id="firstName"
                         name="firstName"
@@ -220,7 +226,7 @@ export default function Checkout() {
                       required
                       disabled={paymentPhase === 'redirecting'}
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Input
                         id="city"
                         name="city"
@@ -240,7 +246,7 @@ export default function Checkout() {
                         disabled={paymentPhase === 'redirecting'}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Input
                         id="postcode"
                         name="postcode"
@@ -264,7 +270,7 @@ export default function Checkout() {
                           onChange={handleChange}
                           required
                           disabled={paymentPhase === 'redirecting'}
-                          className="w-full rounded-sm border border-carbon-900/20 px-4 py-2.5 text-sm transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-carbon-900"
+                          className="min-h-11 w-full rounded-sm border border-carbon-900/20 px-4 py-2.5 text-base transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-carbon-900 md:min-h-0 md:text-sm"
                         >
                           <option value="Australia">Australia</option>
                           <option value="New Zealand">New Zealand</option>
@@ -282,16 +288,21 @@ export default function Checkout() {
                     <Heading level={5} className="mb-4">
                       Payment
                     </Heading>
-                    <Text variant="caption" muted className="mb-4 block leading-relaxed">
-                      Complete your purchase from the order summary — you will be
-                      redirected to our secure partner checkout.
+                    <Text
+                      variant="caption"
+                      muted
+                      className="mb-4 block text-sm leading-relaxed sm:text-xs"
+                    >
+                      {checkoutSoftLaunch
+                        ? 'Use the order summary on the right (below on mobile) to submit your order request. No card is charged until we enable payment and confirm with you.'
+                        : 'Complete your purchase from the order summary — you will be redirected to our secure partner checkout.'}
                     </Text>
                   </Card>
                 </CheckoutPaymentErrorBoundary>
               </div>
 
               <div className="lg:col-span-1">
-                <Card padding="lg" className="sticky top-24">
+                <Card padding="lg" className="lg:sticky lg:top-24">
                   <Heading level={5} className="mb-6">
                     Order Summary
                   </Heading>
@@ -332,7 +343,7 @@ export default function Checkout() {
                     phase={paymentPhase}
                     errorMessage={paymentError}
                     onRetry={handleRetry}
-                    submitLabel="Proceed to secure payment"
+                    softLaunch={checkoutSoftLaunch}
                   />
 
                   <div className="mt-6 border-t border-carbon-900/10 pt-6">

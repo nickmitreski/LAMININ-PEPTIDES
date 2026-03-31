@@ -20,9 +20,13 @@ export default function Testimonials() {
               <Quote className="w-7 h-7" strokeWidth={1.5} />
             </div>
 
-            <div className="flex gap-0.5 mb-4">
+            <div
+              className="flex gap-0.5 mb-4"
+              role="img"
+              aria-label={`${testimonial.rating} out of 5 stars`}
+            >
               {[...Array(testimonial.rating)].map((_, i) => (
-                <Star key={i} className="w-3 h-3 fill-accent text-accent" />
+                <Star key={i} className="w-3 h-3 fill-accent text-accent" aria-hidden="true" />
               ))}
             </div>
 
