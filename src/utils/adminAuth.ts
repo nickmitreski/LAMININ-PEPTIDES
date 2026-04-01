@@ -1,5 +1,16 @@
 import type { User } from '@supabase/supabase-js';
 
+/** Accepts boolean true or common string/number shapes from JWT / API. */
+function isTruthyAdminFlag(value: unknown): boolean {
+  if (value === true) return true;
+  if (value === 1) return true;
+  if (typeof value === 'string') {
+    const s = value.trim().toLowerCase();
+    return s === 'true' || s === 't' || s === '1' || s === 'yes';
+  }
+  return false;
+}
+
 /**
  * Admin access after a successful Supabase Auth sign-in.
  * Configure one of:
@@ -11,7 +22,7 @@ export function isSupabaseAdminUser(user: User | null | undefined): boolean {
   if (!user?.email) return false;
 
   const meta = user.app_metadata as Record<string, unknown> | undefined;
-  if (meta?.admin === true) return true;
+  if (isTruthyAdminFlag(meta?.admin)) return true;
 
   const allow = import.meta.env.VITE_ADMIN_EMAIL_ALLOWLIST as string | undefined;
   if (allow?.trim()) {

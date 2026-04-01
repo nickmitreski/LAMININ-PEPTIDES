@@ -15,10 +15,14 @@ interface AdminUser {
   name: string;
 }
 
+export type AdminLoginResult =
+  | { ok: true }
+  | { ok: false; code: 'not_configured' | 'invalid_credentials' | 'not_admin' };
+
 interface AdminAuthContextType {
   isAuthenticated: boolean;
   user: AdminUser | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AdminLoginResult>;
   logout: () => Promise<void>;
   authReady: boolean;
 }
@@ -68,7 +72,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const { data } = await sb.auth.getSession();
       if (cancelled) return;
-      await applySessionUser(data.session?.user ?? null);
+      let sessionUser = data.session?.user ?? null;
+      if (sessionUser) {
+        const { data: gu } = await sb.auth.getUser();
+        if (!cancelled && gu.user) {
+          sessionUser = gu.user;
+        }
+      }
+      await applySessionUser(sessionUser);
       setAuthReady(true);
     })();
 
@@ -84,9 +95,11 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     };
   }, [applySessionUser]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<AdminLoginResult> => {
     const sb = getAdminSupabase();
-    if (!sb) return false;
+    if (!sb) {
+      return { ok: false, code: 'not_configured' };
+    }
 
     const { data, error } = await sb.auth.signInWithPassword({
       email: email.trim(),
@@ -94,17 +107,21 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error || !data.user) {
-      return false;
+      return { ok: false, code: 'invalid_credentials' };
     }
 
-    if (!isSupabaseAdminUser(data.user)) {
+    // Fresh user + app_metadata from Auth API (sign-in payload can lag behind SQL updates).
+    const { data: fresh, error: freshErr } = await sb.auth.getUser();
+    const effectiveUser = !freshErr && fresh.user ? fresh.user : data.user;
+
+    if (!isSupabaseAdminUser(effectiveUser)) {
       await sb.auth.signOut();
-      return false;
+      return { ok: false, code: 'not_admin' };
     }
 
-    setUser(userToAdminUser(data.user));
+    setUser(userToAdminUser(effectiveUser));
     setIsAuthenticated(true);
-    return true;
+    return { ok: true };
   };
 
   const logout = async () => {

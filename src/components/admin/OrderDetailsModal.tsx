@@ -1,4 +1,4 @@
-import { X, Mail, Phone, MapPin, Package, Calendar, DollarSign } from 'lucide-react';
+import { X, Mail, Phone, MapPin, Package } from 'lucide-react';
 import type { OrderReferenceRow } from '../../services/supabaseService';
 import { Heading, Text } from '../ui/Typography';
 import Button from '../ui/Button';

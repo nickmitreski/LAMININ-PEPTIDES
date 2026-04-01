@@ -92,6 +92,12 @@ export default function Footer() {
                 >
                   Purity guarantee
                 </Link>
+                <Link
+                  to="/admin/login"
+                  className="inline-flex min-h-11 items-center text-xs text-white/45 transition-colors hover:text-accent touch-manipulation"
+                >
+                  Staff sign-in
+                </Link>
               </div>
             </div>
           </div>

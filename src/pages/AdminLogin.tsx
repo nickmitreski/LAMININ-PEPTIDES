@@ -7,6 +7,17 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 
+const LOGIN_ERRORS: Record<
+  'not_configured' | 'invalid_credentials' | 'not_admin',
+  string
+> = {
+  not_configured:
+    'Admin login is not configured on this deployment. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel (or your host) and redeploy.',
+  invalid_credentials: 'Invalid email or password.',
+  not_admin:
+    'Sign-in worked, but this account is not marked as admin. In Supabase: Authentication → Users → your user → User Management → set App Metadata to include "admin": true, or run supabase/admin_auth_setup.sql for your email. Alternatively set VITE_ADMIN_EMAIL_ALLOWLIST on the server (comma-separated emails) and redeploy.',
+};
+
 export default function AdminLogin() {
   const navigate = useNavigate();
   const { login, isAuthenticated, authReady } = useAdminAuth();
@@ -14,6 +25,14 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (!authReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-platinum">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     navigate('/admin/dashboard');
@@ -26,11 +45,11 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+      if (result.ok) {
         navigate('/admin/dashboard');
       } else {
-        setError('Invalid email or password');
+        setError(LOGIN_ERRORS[result.code]);
       }
     } catch {
       setError('An error occurred. Please try again.');
@@ -78,7 +97,7 @@ export default function AdminLogin() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full rounded-sm border border-carbon-900/20 bg-white py-3 pl-11 pr-4 text-sm text-carbon-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="input min-h-11 w-full rounded-sm border border-carbon-900/20 bg-white py-3 pl-11 pr-4 text-base text-carbon-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 md:text-sm"
                     placeholder="admin@lamininpeplab.com.au"
                     autoComplete="email"
                   />
@@ -97,7 +116,7 @@ export default function AdminLogin() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full rounded-sm border border-carbon-900/20 bg-white py-3 pl-11 pr-4 text-sm text-carbon-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    className="input min-h-11 w-full rounded-sm border border-carbon-900/20 bg-white py-3 pl-11 pr-4 text-base text-carbon-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 md:text-sm"
                     placeholder="Enter your password"
                     autoComplete="current-password"
                   />
