@@ -29,7 +29,7 @@ export default class CheckoutPaymentErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="rounded-sm border border-red-200 bg-red-50 p-4">
+        <div className="rounded-sm border border-red-200 bg-red-50 p-4" role="alert">
           <div className="flex gap-3">
             <AlertTriangle className="h-5 w-5 shrink-0 text-red-600" />
             <div className="min-w-0 space-y-2">

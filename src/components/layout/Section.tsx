@@ -8,6 +8,7 @@ interface SectionProps {
   background?: 'white' | 'elevated' | 'neutral' | 'dark' | 'accent' | 'none';
   container?: boolean;
   id?: string;
+  'aria-labelledby'?: string;
 }
 
 export default function Section({
@@ -17,6 +18,7 @@ export default function Section({
   background = 'none',
   container = true,
   id,
+  'aria-labelledby': ariaLabelledBy,
 }: SectionProps) {
   const spacingClasses = {
     sm: 'py-12 md:py-16',
@@ -45,6 +47,7 @@ export default function Section({
   return (
     <section
       id={id}
+      aria-labelledby={ariaLabelledBy}
       className={`
         ${spacingClasses[spacing]}
         ${backgroundClasses[background]}

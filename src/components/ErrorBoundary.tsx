@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import Button from './ui/Button';
 import { Heading, Text } from './ui/Typography';
 
@@ -33,19 +34,25 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-platinum flex items-center justify-center px-6 py-12">
+        <div
+          className="min-h-screen bg-platinum flex items-center justify-center px-6 py-12"
+          role="alert"
+        >
           <div className="max-w-md w-full text-center">
             <div className="mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-                <span className="text-3xl">⚠️</span>
+              <div
+                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4"
+                aria-hidden
+              >
+                <AlertTriangle className="h-8 w-8 text-red-600" strokeWidth={2} />
               </div>
-              <Heading level={3} className="mb-3">
+              <Heading level={1} className="mb-3 text-xl sm:text-2xl">
                 Something went wrong
               </Heading>
               <Text variant="body" muted className="mb-6">
                 We're sorry, but something unexpected happened. Please try refreshing the page.
               </Text>
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="text-left mb-6 p-4 bg-red-50 border border-red-200 rounded-sm">
                   <summary className="cursor-pointer font-medium text-sm mb-2">
                     Error details
@@ -60,6 +67,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               <Button
                 variant="primary"
                 size="md"
+                className="min-h-11 touch-manipulation"
                 onClick={() => window.location.reload()}
               >
                 Refresh page
@@ -67,7 +75,10 @@ export default class ErrorBoundary extends Component<Props, State> {
               <Button
                 variant="outline"
                 size="md"
-                onClick={() => (window.location.href = '/')}
+                className="min-h-11 touch-manipulation"
+                onClick={() => {
+                  window.location.href = '/';
+                }}
               >
                 Go to home
               </Button>

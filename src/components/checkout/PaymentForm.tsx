@@ -88,7 +88,11 @@ export default function PaymentForm({
       )}
 
       {errored && errorMessage && (
-        <div className="flex items-start gap-3 rounded-sm border border-red-200 bg-red-50 p-4">
+        <div
+          className="flex items-start gap-3 rounded-sm border border-red-200 bg-red-50 p-4"
+          role="alert"
+          aria-live="assertive"
+        >
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
           <div className="min-w-0 flex-1 space-y-2">
             <Text variant="small" className="text-red-900">

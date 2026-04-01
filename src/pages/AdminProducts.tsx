@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -28,25 +28,25 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<ProductMapping[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getAllProductMappings(getAdminSupabase());
       setProducts(data);
-    } catch (error) {
+    } catch {
       showToast('Failed to load products', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/admin/login');
       return;
     }
-    loadProducts();
-  }, [isAuthenticated]);
+    void loadProducts();
+  }, [isAuthenticated, navigate, loadProducts]);
 
   return (
     <div className="min-h-screen bg-platinum">

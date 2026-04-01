@@ -8,13 +8,15 @@ interface TypographyProps {
 
 interface HeadingProps extends TypographyProps {
   level?: 1 | 2 | 3 | 4 | 5 | 6;
+  id?: string;
 }
 
 export function Heading({
   children,
   level = 1,
   className = '',
-  as
+  as,
+  id,
 }: HeadingProps) {
   const Component = (as || `h${level}`) as keyof JSX.IntrinsicElements;
 
@@ -28,7 +30,7 @@ export function Heading({
   };
 
   return (
-    <Component className={`${styles[level]} ${className}`}>
+    <Component id={id} className={`${styles[level]} ${className}`}>
       {children}
     </Component>
   );

@@ -94,6 +94,14 @@ export async function createOrderReferenceRecord(
     peptide_order_id: payload.peptide_order_id,
     customer_email: payload.customer.email,
     customer_name: `${payload.customer.first_name} ${payload.customer.last_name}`.trim(),
+    customer_first_name: payload.customer.first_name,
+    customer_last_name: payload.customer.last_name,
+    customer_phone: payload.customer.phone,
+    customer_address: payload.customer.address,
+    customer_city: payload.customer.city,
+    customer_state: payload.customer.state,
+    customer_postcode: payload.customer.postcode,
+    customer_country: payload.customer.country,
     total_price: payload.totals.grand_total,
     peptide_items: payload.peptide_items,
     protein_items: payload.protein_items,
@@ -103,7 +111,8 @@ export async function createOrderReferenceRecord(
   return { supabaseRowId: row?.id ?? null };
 }
 
-function buildLines(
+/** Builds bridge line items from cart + mappings (exported for tests and diagnostics). */
+export function buildCheckoutCartLines(
   items: CartItem[],
   mappings: Record<string, ProductMapping>
 ): {
@@ -156,8 +165,9 @@ async function postWithRetry(
   url: string,
   body: unknown,
   apiKey: string | undefined,
-  attempts = 3
+  attempts = import.meta.env.MODE === 'test' ? 1 : 3
 ): Promise<Response> {
+  const timeoutMs = import.meta.env.MODE === 'test' ? 5_000 : 25_000;
   let lastErr: Error | null = null;
   for (let i = 0; i < attempts; i++) {
     try {
@@ -168,7 +178,7 @@ async function postWithRetry(
         headers.Authorization = `Bearer ${apiKey}`;
       }
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 25_000);
+      const t = setTimeout(() => ctrl.abort(), timeoutMs);
       const res = await fetch(url, {
         method: 'POST',
         headers,
@@ -180,7 +190,10 @@ async function postWithRetry(
     } catch (e) {
       lastErr = e instanceof Error ? e : new Error(String(e));
       checkoutLog(`API attempt ${i + 1} failed`, lastErr.message);
-      await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+      const backoffMs = import.meta.env.MODE === 'test' ? 0 : 600 * (i + 1);
+      if (backoffMs > 0) {
+        await new Promise((r) => setTimeout(r, backoffMs));
+      }
     }
   }
   throw lastErr ?? new Error('Network error');
@@ -200,7 +213,7 @@ export async function redirectToProteinStore(
   totals: CheckoutPayload['totals']
 ): Promise<RedirectResult> {
   const mappings = await getProductMappings();
-  const { peptide_items, protein_items } = buildLines(items, mappings);
+  const { peptide_items, protein_items } = buildCheckoutCartLines(items, mappings);
 
   const peptide_order_id = generatePeptideOrderId();
 
@@ -216,10 +229,9 @@ export async function redirectToProteinStore(
 
   await createOrderReferenceRecord(payload);
 
-  const baseUrl = (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)?.replace(
-    /\/$/,
-    ''
-  );
+  const baseUrl = (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)
+    ?.trim()
+    .replace(/\/$/, '');
   const apiKey = import.meta.env.VITE_PROTEIN_STORE_API_KEY as string | undefined;
   const softLaunch = import.meta.env.VITE_CHECKOUT_SOFT_LAUNCH === 'true';
 

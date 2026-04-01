@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LogOut,
@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Truck,
   XCircle,
+  Eye,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
@@ -25,6 +26,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
+import OrderDetailsModal from '../components/admin/OrderDetailsModal';
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string; icon: typeof Clock }[] = [
   { value: 'pending', label: 'Pending', icon: Clock },
@@ -62,23 +64,24 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
+  const [selectedOrder, setSelectedOrder] = useState<OrderReferenceRow | null>(null);
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     setLoading(true);
     try {
       const db = getAdminSupabase();
       const data = await getAllOrders(100, 0, db);
       setOrders(data);
-    } catch (error) {
+    } catch {
       showToast('Failed to load orders', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    void loadOrders();
+  }, [loadOrders]);
 
   const handleLogout = () => {
     logout();
@@ -98,7 +101,7 @@ export default function AdminDashboard() {
       } else {
         showToast('Failed to update order status', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('An error occurred', 'error');
     }
   };
@@ -107,7 +110,9 @@ export default function AdminDashboard() {
     const matchesSearch =
       order.peptide_order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer_phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer_city?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
 
@@ -259,6 +264,9 @@ export default function AdminDashboard() {
                       Customer
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                      Contact
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
@@ -285,8 +293,18 @@ export default function AdminDashboard() {
                           {order.customer_name || 'N/A'}
                         </Text>
                         <Text variant="caption" muted className="block">
+                          {order.customer_city || 'N/A'}, {order.customer_state || 'N/A'}
+                        </Text>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Text variant="small" className="block">
                           {order.customer_email}
                         </Text>
+                        {order.customer_phone && (
+                          <Text variant="caption" muted className="block">
+                            {order.customer_phone}
+                          </Text>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={order.status} />
@@ -305,22 +323,31 @@ export default function AdminDashboard() {
                         </Text>
                       </td>
                       <td className="px-6 py-4">
-                        <select
-                          value={order.status}
-                          onChange={(e) =>
-                            handleStatusUpdate(
-                              order.peptide_order_id,
-                              e.target.value as OrderStatus
-                            )
-                          }
-                          className="rounded-sm border border-carbon-900/20 px-2 py-1 text-xs focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20"
-                        >
-                          {STATUS_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="rounded-sm border border-carbon-900/20 p-2 text-neutral-600 hover:bg-grey/30 hover:text-carbon-900 transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <select
+                            value={order.status}
+                            onChange={(e) =>
+                              handleStatusUpdate(
+                                order.peptide_order_id,
+                                e.target.value as OrderStatus
+                              )
+                            }
+                            className="rounded-sm border border-carbon-900/20 px-2 py-1 text-xs focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20"
+                          >
+                            {STATUS_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -330,6 +357,13 @@ export default function AdminDashboard() {
           )}
         </Card>
       </Section>
+
+      {selectedOrder && (
+        <OrderDetailsModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </div>
   );
 }

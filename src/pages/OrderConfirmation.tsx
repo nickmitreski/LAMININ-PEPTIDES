@@ -97,11 +97,20 @@ export default function OrderConfirmation() {
     return (
       <div className="min-h-screen bg-platinum">
         <Section background="white" spacing="xl">
-          <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 py-16">
-            <Loader2 className="h-10 w-10 animate-spin text-accent-dark" />
-            <Text variant="body" muted>
+          <div
+            className="mx-auto flex max-w-2xl flex-col items-center gap-4 py-16"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <Loader2
+              className="h-10 w-10 animate-spin text-accent-dark motion-reduce:animate-none motion-reduce:opacity-80"
+              aria-hidden
+            />
+            <Text variant="body" muted className="text-base sm:text-sm">
               Loading order…
             </Text>
+            <span className="sr-only">Loading order status, please wait.</span>
           </div>
         </Section>
       </div>
@@ -112,7 +121,11 @@ export default function OrderConfirmation() {
     return (
       <div className="min-h-screen bg-platinum">
         <Section background="white" spacing="xl">
-          <div className="mx-auto max-w-2xl text-center">
+          <div
+            className="mx-auto max-w-2xl px-4 text-center sm:px-0"
+            role="status"
+            aria-live="polite"
+          >
             <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
               <AlertCircle className="h-8 w-8 text-neutral-500" />
             </div>

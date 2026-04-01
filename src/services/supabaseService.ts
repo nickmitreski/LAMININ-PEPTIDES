@@ -20,9 +20,18 @@ export interface OrderReferenceRow {
   status: OrderStatus;
   customer_email: string | null;
   customer_name: string | null;
+  customer_first_name: string | null;
+  customer_last_name: string | null;
+  customer_phone: string | null;
+  customer_address: string | null;
+  customer_city: string | null;
+  customer_state: string | null;
+  customer_postcode: string | null;
+  customer_country: string | null;
   total_price: number | null;
   peptide_items: unknown;
   protein_items: unknown;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,6 +88,14 @@ export async function createOrderReference(orderData: {
   status?: OrderStatus;
   customer_email: string;
   customer_name: string;
+  customer_first_name?: string;
+  customer_last_name?: string;
+  customer_phone?: string;
+  customer_address?: string;
+  customer_city?: string;
+  customer_state?: string;
+  customer_postcode?: string;
+  customer_country?: string;
   total_price: number;
   peptide_items: unknown;
   protein_items: unknown;
@@ -93,6 +110,14 @@ export async function createOrderReference(orderData: {
       status: orderData.status ?? 'pending',
       customer_email: orderData.customer_email,
       customer_name: orderData.customer_name,
+      customer_first_name: orderData.customer_first_name ?? null,
+      customer_last_name: orderData.customer_last_name ?? null,
+      customer_phone: orderData.customer_phone ?? null,
+      customer_address: orderData.customer_address ?? null,
+      customer_city: orderData.customer_city ?? null,
+      customer_state: orderData.customer_state ?? null,
+      customer_postcode: orderData.customer_postcode ?? null,
+      customer_country: orderData.customer_country ?? null,
       total_price: orderData.total_price,
       peptide_items: orderData.peptide_items,
       protein_items: orderData.protein_items,

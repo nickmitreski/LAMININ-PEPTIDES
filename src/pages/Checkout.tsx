@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Section from '../components/layout/Section';
@@ -40,6 +40,7 @@ export default function Checkout() {
   const { showToast } = useToast();
   const [paymentPhase, setPaymentPhase] = useState<CheckoutPaymentPhase>('idle');
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const checkoutStatusRef = useRef<HTMLDivElement | null>(null);
   const [formData, setFormData] = useState<ShippingFormData>({
     firstName: '',
     lastName: '',
@@ -121,6 +122,12 @@ export default function Checkout() {
     setPaymentError(null);
   };
 
+  useEffect(() => {
+    if (paymentPhase === 'error') {
+      checkoutStatusRef.current?.focus();
+    }
+  }, [paymentPhase]);
+
   if (state.items.length === 0) {
     return (
       <div className="min-h-screen">
@@ -161,7 +168,7 @@ export default function Checkout() {
             <Heading level={3}>Checkout</Heading>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} aria-busy={paymentPhase === 'redirecting'}>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
               <div className="space-y-6 lg:col-span-2">
                 <Card padding="lg">
@@ -313,7 +320,10 @@ export default function Checkout() {
                         <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-sm bg-neutral-50">
                           <img
                             src={item.image}
-                            alt={item.name}
+                            alt=""
+                            decoding="async"
+                            loading="lazy"
+                            fetchPriority="low"
                             className="h-full w-full object-contain p-1"
                           />
                         </div>
@@ -339,12 +349,18 @@ export default function Checkout() {
                     className="mb-6"
                   />
 
-                  <PaymentForm
-                    phase={paymentPhase}
-                    errorMessage={paymentError}
-                    onRetry={handleRetry}
-                    softLaunch={checkoutSoftLaunch}
-                  />
+                  <div
+                    ref={checkoutStatusRef}
+                    tabIndex={-1}
+                    className="outline-none focus-visible:ring-2 focus-visible:ring-carbon-900/25 focus-visible:ring-offset-2 rounded-sm"
+                  >
+                    <PaymentForm
+                      phase={paymentPhase}
+                      errorMessage={paymentError}
+                      onRetry={handleRetry}
+                      softLaunch={checkoutSoftLaunch}
+                    />
+                  </div>
 
                   <div className="mt-6 border-t border-carbon-900/10 pt-6">
                     <Text variant="caption" muted className="leading-relaxed">

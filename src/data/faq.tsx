@@ -1,18 +1,12 @@
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { Text } from '../components/ui/Typography';
+import FaqParagraph from '../components/faq/FaqParagraph';
 
 export interface FAQItem {
   id: string;
   question: string;
   answer: ReactNode;
 }
-
-const P = ({ children }: { children: ReactNode }) => (
-  <Text variant="body" className="text-neutral-600 leading-relaxed">
-    {children}
-  </Text>
-);
 
 export const faqItems: FAQItem[] = [
   {
@@ -21,24 +15,24 @@ export const faqItems: FAQItem[] = [
       'What are the compounds supplied by Laminin Peptide Lab intended for?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           All compounds supplied by Laminin Peptide Lab are intended strictly
           for{' '}
           <strong className="font-medium text-carbon-900">
             laboratory research purposes
           </strong>
           .
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           They are{' '}
           <strong className="font-medium text-carbon-900">NOT</strong> intended
           for human consumption, medical use, or therapeutic application.
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           By purchasing from Laminin Peptide Lab, customers acknowledge that
           all products will be handled and used exclusively within a research
           environment.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },
@@ -47,18 +41,18 @@ export const faqItems: FAQItem[] = [
     question: 'Are Certificates of Analysis available?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           <strong className="font-medium text-carbon-900">Yes.</strong>
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           Batch-specific Certificates of Analysis (COA) are available to support
           analytical transparency. These documents verify compound identity and
           purity using recognised analytical techniques such as HPLC.
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           Certificates of Analysis can be accessed directly on each product
           page.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },
@@ -67,13 +61,13 @@ export const faqItems: FAQItem[] = [
     question: 'What purity standards do your compounds meet?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           Laminin Peptide Lab maintains a minimum purity standard of{' '}
           <strong className="font-medium text-carbon-900">≥99%</strong> for
           peptide compounds. Analytical verification is conducted prior to
           release to confirm compound purity and identity.
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           Further details are available in the{' '}
           <Link
             to="/guarantee"
@@ -82,7 +76,7 @@ export const faqItems: FAQItem[] = [
             Purity Assurance Guarantee
           </Link>{' '}
           and associated Certificates of Analysis.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },
@@ -91,18 +85,18 @@ export const faqItems: FAQItem[] = [
     question: 'How should peptide compounds be stored?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           Peptide compounds should be stored in accordance with standard
           laboratory handling practices.
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           Many peptides are typically stored under refrigerated conditions prior
           to reconstitution to preserve stability.
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           Researchers should refer to relevant scientific literature and
           laboratory protocols for appropriate storage procedures.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },
@@ -111,15 +105,15 @@ export const faqItems: FAQItem[] = [
     question: 'Do you ship internationally?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           At present, Laminin Peptide Lab supplies compounds within{' '}
           <strong className="font-medium text-carbon-900">Australia only</strong>
           .
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           Shipping policies and delivery information are available during
           checkout.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },
@@ -128,15 +122,15 @@ export const faqItems: FAQItem[] = [
     question: 'Are your manufacturing partners certified?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           Manufacturing partners operate under recognised quality management
           systems, including GMP-aligned processes and ISO-certified facilities
           (ISO 9001 and ISO 13485).
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           These standards support consistent manufacturing and quality control
           practices.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },
@@ -145,11 +139,11 @@ export const faqItems: FAQItem[] = [
     question: 'What is your Purity Assurance Guarantee?',
     answer: (
       <div className="space-y-3">
-        <P>
+        <FaqParagraph>
           Laminin Peptide Lab provides a Purity Assurance Guarantee for all
           compounds supplied.
-        </P>
-        <P>
+        </FaqParagraph>
+        <FaqParagraph>
           If independent analytical testing demonstrates that the purity of a
           compound does not meet the stated specification of{' '}
           <strong className="font-medium text-carbon-900">≥99%</strong>, a
@@ -161,7 +155,7 @@ export const faqItems: FAQItem[] = [
             Purity Assurance Guarantee
           </Link>{' '}
           policy.
-        </P>
+        </FaqParagraph>
       </div>
     ),
   },

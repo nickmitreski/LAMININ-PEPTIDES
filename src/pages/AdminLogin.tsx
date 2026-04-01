@@ -15,14 +15,6 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (!authReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-platinum">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
-  }
-
   if (isAuthenticated) {
     navigate('/admin/dashboard');
     return null;
@@ -40,7 +32,7 @@ export default function AdminLogin() {
       } else {
         setError('Invalid email or password');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -121,15 +113,6 @@ export default function AdminLogin() {
               >
                 {loading ? 'Logging in...' : 'Login'}
               </Button>
-
-              <div className="rounded-sm border border-carbon-900/10 bg-grey/30 p-4">
-                <Text variant="caption" muted>
-                  Use a Supabase Auth user marked as admin (App Metadata{' '}
-                  <code className="text-xs">admin: true</code>) or listed in{' '}
-                  <code className="text-xs">VITE_ADMIN_EMAIL_ALLOWLIST</code>. See{' '}
-                  <code className="text-xs">supabase/admin_auth_setup.sql</code>.
-                </Text>
-              </div>
             </form>
           </Card>
         </div>

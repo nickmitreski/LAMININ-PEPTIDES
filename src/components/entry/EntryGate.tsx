@@ -10,6 +10,10 @@ function isLegalPath(pathname: string): boolean {
   return LEGAL_PATHS.includes(pathname as (typeof LEGAL_PATHS)[number]);
 }
 
+function isAdminPath(pathname: string): boolean {
+  return pathname.startsWith('/admin');
+}
+
 export default function EntryGate({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [verified, setVerified] = useState(false);
@@ -41,6 +45,11 @@ export default function EntryGate({ children }: { children: ReactNode }) {
         aria-label="Loading"
       />
     );
+  }
+
+  // Admin paths bypass the entry gate entirely
+  if (isAdminPath(location.pathname)) {
+    return <>{children}</>;
   }
 
   const allowLegalWhileUnverified = !verified && isLegalPath(location.pathname);
