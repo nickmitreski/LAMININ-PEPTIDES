@@ -1,6 +1,7 @@
 import { Lock, Loader2, AlertCircle, Clock } from 'lucide-react';
 import Button from '../ui/Button';
 import { Text } from '../ui/Typography';
+import { CHECKOUT_BRAND_NAME } from '../../constants/checkoutCopy';
 
 export type CheckoutPaymentPhase = 'idle' | 'redirecting' | 'error';
 
@@ -11,6 +12,11 @@ interface PaymentFormProps {
   submitLabel?: string;
   /** Partner card checkout disabled — order request only; team follows up via contact details. */
   softLaunch?: boolean;
+  /** User must acknowledge CoreForge / encryption copy before submit. */
+  securityAcknowledged: boolean;
+  onSecurityAcknowledgedChange: (value: boolean) => void;
+  /** When true, checkbox and submit are locked (e.g. while secure modal is preparing). */
+  interactionsLocked?: boolean;
 }
 
 /**
@@ -22,11 +28,15 @@ export default function PaymentForm({
   onRetry,
   submitLabel,
   softLaunch = false,
+  securityAcknowledged,
+  onSecurityAcknowledgedChange,
+  interactionsLocked = false,
 }: PaymentFormProps) {
   const redirecting = phase === 'redirecting';
   const errored = phase === 'error';
   const defaultSubmit = softLaunch ? 'Submit order request' : 'Proceed to secure payment';
   const resolvedSubmit = submitLabel ?? defaultSubmit;
+  const submitBlocked = redirecting || interactionsLocked || !securityAcknowledged;
 
   return (
     <div className="space-y-4">
@@ -61,13 +71,15 @@ export default function PaymentForm({
             {softLaunch ? (
               <>
                 Online card payment is not live yet — usually only a few days away while we restock
-                and finish the secure checkout link. Submit your details below and we will contact
-                you at the email and phone you provided as soon as you can pay and we ship.
+                and finish the secure checkout link. Submit your details below; we will send a
+                one-time code to your email and/or phone for {CHECKOUT_BRAND_NAME} when payment is
+                ready.
               </>
             ) : (
               <>
-                You will be redirected to our partner store to complete payment. Your order
-                reference is saved so you can track status after checkout.
+                You will receive a one-time code by email and/or SMS, then continue to{' '}
+                {CHECKOUT_BRAND_NAME}. Your order reference links this store and the partner catalogue
+                items.
               </>
             )}
           </Text>
@@ -107,12 +119,28 @@ export default function PaymentForm({
         </div>
       )}
 
+      <label className="flex cursor-pointer items-start gap-3 rounded-sm border border-carbon-900/15 bg-white p-4 touch-manipulation">
+        <input
+          type="checkbox"
+          checked={securityAcknowledged}
+          onChange={(e) => onSecurityAcknowledgedChange(e.target.checked)}
+          disabled={redirecting || interactionsLocked}
+          className="mt-1 h-[1.125rem] w-[1.125rem] shrink-0 rounded border-carbon-900/30 text-carbon-900 focus:ring-2 focus:ring-carbon-900/25"
+        />
+        <span className="min-w-0 text-sm leading-relaxed text-carbon-900 sm:text-xs">
+          I understand that <strong className="font-semibold">{CHECKOUT_BRAND_NAME}</strong>{' '}
+          secure payment uses
+          strong encryption for my details in transit (TLS / AES-256). I will receive a one-time
+          code by SMS and/or email before completing payment.
+        </span>
+      </label>
+
       <Button
         type="submit"
         variant="primary"
         size="lg"
-        disabled={redirecting}
-        className="min-h-12 w-full touch-manipulation sm:min-h-0"
+        disabled={submitBlocked}
+        className="min-h-12 w-full touch-manipulation disabled:pointer-events-none disabled:opacity-40 sm:min-h-0"
       >
         {redirecting ? (
           <>
@@ -134,8 +162,8 @@ export default function PaymentForm({
 
       <Text variant="caption" muted className="block px-0.5 text-center text-xs leading-relaxed">
         {softLaunch
-          ? 'No payment is taken on this site yet. We will only use your details to complete your order when checkout is ready.'
-          : 'No card details are collected on this site. Payment is completed on the secure partner checkout.'}
+          ? `No payment is taken on this site yet. A one-time code is sent to your email/SMS for ${CHECKOUT_BRAND_NAME} when payment opens.`
+          : `No card details are collected on this site. You verify with a one-time code, then pay via ${CHECKOUT_BRAND_NAME}.`}
       </Text>
     </div>
   );

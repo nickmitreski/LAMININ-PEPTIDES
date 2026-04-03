@@ -337,6 +337,10 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# Guest checkout invokes this function with the anon key — JWT optional.
+[functions.secure-checkout-init]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

@@ -1,0 +1,278 @@
+import { useEffect, useRef } from 'react';
+import { Lock, Shield, Loader2, Mail, Smartphone } from 'lucide-react';
+import Button from '../ui/Button';
+import {
+  CHECKOUT_BRAND_NAME,
+  CHECKOUT_DELIVERY_BRAND,
+  CHECKOUT_PARTNER_LABEL,
+} from '../../constants/checkoutCopy';
+
+export type SecureCheckoutModalPhase = 'encrypting' | 'sent' | 'error';
+
+interface SecureCheckoutModalProps {
+  open: boolean;
+  phase: SecureCheckoutModalPhase;
+  /** LAMIN order id (internal field `peptide_order_id`); shown after it is created and on the confirmation step. */
+  orderReference?: string | null;
+  /** e.g. "US$12.34" — shown with reference when link was sent by message. */
+  grandTotalLabel?: string | null;
+  /** e.g. "your email", "your mobile number", or both */
+  destinationsDescription: string;
+  /** SMS/email not sent (e.g. Resend/Twilio not enabled yet); softer copy. */
+  codeDeliveryPending?: boolean;
+  /** Customer should open the pay link from email/SMS (includes code + reference). */
+  linkDeliveredInMessages?: boolean;
+  /** Pay UI opens on partner site via API; this page does not navigate to payment. */
+  partnerOpensPaymentUi?: boolean;
+  errorMessage?: string | null;
+  onContinue: () => void;
+  onDismissError: () => void;
+  continueDisabled?: boolean;
+  continueLabel?: string;
+}
+
+/**
+ * Full-screen overlay: encryption-style loader, then confirmation that a code was sent.
+ */
+export default function SecureCheckoutModal({
+  open,
+  phase,
+  destinationsDescription,
+  orderReference = null,
+  grandTotalLabel = null,
+  codeDeliveryPending = false,
+  linkDeliveredInMessages = false,
+  partnerOpensPaymentUi = false,
+  errorMessage,
+  onContinue,
+  onDismissError,
+  continueDisabled = false,
+  continueLabel = 'Continue to secure payment',
+}: SecureCheckoutModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const t = window.setTimeout(() => panelRef.current?.focus(), 50);
+    return () => window.clearTimeout(t);
+  }, [open, phase]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-carbon-900/60 px-4 pb-safe pt-4 sm:items-center sm:px-6 sm:pb-6"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && phase === 'error') onDismissError();
+      }}
+    >
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="secure-checkout-title"
+        aria-describedby="secure-checkout-desc"
+        tabIndex={-1}
+        className="max-h-[min(90vh,32rem)] w-full max-w-md overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl outline-none sm:p-8"
+      >
+        {phase === 'encrypting' ? (
+          <div className="flex flex-col items-center gap-6 py-4 text-center">
+            <div className="relative flex h-24 w-24 items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full border-2 border-carbon-900/10 motion-safe:animate-[spin_2.8s_linear_infinite]"
+                aria-hidden
+              />
+              <div
+                className="absolute inset-1 rounded-full border-2 border-transparent border-t-accent-dark border-r-accent-dark/40 motion-safe:animate-[spin_1.4s_linear_infinite]"
+                style={{ animationDirection: 'reverse' }}
+                aria-hidden
+              />
+              <Shield
+                className="relative z-10 h-11 w-11 text-accent-dark motion-safe:animate-pulse motion-reduce:animate-none"
+                strokeWidth={1.5}
+                aria-hidden
+              />
+            </div>
+            <div>
+              <h2
+                id="secure-checkout-title"
+                className="text-lg font-semibold tracking-tight text-carbon-900 sm:text-base"
+              >
+                Securing your session
+              </h2>
+              <p
+                id="secure-checkout-desc"
+                className="mt-2 text-base leading-relaxed text-neutral-600 sm:text-sm"
+              >
+                {codeDeliveryPending
+                  ? `Preparing AES-256–protected handoff to ${CHECKOUT_BRAND_NAME} and creating your secure session…`
+                  : `Preparing AES-256–protected handoff to ${CHECKOUT_BRAND_NAME} and sending your one-time code…`}
+              </p>
+            </div>
+            <div
+              className="flex w-full items-center justify-center gap-2 rounded-sm border border-carbon-900/10 bg-platinum/80 px-4 py-3"
+              role="status"
+              aria-live="polite"
+            >
+              <Loader2
+                className="h-5 w-5 shrink-0 animate-spin text-accent-dark motion-reduce:animate-none motion-reduce:opacity-70"
+                aria-hidden
+              />
+              <span className="text-sm font-medium text-carbon-900 sm:text-xs">
+                Encrypting request…
+              </span>
+            </div>
+            {orderReference ? (
+              <div
+                className="w-full rounded-sm border border-carbon-900/15 bg-white px-4 py-3 text-center"
+                role="status"
+                aria-live="polite"
+              >
+                <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+                  Order reference
+                </p>
+                <p className="mt-1 break-all font-mono text-base font-semibold text-carbon-900 sm:text-sm">
+                  {orderReference}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {phase === 'sent' ? (
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/20">
+                <Lock className="h-8 w-8 text-accent-dark" aria-hidden />
+              </div>
+            </div>
+            <div className="text-center">
+              <h2
+                id="secure-checkout-title"
+                className="text-lg font-semibold text-carbon-900 sm:text-base"
+              >
+                {codeDeliveryPending
+                  ? 'Secure session ready'
+                  : linkDeliveredInMessages
+                    ? 'Check your messages'
+                    : partnerOpensPaymentUi
+                      ? `Payment started with ${CHECKOUT_PARTNER_LABEL}`
+                      : 'Code sent'}
+              </h2>
+              <p
+                id="secure-checkout-desc"
+                className="mt-3 text-base leading-relaxed text-neutral-700 sm:text-sm"
+              >
+                {codeDeliveryPending ? (
+                  <>
+                    Your verification session is saved securely. SMS/email codes are not sent yet
+                    (Resend/Twilio disabled). You can still continue to checkout; enable delivery in
+                    Supabase when ready. We would use {destinationsDescription} for codes.
+                  </>
+                ) : linkDeliveredInMessages ? (
+                  <>
+                    We sent a <strong className="font-semibold">secure payment link</strong>, your{' '}
+                    <strong className="font-semibold">order reference</strong>, and{' '}
+                    <strong className="font-semibold">verification code</strong> to{' '}
+                    {destinationsDescription} from {CHECKOUT_DELIVERY_BRAND}. Open the link in your
+                    message — it shows your reference and amount; enter the code when asked to
+                    complete encrypted card payment.
+                  </>
+                ) : partnerOpensPaymentUi ? (
+                  <>
+                    Payment details were sent to {CHECKOUT_PARTNER_LABEL} over a secure API (server
+                    to server). They can open the checkout window or popup on{' '}
+                    <strong className="font-semibold">their</strong> site—this tab will not redirect
+                    to the card page. If you use email/SMS codes, they apply on that flow. You can
+                    continue here to finish your order reference on this site.
+                  </>
+                ) : (
+                  <>
+                    A one-time verification code has been sent to {destinationsDescription}. Use it on
+                    the {CHECKOUT_BRAND_NAME} page when prompted.
+                  </>
+                )}
+              </p>
+            </div>
+            {linkDeliveredInMessages && orderReference ? (
+              <div className="rounded-sm border border-carbon-900/10 bg-platinum/50 px-4 py-3 text-center sm:text-left">
+                <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+                  Your order reference
+                </p>
+                <p className="mt-1 break-all font-mono text-base font-semibold text-carbon-900 sm:text-sm">
+                  {orderReference}
+                </p>
+                {grandTotalLabel ? (
+                  <p className="mt-2 text-sm text-neutral-700 sm:text-xs">
+                    Amount on the payment page: <span className="font-semibold">{grandTotalLabel}</span>
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {partnerOpensPaymentUi && !codeDeliveryPending ? (
+              <div className="rounded-sm border border-accent/30 bg-accent/10 px-4 py-3 text-sm leading-relaxed text-carbon-900 sm:text-xs">
+                This page only creates the session and calls the payment API from the server.
+                Pop-ups or new windows for payment come from {CHECKOUT_PARTNER_LABEL}, not from
+                this tab.
+              </div>
+            ) : null}
+            {!codeDeliveryPending && !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
+              <div className="flex flex-wrap items-center justify-center gap-4 rounded-sm border border-carbon-900/10 bg-platinum/50 px-4 py-3 text-sm text-neutral-600 sm:text-xs">
+                <span className="inline-flex items-center gap-1.5">
+                  <Mail className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                  Email
+                </span>
+                <span className="text-carbon-900/20" aria-hidden>
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Smartphone className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                  SMS
+                </span>
+              </div>
+            ) : !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
+              <div className="rounded-sm border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:text-xs">
+                Delivery pending: set Edge secret <span className="font-mono">ENABLE_CODE_DELIVERY</span>{' '}
+                to <span className="font-mono">true</span> and add Resend/Twilio keys.
+              </div>
+            ) : null}
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              className="min-h-12 w-full touch-manipulation"
+              disabled={continueDisabled}
+              onClick={onContinue}
+            >
+              {continueLabel}
+            </Button>
+          </div>
+        ) : null}
+
+        {phase === 'error' ? (
+          <div className="space-y-4 text-center">
+            <h2
+              id="secure-checkout-title"
+              className="text-lg font-semibold text-carbon-900 sm:text-base"
+            >
+              Could not send code
+            </h2>
+            <p id="secure-checkout-desc" className="text-base text-red-900/90 sm:text-sm">
+              {errorMessage || 'Something went wrong. Please try again.'}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="min-h-12 w-full touch-manipulation"
+              onClick={onDismissError}
+            >
+              Back to checkout
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

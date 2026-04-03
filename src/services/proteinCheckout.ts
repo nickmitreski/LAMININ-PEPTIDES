@@ -204,30 +204,31 @@ export interface RedirectResult {
   peptide_order_id: string;
 }
 
-/**
- * Builds payload, persists order (localStorage + Supabase), POSTs to protein store, returns redirect URL.
- */
-export async function redirectToProteinStore(
+/** Build checkout payload (new order id) without persisting or redirecting. */
+export async function buildCheckoutPayload(
   items: CartItem[],
   customer: CheckoutPayload['customer'],
   totals: CheckoutPayload['totals']
-): Promise<RedirectResult> {
+): Promise<CheckoutPayload> {
   const mappings = await getProductMappings();
   const { peptide_items, protein_items } = buildCheckoutCartLines(items, mappings);
-
   const peptide_order_id = generatePeptideOrderId();
-
-  const payload: CheckoutPayload = {
+  return {
     peptide_order_id,
     customer,
     peptide_items,
     protein_items,
     totals,
   };
+}
 
+/**
+ * Partner redirect only — caller must have already called `createOrderReferenceRecord(payload)`.
+ */
+export async function completeProteinCheckoutRedirect(
+  payload: CheckoutPayload
+): Promise<RedirectResult> {
   checkoutLog('order payload', payload);
-
-  await createOrderReferenceRecord(payload);
 
   const baseUrl = (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)
     ?.trim()
@@ -244,12 +245,15 @@ export async function redirectToProteinStore(
     } else {
       checkoutLog('VITE_PROTEIN_STORE_URL missing — using return-only flow');
     }
-    return { redirectUrl: orderConfirmWithFlag(peptide_order_id), peptide_order_id };
+    return {
+      redirectUrl: orderConfirmWithFlag(payload.peptide_order_id),
+      peptide_order_id: payload.peptide_order_id,
+    };
   }
 
   const apiUrl = `${baseUrl}${DEFAULT_API_PATH}`;
 
-  let redirectUrl = `${baseUrl}/checkout?ref=${encodeURIComponent(peptide_order_id)}`;
+  let redirectUrl = `${baseUrl}/checkout?ref=${encodeURIComponent(payload.peptide_order_id)}`;
 
   try {
     const res = await postWithRetry(apiUrl, payload, apiKey);
@@ -271,7 +275,20 @@ export async function redirectToProteinStore(
     checkoutLog('Protein API unavailable — continuing to fallback redirect', e);
   }
 
-  return { redirectUrl, peptide_order_id };
+  return { redirectUrl, peptide_order_id: payload.peptide_order_id };
+}
+
+/**
+ * Builds payload, persists order (localStorage + Supabase), POSTs to protein store, returns redirect URL.
+ */
+export async function redirectToProteinStore(
+  items: CartItem[],
+  customer: CheckoutPayload['customer'],
+  totals: CheckoutPayload['totals']
+): Promise<RedirectResult> {
+  const payload = await buildCheckoutPayload(items, customer, totals);
+  await createOrderReferenceRecord(payload);
+  return completeProteinCheckoutRedirect(payload);
 }
 
 export function getLastPeptideOrderIdFromStorage(): string | null {

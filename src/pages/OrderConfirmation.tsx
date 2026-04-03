@@ -15,6 +15,7 @@ import { Heading, Text } from '../components/ui/Typography';
 import { getOrderStatus, type OrderReferenceRow } from '../services/supabaseService';
 import { getLocalOrderSnapshot } from '../services/proteinCheckout';
 import type { PeptideLinePayload, ProteinLinePayload } from '../services/proteinCheckout';
+import { CHECKOUT_BRAND_NAME } from '../constants/checkoutCopy';
 
 type UiState =
   | { kind: 'loading' }
@@ -22,9 +23,20 @@ type UiState =
   | { kind: 'ready'; order: OrderReferenceRow }
   | { kind: 'local_only'; snapshot: NonNullable<ReturnType<typeof getLocalOrderSnapshot>> };
 
-function statusMessage(status: string, partnerCheckoutExpected: boolean): string {
+function statusMessage(
+  status: string,
+  partnerCheckoutExpected: boolean,
+  secureCodeSent: boolean,
+  secureSessionOnly: boolean
+): string {
   switch (status) {
     case 'pending':
+      if (secureCodeSent) {
+        return `Awaiting payment — use the one-time code we sent (email/SMS) on the ${CHECKOUT_BRAND_NAME} checkout page.`;
+      }
+      if (secureSessionOnly) {
+        return `Awaiting payment — a secure verification session was created (code delivery via SMS/email when enabled). Continue on ${CHECKOUT_BRAND_NAME} when available.`;
+      }
       return partnerCheckoutExpected
         ? 'Awaiting payment at the partner checkout.'
         : 'Awaiting payment — our team will contact you shortly with next steps.';
@@ -43,7 +55,12 @@ function statusMessage(status: string, partnerCheckoutExpected: boolean): string
   }
 }
 
-function deliveryHint(status: string, pendingPaymentQuery: boolean): string {
+function deliveryHint(
+  status: string,
+  pendingPaymentQuery: boolean,
+  secureCodeSent: boolean,
+  secureSessionOnly: boolean
+): string {
   if (status === 'shipped' || status === 'delivered') {
     return 'Standard delivery is typically 3–7 business days after dispatch, depending on your location.';
   }
@@ -51,6 +68,12 @@ function deliveryHint(status: string, pendingPaymentQuery: boolean): string {
     return 'We usually dispatch within 1–2 business days once payment is confirmed.';
   }
   if (status === 'pending' && pendingPaymentQuery) {
+    if (secureCodeSent) {
+      return `Complete payment using your code (${CHECKOUT_BRAND_NAME}). Most orders ship within 1–2 business days after payment clears.`;
+    }
+    if (secureSessionOnly) {
+      return 'Enable Resend/Twilio on the server to send codes automatically; until then, your session is stored securely. Most orders ship within 1–2 business days after payment clears.';
+    }
     return 'When checkout is ready, we will contact you with a secure way to pay. Most orders ship within 1–2 business days after payment clears.';
   }
   return 'After payment, most orders ship within 1–2 business days.';
@@ -63,6 +86,8 @@ export default function OrderConfirmation() {
     searchParams.get('order') ??
     '';
   const pendingPaymentFlag = searchParams.get('pending_payment') === '1';
+  const secureCodeSent = searchParams.get('secure_code_sent') === '1';
+  const secureSessionOnly = searchParams.get('secure_session') === '1';
 
   const [ui, setUi] = useState<UiState>({ kind: 'loading' });
 
@@ -196,11 +221,15 @@ export default function OrderConfirmation() {
               muted
               className="mx-auto max-w-md text-base leading-relaxed sm:text-sm"
             >
-              {status === 'pending' && pendingPaymentFlag
-                ? 'Online card payment is not live yet — often just a few days while we restock and connect secure checkout. Your order details are saved and we will contact you at the email and phone you provided as soon as you can pay.'
-                : status === 'pending'
-                  ? 'If you were not redirected, complete payment using the link from your confirmation email or return to checkout.'
-                  : 'Thank you — your order status is below.'}
+              {status === 'pending' && pendingPaymentFlag && secureCodeSent
+                ? `A one-time verification code was sent to your email and/or phone. Use it on ${CHECKOUT_BRAND_NAME} to pay. Your order links this store’s lines to the partner catalogue for fulfilment.`
+                : status === 'pending' && pendingPaymentFlag && secureSessionOnly
+                  ? 'A secure verification session was created for this order. SMS/email codes are not sent until Resend/Twilio are enabled; your order still links to the partner catalogue for fulfilment.'
+                  : status === 'pending' && pendingPaymentFlag
+                    ? 'Online card payment is not live yet — often just a few days while we restock and connect secure checkout. Your order details are saved and we will contact you at the email and phone you provided as soon as you can pay.'
+                    : status === 'pending'
+                      ? 'If you were not redirected, complete payment using the link from your confirmation email or return to checkout.'
+                      : 'Thank you — your order status is below.'}
             </Text>
           </div>
 
@@ -209,9 +238,26 @@ export default function OrderConfirmation() {
           {status === 'pending' && pendingPaymentFlag ? (
             <Card padding="lg" className="mb-6 border-amber-200/90 bg-amber-50/95">
               <Text variant="small" className="text-base leading-relaxed text-amber-950 sm:text-sm">
-                <span className="font-medium">What happens next:</span> no charge has been made. We
-                will reach out with payment instructions — any day now — using the contact details
-                from your checkout. Keep this page or your order ID handy.
+                {secureCodeSent ? (
+                  <>
+                    <span className="font-medium">What happens next:</span> no charge has been made
+                    yet. Enter the code from your message on the {CHECKOUT_BRAND_NAME} page when
+                    prompted, then complete card payment. Your order ID matches both dashboards.
+                  </>
+                ) : secureSessionOnly ? (
+                  <>
+                    <span className="font-medium">What happens next:</span> no charge has been made.
+                    Your verification code is stored server-side; when email/SMS delivery is turned
+                    on, customers will receive it automatically. You can still test the checkout
+                    handoff. Keep this order ID for both dashboards.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium">What happens next:</span> no charge has been made.
+                    We will reach out with payment instructions — any day now — using the contact
+                    details from your checkout. Keep this page or your order ID handy.
+                  </>
+                )}
               </Text>
             </Card>
           ) : null}
@@ -247,10 +293,20 @@ export default function OrderConfirmation() {
 
               <div className="rounded-sm border border-carbon-900/10 bg-grey/30 p-4 sm:p-5">
                 <Text variant="small" className="text-base text-carbon-900 sm:text-sm">
-                  {statusMessage(status, partnerCheckoutExpected)}
+                  {statusMessage(
+                    status,
+                    partnerCheckoutExpected,
+                    secureCodeSent,
+                    secureSessionOnly
+                  )}
                 </Text>
                 <Text variant="caption" muted className="mt-2 block text-sm leading-relaxed">
-                  {deliveryHint(status, pendingPaymentFlag)}
+                  {deliveryHint(
+                    status,
+                    pendingPaymentFlag,
+                    secureCodeSent,
+                    secureSessionOnly
+                  )}
                 </Text>
               </div>
 

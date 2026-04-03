@@ -64,6 +64,7 @@ COMMENT ON FUNCTION public.jwt_is_admin() IS
 -- 3. customers: INSERT — not WITH CHECK (true)
 -- ============================================================================
 DROP POLICY IF EXISTS "Anyone can create customers" ON public.customers;
+DROP POLICY IF EXISTS "Anon and users can insert customers with valid email" ON public.customers;
 CREATE POLICY "Anon and users can insert customers with valid email"
   ON public.customers
   FOR INSERT
@@ -79,6 +80,7 @@ CREATE POLICY "Anon and users can insert customers with valid email"
 -- 4. order_references: INSERT — structured checkout rows only
 -- ============================================================================
 DROP POLICY IF EXISTS "Anyone can create order references" ON public.order_references;
+DROP POLICY IF EXISTS "Anon and users can create order references for checkout" ON public.order_references;
 CREATE POLICY "Anon and users can create order references for checkout"
   ON public.order_references
   FOR INSERT
@@ -99,6 +101,7 @@ CREATE POLICY "Anon and users can create order references for checkout"
 -- 5. order_references: UPDATE — admins only (was wide open)
 -- ============================================================================
 DROP POLICY IF EXISTS "Anyone can update order status" ON public.order_references;
+DROP POLICY IF EXISTS "Admins can update order references" ON public.order_references;
 CREATE POLICY "Admins can update order references"
   ON public.order_references
   FOR UPDATE
@@ -110,6 +113,7 @@ CREATE POLICY "Admins can update order references"
 -- 6. product_mappings: INSERT — admins only
 -- ============================================================================
 DROP POLICY IF EXISTS "Anyone can insert product mappings" ON public.product_mappings;
+DROP POLICY IF EXISTS "Admins can insert product mappings" ON public.product_mappings;
 CREATE POLICY "Admins can insert product mappings"
   ON public.product_mappings
   FOR INSERT
@@ -120,6 +124,10 @@ CREATE POLICY "Admins can insert product mappings"
 -- 7. order_notes: replace FOR ALL USING (true) with admin-only policies
 -- ============================================================================
 DROP POLICY IF EXISTS "Admins can manage order notes" ON public.order_notes;
+DROP POLICY IF EXISTS "Admins can select order notes" ON public.order_notes;
+DROP POLICY IF EXISTS "Admins can insert order notes" ON public.order_notes;
+DROP POLICY IF EXISTS "Admins can update order notes" ON public.order_notes;
+DROP POLICY IF EXISTS "Admins can delete order notes" ON public.order_notes;
 
 CREATE POLICY "Admins can select order notes"
   ON public.order_notes

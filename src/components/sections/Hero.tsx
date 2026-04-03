@@ -7,7 +7,7 @@ export default function Hero() {
         <>
           Laboratory verified{' '}
           <span className="underline decoration-2 decoration-accent-dark underline-offset-[0.25em]">
-            peptides
+            compounds
           </span>
         </>
       }
