@@ -598,7 +598,7 @@ localStorage.getItem('laminin-admin-supabase-auth');
 
 ### Contact:
 
-- **Email:** info@lamininpeplab.com.au
+- **Email:** info@lamininpeptab.com.au
 - **Supabase Support:** https://supabase.com/dashboard/support
 
 ---

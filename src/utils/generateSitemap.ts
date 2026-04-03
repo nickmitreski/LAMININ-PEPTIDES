@@ -18,7 +18,7 @@ export function generateSitemap(baseUrl: string = 'https://laminincollective.com
     { path: '/guarantee', priority: '0.5', changefreq: 'monthly' },
     { path: '/contact', priority: '0.5', changefreq: 'monthly' },
     { path: '/privacy', priority: '0.3', changefreq: 'yearly' },
-    { path: '/terms-and-conditions', priority: '0.3', changefreq: 'yearly' },
+    { path: '/disclaimer', priority: '0.3', changefreq: 'yearly' },
   ];
 
   // Product pages

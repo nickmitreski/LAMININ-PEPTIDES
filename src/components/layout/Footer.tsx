@@ -81,10 +81,10 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
                 <Link
-                  to="/terms-and-conditions"
+                  to="/disclaimer"
                   className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
                 >
-                  Terms &amp; Conditions
+                  Disclaimer
                 </Link>
                 <Link
                   to="/guarantee"

@@ -10,6 +10,8 @@ export default function Guarantee() {
         <SectionTitle
           title="Purity Assurance Guarantee"
           subtitle="Last updated: March 29, 2026"
+          titleClassName="!font-bold"
+          subtitleClassName="!font-bold"
         />
 
         <div className="mx-auto max-w-3xl space-y-8">
@@ -25,7 +27,7 @@ export default function Guarantee() {
           </Text>
 
           <div>
-            <Heading level={4} className="mb-3">
+            <Heading level={4} className="mb-3 !font-bold">
               Analytical verification
             </Heading>
             <div className="space-y-3 text-neutral-600">
@@ -44,7 +46,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <Heading level={4} className="mb-3">
+            <Heading level={4} className="mb-3 !font-bold">
               Purity standard
             </Heading>
             <Text variant="body" className="text-neutral-600">
@@ -56,7 +58,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <Heading level={4} className="mb-3">
+            <Heading level={4} className="mb-3 !font-bold">
               Our guarantee
             </Heading>
             <div className="space-y-3 text-neutral-600">
@@ -75,7 +77,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <Heading level={4} className="mb-3">
+            <Heading level={4} className="mb-3 !font-bold">
               Additional information
             </Heading>
             <div className="space-y-3 text-neutral-600">

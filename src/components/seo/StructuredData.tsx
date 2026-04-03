@@ -80,7 +80,7 @@ export function OrganizationStructuredData() {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
-      email: 'info@laminincollective.com',
+      email: 'info@lamininpeptab.com.au',
     },
     sameAs: [
       // Add social media links here when available

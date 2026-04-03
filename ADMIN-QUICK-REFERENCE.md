@@ -146,7 +146,7 @@ src/
 https://ytacbvfcltikxzudlkzn.supabase.co
 
 **Email:**
-info@lamininpeplab.com.au
+info@lamininpeptab.com.au
 
 ---
 

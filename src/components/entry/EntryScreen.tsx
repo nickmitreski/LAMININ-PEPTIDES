@@ -12,9 +12,9 @@ export default function EntryScreen({
   onComplete: () => void;
 }) {
   const [age, setAge] = useState<AgeChoice>('unset');
-  const [termsRead, setTermsRead] = useState(false);
+  const [disclaimerRead, setDisclaimerRead] = useState(false);
 
-  const canContinue = age === 'adult' && termsRead;
+  const canContinue = age === 'adult' && disclaimerRead;
 
   return (
     <div className="min-h-screen bg-carbon-900 pb-safe pt-safe text-white">
@@ -51,7 +51,7 @@ export default function EntryScreen({
               type="button"
               onClick={() => {
                 setAge('minor');
-                setTermsRead(false);
+                setDisclaimerRead(false);
               }}
               className={`min-h-12 rounded-lg border px-4 py-3 text-left text-sm font-semibold uppercase tracking-wide transition-colors touch-manipulation ${
                 age === 'minor'
@@ -68,19 +68,19 @@ export default function EntryScreen({
           <label className="mt-5 flex shrink-0 cursor-pointer gap-3 rounded-lg border border-white/15 bg-white/5 p-4 touch-manipulation sm:mt-6">
             <input
               type="checkbox"
-              checked={termsRead}
-              onChange={(e) => setTermsRead(e.target.checked)}
+              checked={disclaimerRead}
+              onChange={(e) => setDisclaimerRead(e.target.checked)}
               className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 bg-carbon-900 text-accent focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-carbon-900"
             />
             <span className="text-sm leading-snug text-white/90">
-              I confirm I have read and agree to the{' '}
+              I confirm I have read the{' '}
               <a
-                href="/terms-and-conditions"
+                href="/disclaimer"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={legalLinkClass}
               >
-                Terms &amp; Conditions
+                Disclaimer
               </a>
               .
             </span>
@@ -128,12 +128,12 @@ export default function EntryScreen({
               ·
             </span>
             <a
-              href="/terms-and-conditions"
+              href="/disclaimer"
               target="_blank"
               rel="noopener noreferrer"
               className={legalLinkClass}
             >
-              Terms
+              Disclaimer
             </a>
           </div>
 

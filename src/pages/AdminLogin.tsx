@@ -98,7 +98,7 @@ export default function AdminLogin() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="input min-h-11 w-full rounded-sm border border-carbon-900/20 bg-white py-3 pl-11 pr-4 text-base text-carbon-900 placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 md:text-sm"
-                    placeholder="admin@lamininpeplab.com.au"
+                    placeholder="info@lamininpeptab.com.au"
                     autoComplete="email"
                   />
                 </div>

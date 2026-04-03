@@ -378,10 +378,10 @@ export default function OrderConfirmation() {
                   <Text variant="caption" muted>
                     Questions? Email{' '}
                     <a
-                      href="mailto:info@lamininpeplab.com.au"
+                      href="mailto:info@lamininpeptab.com.au"
                       className="font-medium text-carbon-900 underline underline-offset-2"
                     >
-                      info@lamininpeplab.com.au
+                      info@lamininpeptab.com.au
                     </a>
                   </Text>
                 </div>

@@ -142,10 +142,10 @@ export default function Contact() {
             <Text variant="caption" muted>
               <span className="font-medium text-carbon-900">Email:</span>{' '}
               <a
-                href="mailto:info@lamininpeplab.com.au"
+                href="mailto:info@lamininpeptab.com.au"
                 className="text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
               >
-                info@lamininpeplab.com.au
+                info@lamininpeptab.com.au
               </a>
             </Text>
             <Text variant="caption" muted>

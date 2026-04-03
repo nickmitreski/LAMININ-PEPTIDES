@@ -205,7 +205,7 @@ export async function POST(request: Request) {
   const { order_id, customer_email } = await request.json();
 
   await resend.emails.send({
-    from: 'orders@laminincollective.com',
+    from: 'info@lamininpeptab.com.au',
     to: customer_email,
     subject: `Order Confirmation - ${order_id}`,
     html: `<p>Thank you for your order!</p>`

@@ -136,10 +136,10 @@ export default function Privacy() {
             <Text variant="body" className="text-neutral-600">
               Questions about this Privacy Policy:{' '}
               <a
-                href="mailto:privacy@lamininpeplab.com.au"
+                href="mailto:info@lamininpeptab.com.au"
                 className="font-medium text-carbon-900 underline decoration-carbon-900/30 underline-offset-2 hover:decoration-carbon-900"
               >
-                privacy@lamininpeplab.com.au
+                info@lamininpeptab.com.au
               </a>
             </Text>
           </div>

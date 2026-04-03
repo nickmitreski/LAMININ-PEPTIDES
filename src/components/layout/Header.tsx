@@ -19,6 +19,7 @@ export default function Header() {
     { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
     { path: '/coa', label: 'Certificate of Analysis' },
+    { path: '/guarantee', label: 'Purity guarantee' },
     { path: '/faq', label: 'FAQ' },
   ];
 

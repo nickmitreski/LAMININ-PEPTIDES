@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import Card from '../components/ui/Card';
@@ -28,6 +29,74 @@ export default function COA() {
           title="Certificate of Analysis"
           subtitle="View third-party verification and purity reports for all compounds"
         />
+
+        <div
+          className="mx-auto mb-10 max-w-3xl space-y-6 rounded-sm border border-accent/45 px-4 py-6 text-left sm:px-6 sm:py-7 md:mb-12"
+          aria-label="About certificates of analysis"
+        >
+          <div className="space-y-4">
+            <Text variant="body" weight="semibold" tone="muted" className="block tracking-wide">
+              Certificates of Analysis
+            </Text>
+            <div className="space-y-3">
+              <Text variant="body" weight="light" tone="muted">
+                Laminin Peptide Lab provides batch-specific Certificates of Analysis to support
+                analytical transparency and product verification.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                Each batch undergoes analytical verification prior to release. Documentation confirming
+                compound identity and purity is made available to researchers for review.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                Certificates of Analysis can be accessed directly on each product page within the
+                Analytical Documentation section.
+              </Text>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <Text variant="body" weight="semibold" tone="muted" className="block tracking-wide">
+              Quality &amp; Analytical Integrity
+            </Text>
+            <div className="space-y-3">
+              <Text variant="body" weight="light" tone="muted">
+                At Laminin Peptide Lab, maintaining the analytical integrity of the compounds we
+                supply is a core priority.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                We conduct ongoing verification of products supplied by manufacturing partners that
+                operate under recognised quality management systems, including GMP-aligned processes,
+                ISO 9001, and ISO 13485 certifications.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                In certain cases, identifying details relating to the original manufacturing partner
+                may be redacted from publicly available Certificates of Analysis. This is standard
+                practice to protect supplier confidentiality while still providing researchers with
+                the relevant analytical data confirming compound identity and purity.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                All batches supplied are verified using HPLC purity analysis as a minimum standard
+                before release.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                To reinforce our commitment to quality, Laminin Peptide Lab provides a{' '}
+                <Link
+                  to="/guarantee"
+                  className="font-medium text-accent-dark underline decoration-accent/60 underline-offset-2 transition-opacity hover:opacity-90 touch-manipulation"
+                >
+                  Purity Assurance Guarantee
+                </Link>
+                . If independent analytical testing demonstrates that the purity of a supplied
+                compound does not meet the stated specification of ≥99% purity, we will provide a
+                full refund.
+              </Text>
+              <Text variant="body" weight="light" tone="muted">
+                Our objective is to provide researchers with transparent documentation and consistent
+                analytical standards across every compound supplied.
+              </Text>
+            </div>
+          </div>
+        </div>
 
         <div className="max-w-xl mx-auto mb-12">
           <SearchField
@@ -102,17 +171,6 @@ export default function COA() {
             <Text variant="small" muted>No certificates found matching your search.</Text>
           </div>
         )}
-
-        <Card padding="lg" className="mt-16 bg-grey">
-          <div className="max-w-2xl mx-auto text-center">
-            <Heading level={5} className="mb-3">About Our COA Program</Heading>
-            <Text variant="small" muted>
-              Every compound supplied by Laminin Peptide Lab undergoes rigorous third-party analytical testing.
-              Our Certificates of Analysis include HPLC, mass spectrometry, and purity verification data from
-              independent laboratories, ensuring complete transparency and quality assurance for your research.
-            </Text>
-          </div>
-        </Card>
       </Section>
     </div>
   );

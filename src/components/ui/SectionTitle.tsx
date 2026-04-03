@@ -7,6 +7,8 @@ interface SectionTitleProps {
   centered?: boolean;
   dark?: boolean;
   className?: string;
+  titleClassName?: string;
+  subtitleClassName?: string;
 }
 
 export default function SectionTitle({
@@ -15,7 +17,9 @@ export default function SectionTitle({
   subtitle,
   centered = true,
   dark = false,
-  className = ''
+  className = '',
+  titleClassName = '',
+  subtitleClassName = '',
 }: SectionTitleProps) {
   const alignment = centered ? 'text-center items-center' : 'text-left items-start';
 
@@ -33,7 +37,7 @@ export default function SectionTitle({
       )}
       <Heading
         level={2}
-        className={dark ? 'text-white' : ''}
+        className={[dark ? 'text-white' : '', titleClassName].filter(Boolean).join(' ')}
       >
         {title}
       </Heading>
@@ -42,7 +46,9 @@ export default function SectionTitle({
           variant="body"
           weight="light"
           tone={dark ? 'inverse-muted' : 'muted'}
-          className={`max-w-3xl ${centered ? 'mx-auto' : ''}`}
+          className={['max-w-3xl', centered ? 'mx-auto' : '', subtitleClassName]
+            .filter(Boolean)
+            .join(' ')}
         >
           {subtitle}
         </Text>

@@ -8,7 +8,7 @@
 UPDATE auth.users
 SET raw_app_meta_data =
   COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"admin": true}'::jsonb
-WHERE lower(email) = lower('admin@lamininpeplab.com.au');
+WHERE lower(email) = lower('info@lamininpeptab.com.au');
 
 -- Verify:
--- SELECT id, email, raw_app_meta_data FROM auth.users WHERE lower(email) = lower('admin@lamininpeplab.com.au');
+-- SELECT id, email, raw_app_meta_data FROM auth.users WHERE lower(email) = lower('info@lamininpeptab.com.au');
