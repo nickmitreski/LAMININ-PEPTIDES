@@ -3,10 +3,11 @@
  * Run this script to update sitemap when products change
  */
 
+import { SITE_FALLBACK_ORIGIN } from '../lib/siteUrl';
 import { peptides } from '../data/peptides';
 import { getProductSlug } from '../data/productContent';
 
-export function generateSitemap(baseUrl: string = 'https://laminincollective.com'): string {
+export function generateSitemap(baseUrl: string = SITE_FALLBACK_ORIGIN): string {
   const lastMod = new Date().toISOString().split('T')[0];
 
   // Static pages with their priorities
@@ -19,6 +20,7 @@ export function generateSitemap(baseUrl: string = 'https://laminincollective.com
     { path: '/contact', priority: '0.5', changefreq: 'monthly' },
     { path: '/privacy', priority: '0.3', changefreq: 'yearly' },
     { path: '/disclaimer', priority: '0.3', changefreq: 'yearly' },
+    { path: '/shipping', priority: '0.3', changefreq: 'yearly' },
   ];
 
   // Product pages
@@ -49,7 +51,3 @@ ${urls}
 `;
 }
 
-// Generate and log sitemap (for manual copying to public/sitemap.xml)
-if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log(generateSitemap());
-}

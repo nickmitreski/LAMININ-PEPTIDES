@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  checkoutGstAmount,
+  checkoutGstRate,
+  expressShippingAud,
+} from '../lib/shippingPolicy';
 import { ArrowLeft } from 'lucide-react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
@@ -47,9 +52,12 @@ const CHECKOUT_ENCRYPT_MIN_MS = Math.max(
 const OPEN_PAYMENT_URL_ON_THIS_SITE =
   import.meta.env.VITE_OPEN_PAYMENT_URL_ON_THIS_SITE === 'true';
 
-/** Match Edge `PAYMENT_LINK_CURRENCY` / Square so the modal shows the same amount label as the pay page. */
+/** Match Edge `PAYMENT_LINK_CURRENCY` / Square when using international card rails; default AUD for this storefront. */
 const CHECKOUT_DISPLAY_CURRENCY =
-  (import.meta.env.VITE_CHECKOUT_DISPLAY_CURRENCY as string | undefined)?.trim() || 'USD';
+  (import.meta.env.VITE_CHECKOUT_DISPLAY_CURRENCY as string | undefined)?.trim() || 'AUD';
+
+const CHECKOUT_CURRENCY_LOCALE =
+  CHECKOUT_DISPLAY_CURRENCY === 'AUD' ? 'en-AU' : 'en-US';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -128,8 +136,8 @@ export default function Checkout() {
 
     setPaymentError(null);
 
-    const shipping = 15.0;
-    const tax = state.total * 0.1;
+    const shipping = expressShippingAud(state.total);
+    const tax = checkoutGstAmount(state.total, checkoutGstRate());
     const grand_total = state.total + shipping + tax;
 
     const customer = {
@@ -169,7 +177,7 @@ export default function Checkout() {
       await createOrderReferenceRecord(payload);
       setSecureOrderReference(payload.peptide_order_id);
       setSecureGrandTotalLabel(
-        new Intl.NumberFormat('en-US', {
+        new Intl.NumberFormat(CHECKOUT_CURRENCY_LOCALE, {
           style: 'currency',
           currency: CHECKOUT_DISPLAY_CURRENCY,
         }).format(payload.totals.grand_total)
@@ -355,8 +363,8 @@ export default function Checkout() {
     );
   }
 
-  const shipping = 15.0;
-  const tax = state.total * 0.1;
+  const shipping = expressShippingAud(state.total);
+  const tax = checkoutGstAmount(state.total, checkoutGstRate());
   const checkoutBusy =
     paymentPhase === 'redirecting' ||
     (secureModalOpen && secureModalPhase === 'encrypting');
@@ -564,6 +572,18 @@ export default function Checkout() {
                     tax={tax}
                     className="mb-6"
                   />
+
+                  <Text variant="caption" muted className="mb-6 leading-relaxed">
+                    Orders dispatch the next business day. Express Australia-wide with tracking; authority
+                    to leave may apply — see{' '}
+                    <Link
+                      to="/shipping"
+                      className="font-medium text-carbon-900 underline underline-offset-2 hover:opacity-90 touch-manipulation"
+                    >
+                      shipping terms
+                    </Link>
+                    .
+                  </Text>
 
                   <div
                     ref={checkoutStatusRef}

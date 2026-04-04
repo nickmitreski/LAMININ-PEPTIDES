@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import SearchField from '../ui/SearchField';
-import Button from '../ui/Button';
 import { Text } from '../ui/Typography';
 import { allPeptides, filterPeptidesByName } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
@@ -66,16 +65,13 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
         aria-label="Close search"
       />
       <div
-        className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-sm border border-carbon-900/10 bg-white p-4 shadow-xl sm:top-[18%] overscroll-contain"
+        className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-sm border border-carbon-900/10 bg-white p-4 shadow-xl sm:top-[18%] overscroll-contain"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="header-search-title"
+        aria-label="Search compounds"
       >
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <span id="header-search-title" className="text-sm font-medium text-carbon-900">
-              Search catalogue
-            </span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={onClose}
@@ -85,22 +81,20 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
               <X className="h-5 w-5" strokeWidth={2} aria-hidden />
             </button>
           </div>
-          <SearchField
-            ref={inputRef}
-            type="search"
-            placeholder="Search compounds..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoComplete="off"
-            aria-label="Search compounds"
-          />
-          <Text variant="caption" muted className="block leading-snug">
-            Uses the same name matching as the library. If only one compound
-            matches, you go straight to its product page.
+          <div className="mx-auto w-full max-w-xl">
+            <SearchField
+              ref={inputRef}
+              type="search"
+              placeholder="Search compounds..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoComplete="off"
+              aria-label="Search compounds"
+            />
+          </div>
+          <Text variant="caption" muted className="block text-center leading-snug">
+            Press Enter to search — same matching as the library.
           </Text>
-          <Button type="submit" variant="primary" size="md" className="w-full">
-            Search
-          </Button>
         </form>
       </div>
     </>

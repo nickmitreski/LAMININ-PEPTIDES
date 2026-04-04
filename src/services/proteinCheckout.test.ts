@@ -37,7 +37,7 @@ const customer = {
   country: 'Australia',
 };
 
-const totals = { subtotal: 119, shipping: 15, tax: 11.9, grand_total: 145.9 };
+const totals = { subtotal: 119, shipping: 11.9, tax: 11.9, grand_total: 142.8 };
 
 describe('buildCheckoutCartLines', () => {
   it('maps cart lines to peptide and protein payloads with CFG codes', () => {

@@ -26,6 +26,7 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Disclaimer = lazy(() => import('./pages/Disclaimer'));
+const Shipping = lazy(() => import('./pages/Shipping'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
 const AdminInventory = lazy(() => import('./pages/AdminInventory'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
@@ -88,6 +89,7 @@ function App() {
                             element={<Navigate to="/disclaimer" replace />}
                           />
                           <Route path="/disclaimer" element={<Disclaimer />} />
+                          <Route path="/shipping" element={<Shipping />} />
                           <Route
                             path="/admin/inventory"
                             element={

@@ -1,10 +1,18 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { allPeptides } from './peptides';
+import {
+  allPeptides,
+  getPeptideDisplayImage,
+  productImageFile,
+  RETATRUTIDE_VARIANT_IMAGE_FILES,
+} from './peptides';
 import {
   PRODUCT_MAPPINGS,
   PEPTIDE_ID_TO_CFG,
   getCfgCodeForPeptideId,
 } from './productMappings';
+import { RETATRUTIDE_CFG_CODE } from './peptides';
 import {
   getNumericPriceForVariantOrPeptide,
   getVariants,
@@ -21,6 +29,26 @@ const MAPPING_REFERENCE_VARIANT: Partial<Record<string, string>> = {
 };
 
 describe('catalog ↔ CFG integrity', () => {
+  it('Retatrutide variant hero image files exist under public/images/products', () => {
+    const dir = join(process.cwd(), 'public', 'images', 'products');
+    for (const file of Object.values(RETATRUTIDE_VARIANT_IMAGE_FILES)) {
+      expect(existsSync(join(dir, file)), `missing ${file}`).toBe(true);
+    }
+  });
+
+  it('getPeptideDisplayImage uses variant files for Retatrutide only', () => {
+    const fallback = '/images/products/other.png';
+    expect(getPeptideDisplayImage('retatrutide', '30mg', fallback)).toBe(
+      productImageFile(RETATRUTIDE_VARIANT_IMAGE_FILES['30mg'])
+    );
+    expect(getPeptideDisplayImage('bpc-157', '10mg', fallback)).toBe(fallback);
+  });
+
+  it('Retatrutide CFG code is consistent across catalog', () => {
+    expect(getCfgCodeForPeptideId('retatrutide')).toBe(RETATRUTIDE_CFG_CODE);
+    expect(PRODUCT_MAPPINGS[RETATRUTIDE_CFG_CODE]).toBeDefined();
+  });
+
   it('every library peptide has a CFG code', () => {
     for (const p of allPeptides) {
       const cfg = getCfgCodeForPeptideId(p.id);

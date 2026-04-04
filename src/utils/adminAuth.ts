@@ -16,7 +16,11 @@ function isTruthyAdminFlag(value: unknown): boolean {
  * Configure one of:
  * 1) Supabase Dashboard → Authentication → Users → user → set App Metadata: `{ "admin": true }`
  *    (or run `supabase/admin_auth_setup.sql` in the SQL Editor for that email), or
- * 2) `VITE_ADMIN_EMAIL_ALLOWLIST` in `.env.local` (comma-separated emails, dev / transitional only).
+ * 2) `VITE_ADMIN_EMAIL_ALLOWLIST` in `.env.local` (comma-separated emails).
+ *
+ * Warning: allowlist values ship in the client bundle — anyone can read them. Use only for
+ * dev/staging or transitional rollout; production gate should rely on Supabase `app_metadata.admin`
+ * plus RLS policies that never trust the client alone.
  */
 export function isSupabaseAdminUser(user: User | null | undefined): boolean {
   if (!user?.email) return false;

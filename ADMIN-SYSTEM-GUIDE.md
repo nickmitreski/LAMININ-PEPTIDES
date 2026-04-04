@@ -223,6 +223,8 @@ Product mappings connect:
 | CFG-034 | Semax 10mg | Semax | $79.00 | Active |
 | CFG-023 | Retatrutide 10mg | Retatrutide | $149.00 | Active |
 
+**Retatrutide (CFG-023) — multi-SKU:** The live store also sells **20 mg** ($249.00) and **30 mg** ($339.00). They use the **same** partner code **CFG-023**; the order line carries `variant_id` (`10mg` / `20mg` / `30mg`). Hero images in `public/images/products/`: `CFG-023_149 — Retatrutide 10mg.png`, `CFG-023_249 — Retatrutide 20mg.png`, `CFG-023_339 — Retatrutide 30mg.png`.
+
 ### Editing Mappings:
 
 Currently, mappings are **view-only** in the admin panel. To edit:

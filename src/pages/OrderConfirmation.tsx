@@ -62,21 +62,21 @@ function deliveryHint(
   secureSessionOnly: boolean
 ): string {
   if (status === 'shipped' || status === 'delivered') {
-    return 'Standard delivery is typically 3–7 business days after dispatch, depending on your location.';
+    return 'Express parcels are sent Australia-wide with tracking. Delivery time depends on your location once the carrier has the parcel.';
   }
   if (status === 'paid' || status === 'processing') {
-    return 'We usually dispatch within 1–2 business days once payment is confirmed.';
+    return 'We process and dispatch orders the next business day after payment clears, using express service with tracking.';
   }
   if (status === 'pending' && pendingPaymentQuery) {
     if (secureCodeSent) {
-      return `Complete payment using your code (${CHECKOUT_BRAND_NAME}). Most orders ship within 1–2 business days after payment clears.`;
+      return `Complete payment using your code (${CHECKOUT_BRAND_NAME}). We dispatch the next business day after payment clears.`;
     }
     if (secureSessionOnly) {
-      return 'Enable Resend/Twilio on the server to send codes automatically; until then, your session is stored securely. Most orders ship within 1–2 business days after payment clears.';
+      return 'Enable Resend/Twilio on the server to send codes automatically; until then, your session is stored securely. After payment, we dispatch the next business day.';
     }
-    return 'When checkout is ready, we will contact you with a secure way to pay. Most orders ship within 1–2 business days after payment clears.';
+    return 'When checkout is ready, we will contact you with a secure way to pay. After payment, we dispatch the next business day.';
   }
-  return 'After payment, most orders ship within 1–2 business days.';
+  return 'After payment, we dispatch the next business day (express AU, tracking provided).';
 }
 
 export default function OrderConfirmation() {

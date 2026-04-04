@@ -110,6 +110,7 @@ VALUES
   ('CFG-020', 'TB-500 10mg', 'TB-500', 109.00, true),
   ('CFG-021', 'MOTS-c 40mg', 'MOTS-c', 149.00, true),
   ('CFG-022', 'FOXO4-DRI 10mg', 'FOXO4-DRI', 399.00, true),
+  -- CFG-023: storefront also 20mg ($249) / 30mg ($339); same cfg_code, variant on order line. Images: CFG-023_149|249|339 — Retatrutide 10|20|30mg.png
   ('CFG-023', 'Retatrutide 10mg', 'Retatrutide', 149.00, true),
   ('CFG-026', 'Glutathione 1500mg', 'Glutathione', 89.00, true),
   ('CFG-027', 'Acetic Acid Water 10ml', 'Acetic Acid Water', 19.00, true),

@@ -11,7 +11,11 @@ import ProductPageAccordion, {
 import ProductDescriptionModal from '../components/products/ProductDescriptionModal';
 import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
-import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
+import {
+  allPeptides,
+  getPeptideDisplayImage,
+  isLiquidAncillaryPeptide,
+} from '../data/peptides';
 import {
   getPeptideIdFromSlug,
   getProductCopy,
@@ -109,6 +113,14 @@ export default function ProductPage() {
     peptide.id,
     variants?.length ? effectiveVariantId : undefined
   );
+  const displayImage = getPeptideDisplayImage(
+    peptide.id,
+    variants?.length ? effectiveVariantId : undefined,
+    peptide.image
+  );
+  const heroAltName = selectedVariant
+    ? `${peptide.name} ${selectedVariant.label}`
+    : peptide.name;
   const productPath = `/products/${slug}`;
 
   const goBack = () => {
@@ -133,7 +145,7 @@ export default function ProductPage() {
         variantId: selectedVariant ? effectiveVariantId : undefined,
         name: cartName,
         price,
-        image: peptide.image,
+        image: displayImage,
         purity: peptide.purity,
       },
       quantity
@@ -151,7 +163,7 @@ export default function ProductPage() {
       <ProductStructuredData
         name={headline}
         description={copy.paragraphs[0] || ''}
-        image={peptide.image}
+        image={displayImage}
         price={price !== null ? price : undefined}
         purity={peptide.purity}
         category={peptide.category}
@@ -177,8 +189,8 @@ export default function ProductPage() {
         <Section background="white" spacing="lg" className="!pt-6 md:!pt-10">
           <div className="mx-auto grid w-full min-w-0 max-w-6xl grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start lg:gap-x-14 lg:gap-y-0 xl:gap-x-20">
             <ProductHeroVisual
-              imageSrc={peptide.image}
-              productName={peptide.name}
+              imageSrc={displayImage}
+              productName={heroAltName}
             />
 
             <div className="flex min-w-0 w-full max-w-xl flex-col lg:justify-self-start">

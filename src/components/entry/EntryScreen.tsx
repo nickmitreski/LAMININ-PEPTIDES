@@ -135,8 +135,20 @@ export default function EntryScreen({
             >
               Disclaimer
             </a>
+            <span className="text-white/25" aria-hidden>
+              ·
+            </span>
+            <a
+              href="/shipping"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={legalLinkClass}
+            >
+              Shipping
+            </a>
           </div>
 
+          {/* Gate acknowledgement is localStorage-only — not a server audit log. */}
           <p className="text-center text-[0.65rem] text-white/40">
             Full legal text opens in a new tab. You must complete this screen to use the store.
           </p>

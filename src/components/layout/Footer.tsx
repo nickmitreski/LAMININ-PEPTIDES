@@ -22,6 +22,7 @@ export default function Footer() {
       { label: 'Certificate of Analysis', path: '/coa' },
       { label: 'Research Library', path: '/library' },
       { label: 'FAQ', path: '/faq' },
+      { label: 'Shipping', path: '/shipping' },
       { label: 'Contact', path: '/contact' },
     ],
   };
@@ -90,7 +91,13 @@ export default function Footer() {
                   to="/guarantee"
                   className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
                 >
-                  Purity guarantee
+                  Purity Guarantee
+                </Link>
+                <Link
+                  to="/shipping"
+                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
+                >
+                  Shipping terms
                 </Link>
                 <Link
                   to="/admin/login"

@@ -1,6 +1,7 @@
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
-import { Heading, Text } from '../components/ui/Typography';
+import PolicySectionHeading from '../components/legal/PolicySectionHeading';
+import { Text } from '../components/ui/Typography';
 
 /** Aligned with the Purity Assurance Guarantee (March 2026). */
 export default function Guarantee() {
@@ -27,9 +28,7 @@ export default function Guarantee() {
           </Text>
 
           <div>
-            <Heading level={4} className="mb-3 !font-bold">
-              Analytical verification
-            </Heading>
+            <PolicySectionHeading>Analytical verification</PolicySectionHeading>
             <div className="space-y-3 text-neutral-600">
               <Text variant="body">
                 Compounds supplied by Laminin Peptide Lab are manufactured by partners operating
@@ -46,9 +45,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <Heading level={4} className="mb-3 !font-bold">
-              Purity standard
-            </Heading>
+            <PolicySectionHeading>Purity standard</PolicySectionHeading>
             <Text variant="body" className="text-neutral-600">
               Laminin Peptide Lab maintains a minimum purity standard of ≥99% for peptide
               compounds, verified through analytical testing prior to supply. This standard
@@ -58,9 +55,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <Heading level={4} className="mb-3 !font-bold">
-              Our guarantee
-            </Heading>
+            <PolicySectionHeading>Our guarantee</PolicySectionHeading>
             <div className="space-y-3 text-neutral-600">
               <Text variant="body">
                 If independent analytical testing demonstrates that the purity of a compound
@@ -77,9 +72,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <Heading level={4} className="mb-3 !font-bold">
-              Additional information
-            </Heading>
+            <PolicySectionHeading>Additional information</PolicySectionHeading>
             <div className="space-y-3 text-neutral-600">
               <Text variant="body">
                 The Purity Assurance Guarantee applies specifically to the analytical purity of the

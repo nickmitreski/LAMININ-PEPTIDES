@@ -4,7 +4,13 @@ import EntryScreen from './EntryScreen';
 
 export const ENTRY_STORAGE_KEY = 'laminin-entry-verified';
 
-const LEGAL_PATHS = ['/privacy', '/disclaimer', '/terms-and-conditions', '/guarantee'] as const;
+const LEGAL_PATHS = [
+  '/privacy',
+  '/disclaimer',
+  '/terms-and-conditions',
+  '/guarantee',
+  '/shipping',
+] as const;
 
 function isLegalPath(pathname: string): boolean {
   return LEGAL_PATHS.includes(pathname as (typeof LEGAL_PATHS)[number]);

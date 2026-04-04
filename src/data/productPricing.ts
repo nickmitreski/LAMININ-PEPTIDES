@@ -10,6 +10,7 @@ export interface ProductVariant {
 }
 
 export const PRODUCT_VARIANTS: Partial<Record<string, ProductVariant[]>> = {
+  /** All strengths map to partner **CFG-023**; hero PNGs `CFG-023_{price} — Retatrutide {n}mg.png`. */
   retatrutide: [
     { id: '10mg', label: '10 mg', price: 149 },
     { id: '20mg', label: '20 mg', price: 249 },

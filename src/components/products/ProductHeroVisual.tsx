@@ -1,5 +1,7 @@
 /**
  * PDP hero — catalogue vial render from /images/products/ (peptide.image).
+ * For better LCP on slow networks, add optional `.webp` alongside PNG and use `<picture>` + `srcset`
+ * (no WebP is bundled here so filenames stay predictable for static hosting).
  */
 interface ProductHeroVisualProps {
   imageSrc: string;

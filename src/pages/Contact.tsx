@@ -32,27 +32,25 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      console.log('Form submitted:', formData);
-
+      const subject = encodeURIComponent(`Website enquiry from ${formData.name}`);
+      const body = encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || '(not provided)'}\n\n${formData.message}`
+      );
+      window.location.href = `mailto:info@lamininpeptab.com.au?subject=${subject}&body=${body}`;
       setSubmitStatus('success');
       setFormData({
         name: '',
         email: '',
         phone: '',
-        message: ''
+        message: '',
       });
-
-      setTimeout(() => {
-        setSubmitStatus('idle');
-      }, 5000);
+      setTimeout(() => setSubmitStatus('idle'), 8000);
     } catch {
       setSubmitStatus('error');
     } finally {
@@ -69,6 +67,16 @@ export default function Contact() {
         />
 
         <div className="max-w-lg mx-auto">
+          <Text variant="small" muted className="mb-6 block leading-relaxed">
+            Send opens your email app with this message addressed to us. You can also email{' '}
+            <a
+              href="mailto:info@lamininpeptab.com.au"
+              className="font-medium text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
+            >
+              info@lamininpeptab.com.au
+            </a>{' '}
+            directly.
+          </Text>
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               id="name"
@@ -116,7 +124,7 @@ export default function Contact() {
             {submitStatus === 'success' && (
               <StatusMessage
                 variant="success"
-                message="Thank you for your message! We'll respond within 24 hours."
+                message="If your email app opened, send the message there. We'll respond within 24 hours."
               />
             )}
 
@@ -134,7 +142,7 @@ export default function Contact() {
               disabled={isSubmitting}
               className="w-full"
             >
-              {isSubmitting ? 'Sending...' : 'Send Message'}
+              {isSubmitting ? 'Opening…' : 'Send via email app'}
             </Button>
           </form>
 

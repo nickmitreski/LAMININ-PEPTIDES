@@ -111,8 +111,15 @@ export const faqItems: FAQItem[] = [
           .
         </FaqParagraph>
         <FaqParagraph>
-          Shipping policies and delivery information are available during
-          checkout.
+          See our{' '}
+          <Link
+            to="/shipping"
+            className="font-medium text-carbon-900 underline underline-offset-4 hover:text-carbon-900/70"
+          >
+            Shipping Terms &amp; Policy
+          </Link>{' '}
+          for rates, dispatch, delivery (including authority to leave), and discreet packaging. Final
+          charges are confirmed at checkout.
         </FaqParagraph>
       </div>
     ),

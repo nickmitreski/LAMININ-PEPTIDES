@@ -233,6 +233,10 @@ export async function completeProteinCheckoutRedirect(
   const baseUrl = (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)
     ?.trim()
     .replace(/\/$/, '');
+  /**
+   * Exposed to the browser bundle — treat as publishable only. For sensitive partner secrets,
+   * prefer a Supabase Edge Function (or server) that injects the key and proxies this POST.
+   */
   const apiKey = import.meta.env.VITE_PROTEIN_STORE_API_KEY as string | undefined;
   const softLaunch = import.meta.env.VITE_CHECKOUT_SOFT_LAUNCH === 'true';
 

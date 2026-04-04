@@ -95,6 +95,11 @@ export const PRODUCT_MAPPINGS: Record<string, ProductMapping> = {
     proteinName: 'CoreForge Complete Transformation System',
     price: 399,
   },
+  /**
+   * Retatrutide — **one** decoy protein line per bridge rules; storefront has 10 / 20 / 30 mg variants.
+   * Hero assets: `CFG-023_149|249|339 — Retatrutide 10|20|30mg.png` in `public/images/products/`.
+   * Checkout: same `cfg_code`, `variant_id` = `10mg` | `20mg` | `30mg`, unit price from cart.
+   */
   'CFG-023': {
     peptideName: 'Retatrutide 10mg',
     proteinName: 'CoreForge Casein Protein 2kg (Vanilla Bean)',

@@ -1,3 +1,5 @@
+import { absoluteUrl, listingPriceCurrency, siteOrigin } from '../../lib/siteUrl';
+
 interface ProductStructuredDataProps {
   name: string;
   description: string;
@@ -24,7 +26,7 @@ export function ProductStructuredData({
     '@type': 'Product',
     name,
     description,
-    image: `https://laminincollective.com${image}`,
+    image: absoluteUrl(image),
     category,
     sku,
     brand: {
@@ -33,8 +35,8 @@ export function ProductStructuredData({
     },
     offers: {
       '@type': 'Offer',
-      url: `https://laminincollective.com${url}`,
-      priceCurrency: 'USD',
+      url: absoluteUrl(url),
+      priceCurrency: listingPriceCurrency(),
       price: price || undefined,
       availability: 'https://schema.org/InStock',
       seller: {
@@ -69,12 +71,13 @@ export function ProductStructuredData({
 }
 
 export function OrganizationStructuredData() {
+  const origin = siteOrigin();
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Laminin Peptide Lab',
-    url: 'https://laminincollective.com',
-    logo: 'https://laminincollective.com/images/brand/logo-colour.png',
+    url: origin,
+    logo: `${origin}/images/brand/logo-colour.png`,
     description:
       'Laminin Peptide Lab supplies high-purity research peptides for laboratory use. All compounds are analytically verified with Certificates of Analysis available.',
     contactPoint: {
@@ -96,14 +99,15 @@ export function OrganizationStructuredData() {
 }
 
 export function WebsiteStructuredData() {
+  const origin = siteOrigin();
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Laminin Peptide Lab',
-    url: 'https://laminincollective.com',
+    url: origin,
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://laminincollective.com/library?search={search_term_string}',
+      target: `${origin}/library?q={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   };

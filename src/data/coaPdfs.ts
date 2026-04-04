@@ -1,7 +1,12 @@
 /**
  * Maps peptide `id` (from peptides.ts) to the exact filename in
- * `public/images/cod-pdfs/`. Only compounds with a matching lab PDF are listed.
+ * `public/images/coa-pdfs/`. Only compounds with a matching lab PDF are listed.
+ *
+ * Catalogue entries without a row here (and no Retatrutide variant PDF) show
+ * “COA PDF coming soon” until a file is added and registered.
+ * Missing today (examples): melanotan-1/2, ss-31, igf-1-lr3, cerebrolysin, foxo4-dri, glutathione.
  */
+/** Retatrutide variants share storefront peptide id `retatrutide` / partner **CFG-023**; COA PDF per strength. */
 const RETATRUTIDE_COA_BY_VARIANT: Record<string, string> = {
   '10mg': 'Test Report #Retatrutide 10.pdf',
   '20mg': 'Test Report #Retatrutide 20.pdf',
@@ -29,7 +34,7 @@ export const COA_PDF_BY_PEPTIDE_ID: Record<string, string> = {
 };
 
 export function coaPdfPublicUrl(filename: string): string {
-  return `/images/cod-pdfs/${encodeURIComponent(filename)}`;
+  return `/images/coa-pdfs/${encodeURIComponent(filename)}`;
 }
 
 export function coaPdfFilenameForPeptide(

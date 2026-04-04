@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import ShippingPolicyHint from '../components/cart/ShippingPolicyHint';
 import { ShoppingBag } from 'lucide-react';
 import Section from '../components/layout/Section';
 import CartItem from '../components/cart/CartItem';
@@ -91,9 +92,7 @@ export default function Cart() {
                     </Button>
                   </Link>
 
-                  <Text variant="caption" muted className="text-center block">
-                    Shipping & taxes calculated at checkout
-                  </Text>
+                  <ShippingPolicyHint />
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-carbon-900/10">

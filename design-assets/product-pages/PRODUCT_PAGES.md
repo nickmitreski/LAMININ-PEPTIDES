@@ -23,6 +23,8 @@ Each PNG is a **full PDP (product detail page)** capture: hero vial, title, pric
 | `CFG-022_399 — FOXO4-DRI 10mg — shop-page.png` | `CFG-022_399 — FOXO4-DRI 10mg.png` | Screenshot shows sold out |
 | `CFG-023_149 — Retatrutide 10mg — shop-page.png` | `CFG-023_149 — Retatrutide 10mg.png` | First capture |
 | `CFG-023_149 — Retatrutide 10mg — shop-page-alt.png` | `CFG-023_149 — Retatrutide 10mg.png` | Second capture (same SKU) |
+| *(no shop mock yet)* | `CFG-023_249 — Retatrutide 20mg.png` | **CFG-023** / 20 mg variant hero (`public/images/products/`) |
+| *(no shop mock yet)* | `CFG-023_339 — Retatrutide 30mg.png` | **CFG-023** / 30 mg variant hero (`public/images/products/`) |
 | `CFG-026_89 — Glutathione 1500mg — shop-page.png` | `CFG-026_89 — Glutathione 1500mg.png` | Screenshot shows $0.00 + sold out (listing may differ from catalog) |
 | `CFG-027_19 — Acetic acid water 10ml — shop-page.png` | `CFG-027_19 — Acetic acid water 10ml.png` | |
 | `CFG-028_5 — Bacteriostatic water 3ml — shop-page.png` | `CFG-028_5 — Bacteriostatic water 3ml.png` | |

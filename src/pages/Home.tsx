@@ -5,10 +5,16 @@ import PeptideToggleSection from '../components/sections/PeptideToggleSection';
 import ResearchCategories from '../components/sections/ResearchCategories';
 import Disclaimer from '../components/sections/Disclaimer';
 import CTASection from '../components/sections/CTASection';
+import {
+  OrganizationStructuredData,
+  WebsiteStructuredData,
+} from '../components/seo/StructuredData';
 
 export default function Home() {
   return (
     <>
+      <OrganizationStructuredData />
+      <WebsiteStructuredData />
       <Hero />
       <TrustBar />
       <FeaturedProducts />

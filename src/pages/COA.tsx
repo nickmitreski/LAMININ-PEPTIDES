@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
@@ -8,19 +8,64 @@ import Button from '../components/ui/Button';
 import SearchField from '../components/ui/SearchField';
 import { Heading, Text } from '../components/ui/Typography';
 import IconTile from '../components/ui/IconTile';
-import { allPeptides } from '../data/peptides';
+import PolicySectionHeading from '../components/legal/PolicySectionHeading';
+import type { Peptide } from '../data/peptides';
+import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
+import { getVariants } from '../data/productPricing';
 import { coaPdfFilenameForPeptide, coaPdfPublicUrl } from '../data/coaPdfs';
 import { CheckCircle } from 'lucide-react';
+
+type CoaCardEntry = {
+  key: string;
+  peptide: Peptide;
+  variantId?: string;
+  title: string;
+};
+
+function buildCoaCardEntries(peptides: Peptide[]): CoaCardEntry[] {
+  const out: CoaCardEntry[] = [];
+  for (const p of peptides) {
+    if (p.id === 'retatrutide') {
+      const vars = getVariants('retatrutide');
+      if (vars?.length) {
+        for (const v of vars) {
+          out.push({
+            key: `retatrutide-${v.id}`,
+            peptide: p,
+            variantId: v.id,
+            title: `Retatrutide (${v.label})`,
+          });
+        }
+      } else {
+        out.push({ key: p.id, peptide: p, title: p.name });
+      }
+    } else {
+      out.push({ key: p.id, peptide: p, title: p.name });
+    }
+  }
+  return out;
+}
 
 export default function COA() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const verifiedPeptides = allPeptides.filter(p => p.coaVerified);
+  const coaEntries = useMemo(() => {
+    const verified = allPeptides.filter(
+      (p) => p.coaVerified && !isLiquidAncillaryPeptide(p.id)
+    );
+    return buildCoaCardEntries(verified);
+  }, []);
 
-  const filteredPeptides = verifiedPeptides.filter(peptide =>
-    peptide.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    peptide.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEntries = useMemo(() => {
+    const q = searchTerm.toLowerCase().trim();
+    if (!q) return coaEntries;
+    return coaEntries.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.peptide.name.toLowerCase().includes(q) ||
+        e.peptide.category.toLowerCase().includes(q)
+    );
+  }, [coaEntries, searchTerm]);
 
   return (
     <div className="min-h-screen">
@@ -35,9 +80,7 @@ export default function COA() {
           aria-label="About certificates of analysis"
         >
           <div className="space-y-4">
-            <Text variant="body" weight="semibold" tone="muted" className="block tracking-wide">
-              Certificates of Analysis
-            </Text>
+            <PolicySectionHeading>Certificates of Analysis</PolicySectionHeading>
             <div className="space-y-3">
               <Text variant="body" weight="light" tone="muted">
                 Laminin Peptide Lab provides batch-specific Certificates of Analysis to support
@@ -55,9 +98,7 @@ export default function COA() {
           </div>
 
           <div className="space-y-4 pt-2">
-            <Text variant="body" weight="semibold" tone="muted" className="block tracking-wide">
-              Quality &amp; Analytical Integrity
-            </Text>
+            <PolicySectionHeading>Quality &amp; Analytical Integrity</PolicySectionHeading>
             <div className="space-y-3">
               <Text variant="body" weight="light" tone="muted">
                 At Laminin Peptide Lab, maintaining the analytical integrity of the compounds we
@@ -110,14 +151,14 @@ export default function COA() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPeptides.map((peptide) => {
-            const pdfFile = coaPdfFilenameForPeptide(peptide.id);
+          {filteredEntries.map(({ key, peptide, variantId, title }) => {
+            const pdfFile = coaPdfFilenameForPeptide(peptide.id, variantId);
             return (
-              <Card key={peptide.id} padding="lg">
+              <Card key={key} padding="lg">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <Heading level={5} className="mb-2">
-                      {peptide.name}
+                      {title}
                     </Heading>
                     <Badge variant="neutral" size="sm">
                       {peptide.category}
@@ -135,7 +176,12 @@ export default function COA() {
                   </div>
                   <div className="flex justify-between">
                     <Text variant="caption" muted>Batch:</Text>
-                    <Text variant="caption" weight="medium">#{peptide.id.toUpperCase()}</Text>
+                    <Text variant="caption" weight="medium">
+                      #
+                      {variantId
+                        ? `${peptide.id}-${variantId}`.toUpperCase()
+                        : peptide.id.toUpperCase()}
+                    </Text>
                   </div>
                   <div className="flex justify-between">
                     <Text variant="caption" muted>Status:</Text>
@@ -166,7 +212,7 @@ export default function COA() {
           })}
         </div>
 
-        {filteredPeptides.length === 0 && (
+        {filteredEntries.length === 0 && (
           <div className="text-center py-16">
             <Text variant="small" muted>No certificates found matching your search.</Text>
           </div>

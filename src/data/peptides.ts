@@ -75,6 +75,10 @@ export const cfgProductFiles = {
   tb500: 'CFG-020_109 — TB-500 10mg.png',
   motsC: 'CFG-021_149 — MOTS-c 40mg.png',
   foxo4: 'CFG-022_399 — FOXO4-DRI 10mg.png',
+  /**
+   * Retatrutide — partner / protein code **CFG-023** (all strengths). List-price hero filenames:
+   * `CFG-023_149 — Retatrutide 10mg.png`, `CFG-023_249 — Retatrutide 20mg.png`, `CFG-023_339 — Retatrutide 30mg.png`.
+   */
   retatrutide: 'CFG-023_149 — Retatrutide 10mg.png',
   glutathione: 'CFG-026_89 — Glutathione 1500mg.png',
   acetic: 'CFG-027_19 — Acetic acid water 10ml.png',
@@ -87,6 +91,34 @@ export const cfgProductFiles = {
   semax: 'CFG-034_79 — Semax 10mg.png',
   klow: 'CFG-035_189 — KLOW 80mg.png',
 } as const;
+
+/** Partner / protein-bridge CFG code for every Retatrutide storefront variant (checkout sends `variant_id`). */
+export const RETATRUTIDE_CFG_CODE = 'CFG-023' as const;
+
+/**
+ * PDP/cart hero filenames in `/public/images/products/`.
+ * Pattern: `CFG-023_{listPrice} — Retatrutide {strength}.png` (aligned with `productPricing` AUD inc. GST).
+ */
+export const RETATRUTIDE_VARIANT_IMAGE_FILES: Record<string, string> = {
+  '10mg': 'CFG-023_149 — Retatrutide 10mg.png',
+  '20mg': 'CFG-023_249 — Retatrutide 20mg.png',
+  '30mg': 'CFG-023_339 — Retatrutide 30mg.png',
+};
+
+/**
+ * PDP / cart image for a peptide, accounting for multi-SKU variant artwork when available.
+ */
+export function getPeptideDisplayImage(
+  peptideId: string,
+  variantId: string | undefined,
+  fallbackImage: string
+): string {
+  if (peptideId === 'retatrutide' && variantId) {
+    const file = RETATRUTIDE_VARIANT_IMAGE_FILES[variantId];
+    if (file) return productImageFile(file);
+  }
+  return fallbackImage;
+}
 
 export const peptides: Peptide[] = [
   {

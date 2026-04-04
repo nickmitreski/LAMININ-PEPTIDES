@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { X, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ShippingPolicyHint from './ShippingPolicyHint';
 import { useCart } from '../../context/CartContext';
 import { cartLineKey } from '../../types/cart';
 import CartItem from './CartItem';
@@ -123,9 +124,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </Link>
               </div>
 
-              <Text variant="caption" muted className="text-center block">
-                Shipping & taxes calculated at checkout
-              </Text>
+              <ShippingPolicyHint />
             </div>
           </>
         )}
