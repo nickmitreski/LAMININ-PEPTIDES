@@ -19,6 +19,8 @@ export interface SecureCheckoutInitResponse {
   sent_sms?: boolean;
   /** True when email/SMS was requested but nothing was delivered (e.g. Resend/Twilio off). */
   code_delivery_pending?: boolean;
+  /** Session handed off to COREFORGE ingest; SMS with pay link arrives after partner calls partner-payment-ready. */
+  async_coreforge_flow?: boolean;
   delivery_enabled?: boolean;
   payment_portal_url?: string | null;
   payment_link_id?: string | null;
@@ -61,6 +63,9 @@ const MOCK_FLAG = import.meta.env.VITE_DEV_MOCK_SECURE_CHECKOUT === 'true';
  * Calls Supabase Edge Function `secure-checkout-init` to hash/store a code, notify the customer,
  * and optionally notify the partner payment API. Resend/Twilio run only when the Edge secret
  * `ENABLE_CODE_DELIVERY=true` is set.
+ *
+ * Request `send_email` / `send_sms` for whichever channels the customer provided; the Edge function
+ * requires at least one valid destination.
  */
 export async function initiateSecureCheckoutSession(
   payload: CheckoutPayload,

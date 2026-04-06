@@ -341,6 +341,9 @@ deno_version = 2
 [functions.secure-checkout-init]
 verify_jwt = false
 
+[functions.partner-payment-ready]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

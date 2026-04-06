@@ -1,22 +1,26 @@
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, type ReactNode } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: ReactNode;
   error?: string;
   helperText?: string;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, className = '', ...props }, ref) => {
+  ({ label, error, helperText, className = '', id, ...props }, ref) => {
     return (
       <div className="w-full">
-        {label && (
-          <label className="block text-xs font-medium tracking-wide text-carbon-900 mb-2">
+        {label != null && label !== '' && (
+          <label
+            htmlFor={id}
+            className="mb-2 block text-xs font-medium tracking-wide text-carbon-900"
+          >
             {label}
           </label>
         )}
         <input
           ref={ref}
+          id={id}
           className={`input ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''} ${className}`}
           {...props}
         />

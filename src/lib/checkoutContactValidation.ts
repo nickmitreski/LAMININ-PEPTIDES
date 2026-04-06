@@ -7,7 +7,7 @@ export interface ContactValidationResult {
   phoneValid: boolean;
 }
 
-/** At least one channel required: valid email and/or phone (≥10 digits for area code + number). */
+/** At least one channel: valid email and/or mobile (≥10 digits). Email is optional if phone is valid. */
 export function validateCheckoutContact(email: string, phone: string): ContactValidationResult {
   const emailTrim = email.trim();
   const phoneDigits = phone.replace(/\D/g, '');
@@ -19,7 +19,7 @@ export function validateCheckoutContact(email: string, phone: string): ContactVa
     return {
       ok: false,
       message:
-        'Enter a valid email and/or a mobile number (with area code) so we can send your secure payment code.',
+        'Enter a valid email and/or a mobile number (with area code) so we can send your verification code.',
       emailValid: false,
       phoneValid: false,
     };
@@ -28,7 +28,7 @@ export function validateCheckoutContact(email: string, phone: string): ContactVa
   if (emailTrim.length > 0 && !emailValid) {
     return {
       ok: false,
-      message: 'Please enter a valid email address, or clear the field and use phone only.',
+      message: 'Please enter a valid email address, or clear the field and use SMS only.',
       emailValid: false,
       phoneValid,
     };

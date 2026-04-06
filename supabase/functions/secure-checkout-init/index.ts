@@ -11,6 +11,7 @@
  * Deploy: `npx supabase functions deploy secure-checkout-init --no-verify-jwt`
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+import { sendTwilioSms } from '../_shared/twilioSms.ts';
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -42,6 +43,26 @@ function randomDigits(length: number): string {
     out += digits[arr[i]! % 10];
   }
   return out;
+}
+
+function formatVerificationCode(code: string): string {
+  // Format 6-digit code like 2FA: "123 456"
+  if (code.length === 6) {
+    return `${code.slice(0, 3)} ${code.slice(3)}`;
+  }
+  return code;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidCheckoutEmail(email: string | undefined): boolean {
+  const t = (email ?? '').trim();
+  return t.length > 0 && EMAIL_RE.test(t);
+}
+
+function isValidCheckoutPhone(phone: string | undefined): boolean {
+  const digits = (phone ?? '').replace(/\D/g, '');
+  return digits.length >= 10;
 }
 
 function formatMoney(amount: number, currency: string): string {
@@ -95,14 +116,34 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: false, error: 'No delivery channel' }, 400);
   }
 
-  const wantEmail = send_email && Boolean(customer.email);
-  const wantSms = send_sms && Boolean(customer.phone);
+  if (send_email && !isValidCheckoutEmail(customer.email)) {
+    return jsonResponse({ ok: false, error: 'Invalid email address for email delivery.' }, 400);
+  }
+  if (send_sms && !isValidCheckoutPhone(customer.phone)) {
+    return jsonResponse(
+      {
+        ok: false,
+        error: 'Invalid mobile number for SMS (need at least 10 digits including area code).',
+      },
+      400
+    );
+  }
+
+  const wantEmail = send_email && isValidCheckoutEmail(customer.email);
+  const wantSms = send_sms && isValidCheckoutPhone(customer.phone);
+
+  if (!wantEmail && !wantSms) {
+    return jsonResponse(
+      {
+        ok: false,
+        error: 'Provide a valid email and/or mobile number for your verification code.',
+      },
+      400
+    );
+  }
 
   const deliveryEnabled = Deno.env.get('ENABLE_CODE_DELIVERY') === 'true';
   const resendKey = Deno.env.get('RESEND_API_KEY');
-  const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-  const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-  const twilioFrom = Deno.env.get('TWILIO_MESSAGING_SERVICE_SID') ?? Deno.env.get('TWILIO_FROM_NUMBER');
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -112,14 +153,16 @@ Deno.serve(async (req) => {
 
   const deliveryBrand =
     Deno.env.get('CHECKOUT_DELIVERY_BRAND')?.trim() || 'LAMININ';
+  const paymentLinkCurrencyEarly =
+    Deno.env.get('PAYMENT_LINK_CURRENCY')?.trim() || 'AUD';
 
   const plainCode = randomDigits(6);
   const code_hash = await sha256Hex(plainCode);
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
   const sent_via: string[] = [];
-  if (send_email && customer.email) sent_via.push('email');
-  if (send_sms && customer.phone) sent_via.push('sms');
+  if (wantEmail) sent_via.push('email');
+  if (wantSms) sent_via.push('sms');
 
   const supabase = createClient(supabaseUrl, serviceKey);
   const { data: inserted, error: insertError } = await supabase
@@ -129,7 +172,7 @@ Deno.serve(async (req) => {
       code_hash,
       expires_at: expiresAt,
       grand_total: totals.grand_total,
-      currency: 'USD',
+      currency: paymentLinkCurrencyEarly,
       customer_email: wantEmail ? (customer.email ?? null) : null,
       customer_phone: wantSms ? (customer.phone ?? null) : null,
       customer_first_name: customer.first_name ?? null,
@@ -151,10 +194,72 @@ Deno.serve(async (req) => {
 
   const sessionId = inserted.id as string;
 
+  const asyncCoreforge = Deno.env.get('ASYNC_COREFORGE_PAYMENT_FLOW') === 'true';
+  const coreforgeIngest = Deno.env.get('COREFORGE_INGEST_URL')?.trim();
+  const coreforgeBearer = Deno.env.get('COREFORGE_INGEST_BEARER')?.trim();
+
+  if (asyncCoreforge && coreforgeIngest && coreforgeBearer) {
+    const ingestPayload = {
+      peptide_order_id,
+      verification_code: plainCode,
+      grand_total: totals.grand_total,
+      currency: paymentLinkCurrencyEarly,
+      expires_at: expiresAt,
+      customer: {
+        first_name: customer.first_name ?? null,
+        last_name: customer.last_name ?? null,
+        email: wantEmail ? (customer.email ?? null) : null,
+        phone: wantSms ? (customer.phone ?? null) : null,
+      },
+      enriched_lines: Array.isArray(enriched_lines) ? enriched_lines : [],
+    };
+    try {
+      const ingestRes = await fetch(coreforgeIngest, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${coreforgeBearer}`,
+          'User-Agent': 'LAMIN-COREFORGE-Ingest/1.0',
+        },
+        body: JSON.stringify(ingestPayload),
+      });
+      if (!ingestRes.ok) {
+        const detail = await ingestRes.text().catch(() => '');
+        console.error('COREFORGE ingest non-OK', ingestRes.status, detail);
+        await supabase.from('checkout_secure_sessions').delete().eq('id', sessionId);
+        return jsonResponse(
+          {
+            ok: false,
+            error: 'Payment site ingest failed; session was not created.',
+            status: ingestRes.status,
+          },
+          502
+        );
+      }
+    } catch (e) {
+      console.error('COREFORGE ingest failed', e);
+      await supabase.from('checkout_secure_sessions').delete().eq('id', sessionId);
+      return jsonResponse({ ok: false, error: 'Payment site ingest unreachable.' }, 502);
+    }
+
+    return jsonResponse({
+      ok: true,
+      async_coreforge_flow: true,
+      code_delivery_pending: true,
+      delivery_enabled: deliveryEnabled,
+      sent_email: false,
+      sent_sms: false,
+      payment_portal_url: null,
+      payment_link_created: false,
+      payment_link_in_delivery: false,
+      partner_payment_ui_notify_ok: false,
+    });
+  }
+
   const paymentLinkCreateUrl = Deno.env.get('PAYMENT_LINK_CREATE_URL')?.trim();
   const paymentLinkBearer = Deno.env.get('PAYMENT_LINK_BEARER')?.trim();
   const paymentLinkSecretHeader = Deno.env.get('PAYMENT_LINK_SECRET_HEADER')?.trim();
-  const paymentLinkCurrency = Deno.env.get('PAYMENT_LINK_CURRENCY')?.trim() || 'USD';
+  const paymentLinkCurrency = paymentLinkCurrencyEarly;
   const paymentLinkExpiration = Number(Deno.env.get('PAYMENT_LINK_EXPIRATION_MINUTES') ?? '15');
 
   let external_payment_url: string | null = null;
@@ -244,6 +349,7 @@ Deno.serve(async (req) => {
 
   const amountLabel = formatMoney(totals.grand_total, paymentLinkCurrency);
   const includeLinkInMessages = Boolean(external_payment_url);
+  const formattedCode = formatVerificationCode(plainCode);
 
   const emailSubject = includeLinkInMessages
     ? `Your secure encrypted payment link from ${deliveryBrand}`
@@ -253,14 +359,14 @@ Deno.serve(async (req) => {
     ? `Here is your link to the secure encrypted payment from ${deliveryBrand}.
 
 Order reference: ${peptide_order_id}
-Verification code: ${plainCode}
+Verification code: ${formattedCode}
 Amount: ${amountLabel}
 
 Pay here (open this link on your phone or computer):
 ${external_payment_url}
 
 Enter your verification code when prompted. This link and code expire in about 15 minutes.`
-    : `Your verification code is ${plainCode}.
+    : `Your verification code is ${formattedCode}.
 
 Order reference: ${peptide_order_id}
 Amount: ${amountLabel}
@@ -268,8 +374,8 @@ Amount: ${amountLabel}
 Expires in 15 minutes.`;
 
   const smsBody = includeLinkInMessages
-    ? `${deliveryBrand} — Secure pay ${amountLabel}. Ref ${peptide_order_id}. Code ${plainCode}. Link: ${external_payment_url}`
-    : `${deliveryBrand} code: ${plainCode} (ref ${peptide_order_id}). Expires in 15 min.`;
+    ? `${deliveryBrand} — Secure pay ${amountLabel}. Ref ${peptide_order_id}. Code ${formattedCode}. Link: ${external_payment_url}`
+    : `${deliveryBrand} code: ${formattedCode} (ref ${peptide_order_id}). Expires in 15 min.`;
 
   let emailSent = false;
   let smsSent = false;
@@ -297,29 +403,16 @@ Expires in 15 minutes.`;
       }
     }
 
-    if (wantSms && customer.phone && twilioSid && twilioToken && twilioFrom) {
-      try {
-        const auth = btoa(`${twilioSid}:${twilioToken}`);
-        const form = new URLSearchParams();
-        if (twilioFrom.startsWith('MG')) {
-          form.set('MessagingServiceSid', twilioFrom);
-        } else {
-          form.set('From', twilioFrom);
-        }
-        form.set('To', customer.phone);
-        form.set('Body', smsBody);
-        const tr = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Basic ${auth}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: form.toString(),
-        });
-        smsSent = tr.ok;
-        if (!tr.ok) console.error('Twilio non-OK', await tr.text());
-      } catch (e) {
-        console.error('Twilio failed', e);
+    if (wantSms && customer.phone) {
+      const smsMock = Deno.env.get('MOCK_SMS_DELIVERY') === 'true';
+      const smsResult = await sendTwilioSms({
+        toE164: customer.phone,
+        body: smsBody,
+        mock: smsMock,
+      });
+      smsSent = deliveryEnabled && smsResult.ok && !smsResult.mocked;
+      if (deliveryEnabled && !smsResult.ok) {
+        console.error('Twilio SMS/WhatsApp failed', smsResult.error);
       }
     }
   }

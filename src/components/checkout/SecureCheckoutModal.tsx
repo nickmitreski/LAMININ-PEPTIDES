@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Lock, Shield, Loader2, Mail, Smartphone } from 'lucide-react';
+import { Shield, Loader2, Mail, Smartphone } from 'lucide-react';
 import Button from '../ui/Button';
 import {
   CHECKOUT_BRAND_NAME,
@@ -12,7 +12,7 @@ export type SecureCheckoutModalPhase = 'encrypting' | 'sent' | 'error';
 interface SecureCheckoutModalProps {
   open: boolean;
   phase: SecureCheckoutModalPhase;
-  /** LAMIN order id (internal field `peptide_order_id`); shown after it is created and on the confirmation step. */
+  /** LAMIN order id (internal field `peptide_order_id`); shown on confirmation / message flows, not during encrypting. */
   orderReference?: string | null;
   /** e.g. "US$12.34" — shown with reference when link was sent by message. */
   grandTotalLabel?: string | null;
@@ -32,7 +32,7 @@ interface SecureCheckoutModalProps {
 }
 
 /**
- * Full-screen overlay: encryption-style loader, then confirmation that a code was sent.
+ * Full-screen overlay: encryption-style loader, then confirmation (no OTP shown in-browser).
  */
 export default function SecureCheckoutModal({
   open,
@@ -99,15 +99,10 @@ export default function SecureCheckoutModal({
                 id="secure-checkout-title"
                 className="text-lg font-semibold tracking-tight text-carbon-900 sm:text-base"
               >
-                Securing your session
+                Encrypting
               </h2>
-              <p
-                id="secure-checkout-desc"
-                className="mt-2 text-base leading-relaxed text-neutral-600 sm:text-sm"
-              >
-                {codeDeliveryPending
-                  ? `Preparing AES-256–protected handoff to ${CHECKOUT_BRAND_NAME} and creating your secure session…`
-                  : `Preparing AES-256–protected handoff to ${CHECKOUT_BRAND_NAME} and sending your one-time code…`}
+              <p id="secure-checkout-desc" className="sr-only">
+                Preparing your secure checkout session. Please wait.
               </p>
             </div>
             <div
@@ -119,34 +114,13 @@ export default function SecureCheckoutModal({
                 className="h-5 w-5 shrink-0 animate-spin text-accent-dark motion-reduce:animate-none motion-reduce:opacity-70"
                 aria-hidden
               />
-              <span className="text-sm font-medium text-carbon-900 sm:text-xs">
-                Encrypting request…
-              </span>
+              <span className="text-sm font-medium text-carbon-900 sm:text-xs">Encrypting…</span>
             </div>
-            {orderReference ? (
-              <div
-                className="w-full rounded-sm border border-carbon-900/15 bg-white px-4 py-3 text-center"
-                role="status"
-                aria-live="polite"
-              >
-                <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-                  Order reference
-                </p>
-                <p className="mt-1 break-all font-mono text-base font-semibold text-carbon-900 sm:text-sm">
-                  {orderReference}
-                </p>
-              </div>
-            ) : null}
           </div>
         ) : null}
 
         {phase === 'sent' ? (
           <div className="space-y-6">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/20">
-                <Lock className="h-8 w-8 text-accent-dark" aria-hidden />
-              </div>
-            </div>
             <div className="text-center">
               <h2
                 id="secure-checkout-title"
@@ -158,7 +132,7 @@ export default function SecureCheckoutModal({
                     ? 'Check your messages'
                     : partnerOpensPaymentUi
                       ? `Payment started with ${CHECKOUT_PARTNER_LABEL}`
-                      : 'Code sent'}
+                      : 'CODE SENT'}
               </h2>
               <p
                 id="secure-checkout-desc"
@@ -166,9 +140,10 @@ export default function SecureCheckoutModal({
               >
                 {codeDeliveryPending ? (
                   <>
-                    Your verification session is saved securely. SMS/email codes are not sent yet
-                    (Resend/Twilio disabled). You can still continue to checkout; enable delivery in
-                    Supabase when ready. We would use {destinationsDescription} for codes.
+                    Your verification session is saved securely. SMS and/or email codes are not sent yet
+                    (delivery not configured). You can still continue to checkout; enable Twilio (and
+                    Resend when you use email) in Supabase when ready. We would use {destinationsDescription}{' '}
+                    for codes.
                   </>
                 ) : linkDeliveredInMessages ? (
                   <>
@@ -176,8 +151,8 @@ export default function SecureCheckoutModal({
                     <strong className="font-semibold">order reference</strong>, and{' '}
                     <strong className="font-semibold">verification code</strong> to{' '}
                     {destinationsDescription} from {CHECKOUT_DELIVERY_BRAND}. Open the link in your
-                    message — it shows your reference and amount; enter the code when asked to
-                    complete encrypted card payment.
+                    message — it shows your reference and amount; enter the code when asked to complete
+                    encrypted card payment.
                   </>
                 ) : partnerOpensPaymentUi ? (
                   <>
@@ -205,16 +180,16 @@ export default function SecureCheckoutModal({
                 </p>
                 {grandTotalLabel ? (
                   <p className="mt-2 text-sm text-neutral-700 sm:text-xs">
-                    Amount on the payment page: <span className="font-semibold">{grandTotalLabel}</span>
+                    Amount on the payment page:{' '}
+                    <span className="font-semibold">{grandTotalLabel}</span>
                   </p>
                 ) : null}
               </div>
             ) : null}
             {partnerOpensPaymentUi && !codeDeliveryPending ? (
               <div className="rounded-sm border border-accent/30 bg-accent/10 px-4 py-3 text-sm leading-relaxed text-carbon-900 sm:text-xs">
-                This page only creates the session and calls the payment API from the server.
-                Pop-ups or new windows for payment come from {CHECKOUT_PARTNER_LABEL}, not from
-                this tab.
+                This page only creates the session and calls the payment API from the server. Pop-ups or
+                new windows for payment come from {CHECKOUT_PARTNER_LABEL}, not from this tab.
               </div>
             ) : null}
             {!codeDeliveryPending && !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
@@ -234,7 +209,8 @@ export default function SecureCheckoutModal({
             ) : !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
               <div className="rounded-sm border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:text-xs">
                 Delivery pending: set Edge secret <span className="font-mono">ENABLE_CODE_DELIVERY</span>{' '}
-                to <span className="font-mono">true</span> and add Resend/Twilio keys.
+                to <span className="font-mono">true</span> and add Twilio (SMS). Add Resend when you
+                enable email codes.
               </div>
             ) : null}
             <Button

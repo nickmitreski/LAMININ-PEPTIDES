@@ -42,10 +42,16 @@ const partnerCheckoutConfigured = Boolean(
 const checkoutSoftLaunch =
   import.meta.env.VITE_CHECKOUT_SOFT_LAUNCH === 'true' || !partnerCheckoutConfigured;
 
-/** Minimum time the “Securing your session” modal stays open (ms); then auto-open payment URL if returned. */
+/** Minimum time the encrypting modal stays on screen (ms) before showing the next step. */
 const CHECKOUT_ENCRYPT_MIN_MS = Math.max(
   0,
-  Number(import.meta.env.VITE_CHECKOUT_ENCRYPT_MIN_MS ?? 5000)
+  Number(import.meta.env.VITE_CHECKOUT_ENCRYPT_MIN_MS ?? 3000)
+);
+
+/** After “CODE SENT” / sent step, delay before Continue is enabled (ms). */
+const CHECKOUT_SENT_CONTINUE_MIN_MS = Math.max(
+  0,
+  Number(import.meta.env.VITE_CHECKOUT_SENT_CONTINUE_MIN_MS ?? 5000)
 );
 
 /** If true, this storefront may redirect to payment_portal_url. Default false: partner opens pay UI via API. */
@@ -107,6 +113,20 @@ export default function Checkout() {
   const [linkDeliveredInMessages, setLinkDeliveredInMessages] = useState(false);
   const [secureOrderReference, setSecureOrderReference] = useState<string | null>(null);
   const [secureGrandTotalLabel, setSecureGrandTotalLabel] = useState<string | null>(null);
+  const [sentContinueEnabled, setSentContinueEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!secureModalOpen || secureModalPhase !== 'sent') {
+      setSentContinueEnabled(false);
+      return;
+    }
+    setSentContinueEnabled(false);
+    const t = window.setTimeout(
+      () => setSentContinueEnabled(true),
+      CHECKOUT_SENT_CONTINUE_MIN_MS
+    );
+    return () => window.clearTimeout(t);
+  }, [secureModalOpen, secureModalPhase]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -418,27 +438,35 @@ export default function Checkout() {
                         disabled={checkoutBusy}
                       />
                     </div>
+                    <Text
+                      variant="caption"
+                      muted
+                      className="-mt-1 block text-sm leading-relaxed sm:text-xs"
+                    >
+                      Provide <span className="text-red-600 font-medium">*</span> at least one: a valid
+                      email or a mobile number — we send your code by SMS and/or email.
+                    </Text>
                     <Input
                       id="email"
                       name="email"
                       type="email"
-                      label="Email"
+                      label="Email (optional)"
                       value={formData.email}
                       onChange={handleChange}
                       autoComplete="email"
                       disabled={checkoutBusy}
-                      helperText="Required unless you provide a mobile number below — we send your payment code here."
+                      helperText="Optional if you enter a mobile number below."
                     />
                     <Input
                       id="phone"
                       name="phone"
                       type="tel"
-                      label="Mobile number"
+                      label="Mobile number (optional)"
                       value={formData.phone}
                       onChange={handleChange}
                       autoComplete="tel"
                       disabled={checkoutBusy}
-                      helperText="Required unless you provide email above — SMS with your payment code."
+                      helperText="Optional if you enter an email above. Include country/area code."
                     />
                   </div>
                 </Card>
@@ -616,11 +644,7 @@ export default function Checkout() {
           <SecureCheckoutModal
             open={secureModalOpen}
             phase={secureModalPhase}
-            orderReference={
-              secureModalPhase === 'encrypting' || secureModalPhase === 'sent'
-                ? secureOrderReference
-                : null
-            }
+            orderReference={secureModalPhase === 'sent' ? secureOrderReference : null}
             grandTotalLabel={
               secureModalPhase === 'sent' && linkDeliveredInMessages
                 ? secureGrandTotalLabel
@@ -639,7 +663,11 @@ export default function Checkout() {
             errorMessage={secureModalError}
             onContinue={finishRedirectAfterCode}
             onDismissError={closeSecureModalAfterError}
-            continueDisabled={paymentPhase === 'redirecting' || !pendingCheckoutPayload}
+            continueDisabled={
+              paymentPhase === 'redirecting' ||
+              !pendingCheckoutPayload ||
+              (secureModalPhase === 'sent' && !sentContinueEnabled)
+            }
             continueLabel={
               paymentPortalUrl
                 ? 'Continue to pay'
