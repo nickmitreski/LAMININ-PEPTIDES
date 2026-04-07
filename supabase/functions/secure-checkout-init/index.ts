@@ -4,7 +4,7 @@
  * Flow when `PAYMENT_LINK_CREATE_URL` + `PAYMENT_LINK_BEARER` are set and `ENABLE_CODE_DELIVERY=true`:
  * 1) Insert session (hashed code)
  * 2) Call partner `create-payment-link` → get Square (or other) pay URL
- * 3) Send email/SMS with reference, plain code, amount, and link (“secure encrypted payment from …”)
+ * 3) Send email/SMS with reference, plain code, amount, and link ("secure encrypted payment from …")
  *
  * If payment link creation fails while delivery is enabled and a link was required, no email/SMS is sent and the function returns an error.
  *
@@ -12,6 +12,7 @@
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { sendTwilioSms } from '../_shared/twilioSms.ts';
+import { checkoutRateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -84,6 +85,15 @@ Deno.serve(async (req) => {
 
   if (req.method !== 'POST') {
     return jsonResponse({ ok: false, error: 'Method not allowed' }, 405);
+  }
+
+  // Rate limiting (10 requests per 5 minutes per IP)
+  const clientIp = getClientIp(req);
+  if (!checkoutRateLimiter.check(clientIp)) {
+    return jsonResponse(
+      { ok: false, error: 'Too many requests. Please try again in a few minutes.' },
+      429
+    );
   }
 
   const secret = Deno.env.get('CHECKOUT_INIT_HMAC_SECRET');
@@ -182,7 +192,7 @@ Deno.serve(async (req) => {
       protein_items: protein_items ?? null,
       totals: totals ?? null,
       sent_via,
-      delivery_mock: true,
+      delivery_mock: !deliveryEnabled,
     })
     .select('id')
     .single();

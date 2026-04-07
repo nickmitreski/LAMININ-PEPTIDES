@@ -8,6 +8,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { timingSafeEqualHex } from '../_shared/timingSafe.ts';
 import { sendTwilioSms } from '../_shared/twilioSms.ts';
+import { webhookRateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -60,6 +61,15 @@ Deno.serve(async (req) => {
 
   if (req.method !== 'POST') {
     return jsonResponse({ ok: false, error: 'Method not allowed' }, 405);
+  }
+
+  // Rate limiting (30 requests per minute per IP)
+  const clientIp = getClientIp(req);
+  if (!webhookRateLimiter.check(clientIp)) {
+    return jsonResponse(
+      { ok: false, error: 'Rate limit exceeded. Try again shortly.' },
+      429
+    );
   }
 
   const expected = Deno.env.get('PARTNER_PAYMENT_READY_SECRET')?.trim();
