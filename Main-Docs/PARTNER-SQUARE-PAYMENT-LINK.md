@@ -22,7 +22,7 @@ The same **6-digit `code`** and **`reference`** (LAMIN’s order id, see below) 
 | `reference` | string | LAMIN **order id** (same value as JSON field `peptide_order_id` on LAMIN’s checkout payload) — show on pay UI; store in `external_reference` / Square `reference_id` |
 | `currency` | string | ISO code, e.g. `USD` |
 | `expirationMinutes` | number | Align Square link / page expiry if supported |
-| `metadata` | object | Include **`"source": "lamin"`** if your function requires it for strict validation. Also: `customer_email`, `customer_phone`, `enriched_lines` (optional). LAMIN defaults `metadata.source` to **`lamin`** unless `PAYMENT_LINK_METADATA_SOURCE` overrides. |
+| `metadata` | object | Include **`"source": "lamin"`** if your function requires it for strict validation. Also: `customer_first_name`, `customer_last_name`, `customer_email`, `customer_phone`, `enriched_lines` (optional). LAMIN defaults `metadata.source` to **`lamin`** unless `PAYMENT_LINK_METADATA_SOURCE` overrides. |
 
 **Response (JSON)** — required shape for LAMIN:
 

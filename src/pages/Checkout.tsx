@@ -34,7 +34,8 @@ import SecureCheckoutModal, {
   type SecureCheckoutModalPhase,
 } from '../components/checkout/SecureCheckoutModal';
 import { validateCheckoutContact } from '../lib/checkoutContactValidation';
-import { CHECKOUT_BRAND_NAME } from '../constants/checkoutCopy';
+import { getCoreForgePayOrigin } from '../constants/coreforgePay';
+import CoreForgeMark from '../components/brand/CoreForgeMark';
 
 const partnerCheckoutConfigured = Boolean(
   (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)?.trim()
@@ -109,11 +110,19 @@ export default function Checkout() {
     useState<CheckoutPayload | null>(null);
   const [paymentPortalUrl, setPaymentPortalUrl] = useState<string | null>(null);
   const [secureCodeDeliveryPending, setSecureCodeDeliveryPending] = useState(false);
+  const [secureDeliveryEnabledAtEdge, setSecureDeliveryEnabledAtEdge] = useState(false);
   const [partnerOpensPaymentUi, setPartnerOpensPaymentUi] = useState(false);
   const [linkDeliveredInMessages, setLinkDeliveredInMessages] = useState(false);
   const [secureOrderReference, setSecureOrderReference] = useState<string | null>(null);
   const [secureGrandTotalLabel, setSecureGrandTotalLabel] = useState<string | null>(null);
   const [sentContinueEnabled, setSentContinueEnabled] = useState(false);
+  /** After secure-checkout-init returns CoreForge embed session, Continue opens `/pay?pid=`. */
+  const [coreforgePaySession, setCoreforgePaySession] = useState<{
+    paymentLinkId: string;
+    orderRef: string;
+  } | null>(null);
+  /** Edge `RETURN_CHECKOUT_OTP_IN_RESPONSE=true` only — demo; unset secret for production. */
+  const [demoCheckoutOtp, setDemoCheckoutOtp] = useState<string | null>(null);
 
   useEffect(() => {
     if (!secureModalOpen || secureModalPhase !== 'sent') {
@@ -141,7 +150,7 @@ export default function Checkout() {
     if (secureModalOpen) return;
     if (!securityAcknowledged) {
       showToast(
-        `Please confirm you understand ${CHECKOUT_BRAND_NAME} and the payment code process.`,
+        'Please confirm you understand that payment is completed on the CoreForge secure portal using a verification code.',
         'error',
         5000
       );
@@ -185,10 +194,13 @@ export default function Checkout() {
     setPendingCheckoutPayload(null);
     setPaymentPortalUrl(null);
     setSecureCodeDeliveryPending(false);
+    setSecureDeliveryEnabledAtEdge(false);
     setPartnerOpensPaymentUi(false);
     setLinkDeliveredInMessages(false);
     setSecureOrderReference(null);
     setSecureGrandTotalLabel(null);
+    setCoreforgePaySession(null);
+    setDemoCheckoutOtp(null);
 
     const encryptStartedAt = Date.now();
 
@@ -212,6 +224,25 @@ export default function Checkout() {
         setSecureModalPhase('error');
         setSecureModalError(secure.error ?? 'Secure checkout failed.');
         return;
+      }
+
+      const otp =
+        typeof secure._debug_otp === 'string' && secure._debug_otp.trim()
+          ? secure._debug_otp.trim()
+          : null;
+      setDemoCheckoutOtp(otp);
+
+      if (
+        secure.coreforge_embed_checkout &&
+        typeof secure.payment_link_id === 'string' &&
+        secure.payment_link_id.trim()
+      ) {
+        setCoreforgePaySession({
+          paymentLinkId: secure.payment_link_id.trim(),
+          orderRef: payload.peptide_order_id,
+        });
+      } else {
+        setCoreforgePaySession(null);
       }
 
       const portalRaw =
@@ -258,6 +289,7 @@ export default function Checkout() {
       setPartnerOpensPaymentUi(handoffToPartner);
       setLinkDeliveredInMessages(linkInMessages);
       setSecureCodeDeliveryPending(deliveryPending);
+      setSecureDeliveryEnabledAtEdge(Boolean(secure.delivery_enabled));
       setCodeDestinationsText(
         deliveryPending
           ? describeCodeDestinations(contact.emailValid, contact.phoneValid)
@@ -278,6 +310,21 @@ export default function Checkout() {
   const finishRedirectAfterCode = async () => {
     const payload = pendingCheckoutPayload;
     if (!payload) return;
+
+    const cfOrigin = getCoreForgePayOrigin();
+    if (cfOrigin && coreforgePaySession) {
+      setPaymentPhase('redirecting');
+      setSecureModalOpen(false);
+      clearCart();
+      setPendingCheckoutPayload(null);
+      setPaymentPortalUrl(null);
+      setCoreforgePaySession(null);
+      navigate(
+        `/pay?pid=${encodeURIComponent(coreforgePaySession.paymentLinkId)}&ref=${encodeURIComponent(coreforgePaySession.orderRef)}`
+      );
+      setPaymentPhase('idle');
+      return;
+    }
 
     setPaymentPhase('redirecting');
     setSecureModalOpen(false);
@@ -344,10 +391,13 @@ export default function Checkout() {
     setPendingCheckoutPayload(null);
     setPaymentPortalUrl(null);
     setSecureCodeDeliveryPending(false);
+    setSecureDeliveryEnabledAtEdge(false);
     setPartnerOpensPaymentUi(false);
     setLinkDeliveredInMessages(false);
     setSecureOrderReference(null);
     setSecureGrandTotalLabel(null);
+    setCoreforgePaySession(null);
+    setDemoCheckoutOtp(null);
   };
 
   const handleRetry = () => {
@@ -443,8 +493,8 @@ export default function Checkout() {
                       muted
                       className="-mt-1 block text-sm leading-relaxed sm:text-xs"
                     >
-                      Provide <span className="text-red-600 font-medium">*</span> at least one: a valid
-                      email or a mobile number — we send your code by SMS and/or email.
+                      <span className="text-red-600 font-medium">*</span> Mobile is required for SMS
+                      codes. Email is optional (order updates); verification is sent by SMS.
                     </Text>
                     <Input
                       id="email"
@@ -455,18 +505,19 @@ export default function Checkout() {
                       onChange={handleChange}
                       autoComplete="email"
                       disabled={checkoutBusy}
-                      helperText="Optional if you enter a mobile number below."
+                      helperText="For receipts and updates. Verification code is sent by SMS."
                     />
                     <Input
                       id="phone"
                       name="phone"
                       type="tel"
-                      label="Mobile number (optional)"
+                      label="Mobile number"
                       value={formData.phone}
                       onChange={handleChange}
                       autoComplete="tel"
+                      required
                       disabled={checkoutBusy}
-                      helperText="Optional if you enter an email above. Include country/area code."
+                      helperText="Required. Include country code (e.g. +61 …)."
                     />
                   </div>
                 </Card>
@@ -618,6 +669,12 @@ export default function Checkout() {
                     tabIndex={-1}
                     className="outline-none focus-visible:ring-2 focus-visible:ring-carbon-900/25 focus-visible:ring-offset-2 rounded-sm"
                   >
+                    <div className="mb-4 flex flex-col gap-2 rounded-sm border border-carbon-900/10 bg-neutral-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                      <CoreForgeMark variant="onLight" />
+                      <p className="text-sm leading-relaxed text-neutral-700 md:text-xs">
+                        Card entry happens on CoreForge after you verify your code — not on this page.
+                      </p>
+                    </div>
                     <PaymentForm
                       phase={paymentPhase}
                       errorMessage={paymentError}
@@ -644,16 +701,16 @@ export default function Checkout() {
           <SecureCheckoutModal
             open={secureModalOpen}
             phase={secureModalPhase}
+            demoOtp={secureModalPhase === 'sent' ? demoCheckoutOtp : null}
             orderReference={secureModalPhase === 'sent' ? secureOrderReference : null}
             grandTotalLabel={
-              secureModalPhase === 'sent' && linkDeliveredInMessages
-                ? secureGrandTotalLabel
-                : null
+              secureModalPhase === 'sent' ? secureGrandTotalLabel : null
             }
             destinationsDescription={codeDestinationsText}
             codeDeliveryPending={
               secureModalPhase === 'sent' && secureCodeDeliveryPending
             }
+            deliveryEnabledAtEdge={secureDeliveryEnabledAtEdge}
             linkDeliveredInMessages={
               secureModalPhase === 'sent' && linkDeliveredInMessages
             }

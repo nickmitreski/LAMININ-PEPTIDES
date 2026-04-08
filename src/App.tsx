@@ -24,6 +24,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
+const Pay = lazy(() => import('./pages/Pay'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 const Shipping = lazy(() => import('./pages/Shipping'));
@@ -81,6 +82,7 @@ function App() {
                           <Route path="/contact" element={<Contact />} />
                           <Route path="/cart" element={<Cart />} />
                           <Route path="/checkout" element={<Checkout />} />
+                          <Route path="/pay" element={<Pay />} />
                         <Route path="/order-confirmation" element={<OrderConfirmation />} />
                         <Route path="/oops" element={<ErrorPage />} />
                         <Route path="/privacy" element={<Privacy />} />

@@ -20,10 +20,16 @@ interface SecureCheckoutModalProps {
   destinationsDescription: string;
   /** SMS/email not sent (e.g. Resend/Twilio not enabled yet); softer copy. */
   codeDeliveryPending?: boolean;
+  /** Edge has ENABLE_CODE_DELIVERY=true; when pending, show “check logs” not “set secret”. */
+  deliveryEnabledAtEdge?: boolean;
   /** Customer should open the pay link from email/SMS (includes code + reference). */
   linkDeliveredInMessages?: boolean;
   /** Pay UI opens on partner site via API; this page does not navigate to payment. */
   partnerOpensPaymentUi?: boolean;
+  /**
+   * Demo-only: OTP returned by Edge when `RETURN_CHECKOUT_OTP_IN_RESPONSE=true`. Never enable in production.
+   */
+  demoOtp?: string | null;
   errorMessage?: string | null;
   onContinue: () => void;
   onDismissError: () => void;
@@ -41,8 +47,10 @@ export default function SecureCheckoutModal({
   orderReference = null,
   grandTotalLabel = null,
   codeDeliveryPending = false,
+  deliveryEnabledAtEdge = false,
   linkDeliveredInMessages = false,
   partnerOpensPaymentUi = false,
+  demoOtp = null,
   errorMessage,
   onContinue,
   onDismissError,
@@ -139,12 +147,21 @@ export default function SecureCheckoutModal({
                 className="mt-3 text-base leading-relaxed text-neutral-700 sm:text-sm"
               >
                 {codeDeliveryPending ? (
-                  <>
-                    Your verification session is saved securely. SMS and/or email codes are not sent yet
-                    (delivery not configured). You can still continue to checkout; enable Twilio (and
-                    Resend when you use email) in Supabase when ready. We would use {destinationsDescription}{' '}
-                    for codes.
-                  </>
+                  deliveryEnabledAtEdge ? (
+                    <>
+                      Your verification session is saved, but we could not confirm delivery on every
+                      channel (for example SMS or email). Check your phone for a text, and Supabase Edge
+                      function logs if not. You can still continue when you are ready.
+                    </>
+                  ) : (
+                    <>
+                      Your verification session is saved securely. Codes are not sent yet because code
+                      delivery is off on the server. Set Edge secret{' '}
+                      <span className="font-mono">ENABLE_CODE_DELIVERY</span> to{' '}
+                      <span className="font-mono">true</span> and configure Twilio for SMS. You can still
+                      continue; we would use {destinationsDescription} for codes when delivery is on.
+                    </>
+                  )
                 ) : linkDeliveredInMessages ? (
                   <>
                     We sent a <strong className="font-semibold">secure payment link</strong>, your{' '}
@@ -170,7 +187,28 @@ export default function SecureCheckoutModal({
                 )}
               </p>
             </div>
-            {linkDeliveredInMessages && orderReference ? (
+            {demoOtp ? (
+              <div
+                className="rounded-sm border-2 border-amber-400/90 bg-amber-50 px-4 py-3 text-center sm:text-left"
+                role="status"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+                  Demo only — remove before production
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-amber-950 sm:text-xs">
+                  Your one-time code (same as SMS when enabled): enter it on the CoreForge payment
+                  screen. Turn off Edge secret{' '}
+                  <span className="font-mono">RETURN_CHECKOUT_OTP_IN_RESPONSE</span> when using Twilio.
+                </p>
+                <p
+                  className="mt-3 font-mono text-2xl font-bold tracking-widest text-carbon-900 sm:text-xl"
+                  aria-label="Demo verification code"
+                >
+                  {demoOtp}
+                </p>
+              </div>
+            ) : null}
+            {orderReference ? (
               <div className="rounded-sm border border-carbon-900/10 bg-platinum/50 px-4 py-3 text-center sm:text-left">
                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                   Your order reference
@@ -208,9 +246,19 @@ export default function SecureCheckoutModal({
               </div>
             ) : !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
               <div className="rounded-sm border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:text-xs">
-                Delivery pending: set Edge secret <span className="font-mono">ENABLE_CODE_DELIVERY</span>{' '}
-                to <span className="font-mono">true</span> and add Twilio (SMS). Add Resend when you
-                enable email codes.
+                {deliveryEnabledAtEdge ? (
+                  <>
+                    Delivery incomplete: check Edge logs for <span className="font-mono">secure-checkout-init</span>{' '}
+                    (Twilio errors, rate limits, or invalid number). Email is optional here; codes go by SMS
+                    when Twilio succeeds.
+                  </>
+                ) : (
+                  <>
+                    Delivery off: set Edge secret <span className="font-mono">ENABLE_CODE_DELIVERY</span> to{' '}
+                    <span className="font-mono">true</span> and configure Twilio for SMS. Add{' '}
+                    <span className="font-mono">RESEND_API_KEY</span> only when you want real email sends.
+                  </>
+                )}
               </div>
             ) : null}
             <Button

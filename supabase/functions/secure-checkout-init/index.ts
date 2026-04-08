@@ -3,8 +3,8 @@
  *
  * Flow when `PAYMENT_LINK_CREATE_URL` + `PAYMENT_LINK_BEARER` are set and `ENABLE_CODE_DELIVERY=true`:
  * 1) Insert session (hashed code)
- * 2) Call partner `create-payment-link` → get Square (or other) pay URL
- * 3) Send email/SMS with reference, plain code, amount, and link ("secure encrypted payment from …")
+ * 2) Call CoreForge/partner `create-payment-link` → get `payment_url` + `payment_id` (optional `embed: true` via `PAYMENT_LINK_EMBED`)
+ * 3) Send email/SMS with reference, plain code, amount, link, and CoreForge disclosure
  *
  * If payment link creation fails while delivery is enabled and a link was required, no email/SMS is sent and the function returns an error.
  *
@@ -271,6 +271,8 @@ Deno.serve(async (req) => {
   const paymentLinkSecretHeader = Deno.env.get('PAYMENT_LINK_SECRET_HEADER')?.trim();
   const paymentLinkCurrency = paymentLinkCurrencyEarly;
   const paymentLinkExpiration = Number(Deno.env.get('PAYMENT_LINK_EXPIRATION_MINUTES') ?? '15');
+  /** Ask CoreForge for an embeddable checkout URL (`/embed/pay/...`). */
+  const paymentLinkEmbed = Deno.env.get('PAYMENT_LINK_EMBED') === 'true';
 
   let external_payment_url: string | null = null;
   let payment_link_id: string | null = null;
@@ -300,10 +302,13 @@ Deno.serve(async (req) => {
         expirationMinutes: Number.isFinite(paymentLinkExpiration) ? paymentLinkExpiration : 15,
         metadata: {
           source: metaSource,
+          customer_first_name: customer.first_name ?? null,
+          customer_last_name: customer.last_name ?? null,
           customer_email: customer.email ?? null,
           customer_phone: customer.phone ?? null,
           enriched_lines: lines.slice(0, 50),
         },
+        ...(paymentLinkEmbed ? { embed: true } : {}),
       };
       const plRes = await fetch(paymentLinkCreateUrl!, {
         method: 'POST',
@@ -319,7 +324,10 @@ Deno.serve(async (req) => {
       } | null;
       if (plRes.ok && plJson?.payment_url && typeof plJson.payment_url === 'string') {
         external_payment_url = plJson.payment_url;
-        payment_link_id = plJson.payment_id ?? null;
+        payment_link_id =
+          typeof plJson.payment_id === 'string' && plJson.payment_id.trim()
+            ? plJson.payment_id.trim()
+            : null;
       } else {
         console.error(
           'create-payment-link non-OK',
@@ -357,6 +365,44 @@ Deno.serve(async (req) => {
       .eq('id', sessionId);
   }
 
+  const coreforgeEmbedCheckout =
+    paymentLinkEmbed && Boolean(external_payment_url) && Boolean(payment_link_id);
+  if (paymentLinkEmbed && external_payment_url && !payment_link_id) {
+    console.warn(
+      '[secure-checkout-init] PAYMENT_LINK_EMBED=true but create-payment-link returned no payment_id; storefront cannot use /pay?pid= shell'
+    );
+  }
+
+  const smsLinkMode = (Deno.env.get('COREFORGE_SMS_PAYMENT_LINK_MODE') ?? 'direct')
+    .trim()
+    .toLowerCase();
+  const laminPublic = (Deno.env.get('LAMIN_PUBLIC_SITE_URL') ?? '').trim().replace(/\/$/, '');
+  const useParentLinkInMessages =
+    coreforgeEmbedCheckout && smsLinkMode === 'parent' && laminPublic.length > 0;
+  if (
+    paymentLinkEmbed &&
+    coreforgeEmbedCheckout &&
+    smsLinkMode === 'parent' &&
+    laminPublic.length === 0
+  ) {
+    console.warn(
+      '[secure-checkout-init] COREFORGE_SMS_PAYMENT_LINK_MODE=parent but LAMIN_PUBLIC_SITE_URL unset; using CoreForge pay URL in SMS/email'
+    );
+  }
+
+  const linkForCustomerMessages: string | null =
+    external_payment_url == null
+      ? null
+      : useParentLinkInMessages && payment_link_id
+        ? `${laminPublic}/pay?pid=${encodeURIComponent(payment_link_id)}&ref=${encodeURIComponent(peptide_order_id)}`
+        : external_payment_url;
+
+  const coreforgeDisclosureSms =
+    (Deno.env.get('COREFORGE_PAYMENTS_DISCLOSURE_SMS') ?? '').trim() ||
+    ' Payment is processed through CoreForge Payments.';
+  const coreforgeDisclosureEmail =
+    (Deno.env.get('COREFORGE_PAYMENTS_DISCLOSURE_EMAIL') ?? '').trim() || coreforgeDisclosureSms;
+
   const amountLabel = formatMoney(totals.grand_total, paymentLinkCurrency);
   const includeLinkInMessages = Boolean(external_payment_url);
   const formattedCode = formatVerificationCode(plainCode);
@@ -365,6 +411,7 @@ Deno.serve(async (req) => {
     ? `Your secure encrypted payment link from ${deliveryBrand}`
     : `Your ${deliveryBrand} payment code`;
 
+  const payLinkLine = linkForCustomerMessages ?? '';
   const emailText = includeLinkInMessages
     ? `Here is your link to the secure encrypted payment from ${deliveryBrand}.
 
@@ -373,9 +420,9 @@ Verification code: ${formattedCode}
 Amount: ${amountLabel}
 
 Pay here (open this link on your phone or computer):
-${external_payment_url}
+${payLinkLine}
 
-Enter your verification code when prompted. This link and code expire in about 15 minutes.`
+Enter your verification code when prompted. This link and code expire in about 15 minutes.${coreforgeDisclosureEmail}`
     : `Your verification code is ${formattedCode}.
 
 Order reference: ${peptide_order_id}
@@ -384,32 +431,46 @@ Amount: ${amountLabel}
 Expires in 15 minutes.`;
 
   const smsBody = includeLinkInMessages
-    ? `${deliveryBrand} — Secure pay ${amountLabel}. Ref ${peptide_order_id}. Code ${formattedCode}. Link: ${external_payment_url}`
+    ? `${deliveryBrand} — Secure pay ${amountLabel}. Ref ${peptide_order_id}. Code ${formattedCode}. Link: ${payLinkLine}.${coreforgeDisclosureSms}`
     : `${deliveryBrand} code: ${formattedCode} (ref ${peptide_order_id}). Expires in 15 min.`;
 
   let emailSent = false;
+  /** True when email channel is satisfied for this session: real Resend send or intentional mock (no API key / MOCK_EMAIL_DELIVERY). */
+  let emailChannelOk = false;
   let smsSent = false;
 
   if (deliveryEnabled) {
-    if (wantEmail && customer.email && resendKey) {
-      try {
-        const er = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${resendKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: Deno.env.get('RESEND_FROM') ?? 'orders@example.com',
-            to: [customer.email],
-            subject: emailSubject,
-            text: emailText,
-          }),
-        });
-        emailSent = er.ok;
-        if (!er.ok) console.error('Resend non-OK', await er.text());
-      } catch (e) {
-        console.error('Resend failed', e);
+    if (wantEmail && customer.email) {
+      const resendConfigured = Boolean(resendKey?.trim());
+      const forceEmailMock = Deno.env.get('MOCK_EMAIL_DELIVERY') === 'true';
+      if (forceEmailMock || !resendConfigured) {
+        console.info(
+          '[secure-checkout-init] email mock: skipping Resend (' +
+            (forceEmailMock ? 'MOCK_EMAIL_DELIVERY' : 'RESEND_API_KEY unset') +
+            '). SMS still sends if configured.'
+        );
+        emailChannelOk = true;
+      } else {
+        try {
+          const er = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: Deno.env.get('RESEND_FROM') ?? 'orders@example.com',
+              to: [customer.email],
+              subject: emailSubject,
+              text: emailText,
+            }),
+          });
+          emailSent = er.ok;
+          emailChannelOk = emailSent;
+          if (!er.ok) console.error('Resend non-OK', await er.text());
+        } catch (e) {
+          console.error('Resend failed', e);
+        }
       }
     }
 
@@ -460,9 +521,12 @@ Expires in 15 minutes.`;
 
   const omitPaymentUrlFromBrowser =
     Deno.env.get('PAYMENT_LINK_OMIT_URL_FROM_CLIENT') === 'true';
-  const payment_portal_url_for_client = omitPaymentUrlFromBrowser
+  let payment_portal_url_for_client = omitPaymentUrlFromBrowser
     ? null
     : external_payment_url;
+  if (coreforgeEmbedCheckout) {
+    payment_portal_url_for_client = null;
+  }
 
   const partnerUrl = Deno.env.get('PARTNER_PAYMENT_NOTIFY_URL');
   const partnerSecret = Deno.env.get('PARTNER_PAYMENT_NOTIFY_SECRET');
@@ -509,14 +573,14 @@ Expires in 15 minutes.`;
   }
 
   const code_delivery_pending =
-    (wantEmail && !emailSent) || (wantSms && !smsSent);
+    (wantEmail && !emailChannelOk) || (wantSms && !smsSent);
 
   const payment_link_in_delivery =
     includeLinkInMessages && deliveryEnabled && !code_delivery_pending;
 
   const delivery_mock =
     !deliveryEnabled ||
-    (wantEmail && !emailSent) ||
+    (wantEmail && !emailChannelOk) ||
     (wantSms && !smsSent);
 
   await supabase
@@ -536,6 +600,7 @@ Expires in 15 minutes.`;
     payment_link_created: Boolean(external_payment_url),
     payment_link_in_delivery,
     partner_payment_ui_notify_ok,
+    ...(coreforgeEmbedCheckout ? { coreforge_embed_checkout: true } : {}),
     ...(payment_link_id ? { payment_link_id } : {}),
     ...(exposeOtp ? { _debug_otp: plainCode } : {}),
   });

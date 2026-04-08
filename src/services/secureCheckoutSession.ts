@@ -30,6 +30,12 @@ export interface SecureCheckoutInitResponse {
   partner_payment_ui_notify_ok?: boolean;
   /** True when email/SMS included the payment link (partner URL), reference, and code. */
   payment_link_in_delivery?: boolean;
+  /** CoreForge embed flow: use `/pay?pid=` on Lamin; `payment_portal_url` omitted. */
+  coreforge_embed_checkout?: boolean;
+  /**
+   * Only when Edge secret `RETURN_CHECKOUT_OTP_IN_RESPONSE=true` (demo). Remove secret + UI before production.
+   */
+  _debug_otp?: string;
   error?: string;
 }
 
@@ -83,6 +89,7 @@ export async function initiateSecureCheckoutSession(
       payment_link_created: false,
       payment_link_in_delivery: false,
       partner_payment_ui_notify_ok: false,
+      coreforge_embed_checkout: false,
     };
   }
 
