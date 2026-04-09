@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState, FormEvent, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import SearchField from '../ui/SearchField';
 import { Text } from '../ui/Typography';
 import { allPeptides, filterPeptidesByName } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
+import { getDisplayPriceForPeptide } from '../../data/productPricing';
 
 interface HeaderSearchProps {
   isOpen: boolean;
@@ -31,6 +32,12 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
+
+  const searchResults = useMemo(() => {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+    return filterPeptidesByName(trimmed, allPeptides).slice(0, 6);
+  }, [query]);
 
   const runSearch = () => {
     const trimmed = query.trim();
@@ -65,12 +72,12 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
         aria-label="Close search"
       />
       <div
-        className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-sm border border-carbon-900/10 bg-white p-4 shadow-xl sm:top-[18%] overscroll-contain"
+        className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-sm border border-carbon-900/10 bg-white shadow-xl sm:top-[18%] overscroll-contain"
         role="dialog"
         aria-modal="true"
         aria-label="Search compounds"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4">
           <div className="flex justify-end">
             <button
               type="button"
@@ -93,9 +100,39 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
             />
           </div>
           <Text variant="caption" muted className="block text-center leading-snug">
-            Press Enter to search — same matching as the library.
+            {query.trim() ? 'Click result or press Enter to view all matches' : 'Press Enter to search — same matching as the library.'}
           </Text>
         </form>
+
+        {searchResults.length > 0 && (
+          <div className="max-h-[60vh] overflow-y-auto border-t border-carbon-900/10 p-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {searchResults.map((peptide) => (
+                <Link
+                  key={peptide.id}
+                  to={`/products/${getProductSlug(peptide.id)}`}
+                  onClick={onClose}
+                  className="group flex flex-col rounded-sm border border-carbon-900/10 bg-neutral-50 p-2 transition-all hover:border-accent hover:shadow-md"
+                >
+                  <div className="mb-2 aspect-square overflow-hidden rounded bg-white">
+                    <img
+                      src={peptide.image}
+                      alt={peptide.name}
+                      loading="lazy"
+                      className="h-full w-full object-contain p-1 transition-transform duration-200 group-hover:scale-105"
+                    />
+                  </div>
+                  <Text variant="caption" className="mb-1 line-clamp-2 text-xs font-medium text-carbon-900">
+                    {peptide.name}
+                  </Text>
+                  <Text variant="caption" muted className="text-[10px]">
+                    {getDisplayPriceForPeptide(peptide.id) ?? 'Contact'}
+                  </Text>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

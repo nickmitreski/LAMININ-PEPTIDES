@@ -166,4 +166,109 @@ export const faqItems: FAQItem[] = [
       </div>
     ),
   },
+  {
+    id: 'payment-methods',
+    question: 'What payment methods do you accept?',
+    answer: (
+      <div className="space-y-3">
+        <FaqParagraph>
+          Laminin Peptide Lab accepts all major credit and debit cards through our secure payment platform, CoreForge Payments, which is integrated with Square.
+        </FaqParagraph>
+        <FaqParagraph>
+          All transactions are protected with{' '}
+          <strong className="font-medium text-carbon-900">
+            end-to-end encryption, two-factor authentication (2FA), and PCI-compliant security standards
+          </strong>{' '}
+          to ensure your payment information remains completely secure.
+        </FaqParagraph>
+      </div>
+    ),
+  },
+  {
+    id: 'order-tracking',
+    question: 'How can I track my order?',
+    answer: (
+      <div className="space-y-3">
+        <FaqParagraph>
+          Once your order has been dispatched, you will receive a confirmation email with tracking information.
+        </FaqParagraph>
+        <FaqParagraph>
+          Orders are typically processed and shipped within{' '}
+          <strong className="font-medium text-carbon-900">1-2 business days</strong>.
+          Delivery times vary depending on your location within Australia.
+        </FaqParagraph>
+        <FaqParagraph>
+          For specific delivery timeframes and shipping rates, please refer to our{' '}
+          <Link
+            to="/shipping"
+            className="font-medium text-carbon-900 underline underline-offset-4 hover:text-carbon-900/70"
+          >
+            Shipping Terms &amp; Policy
+          </Link>.
+        </FaqParagraph>
+      </div>
+    ),
+  },
+  {
+    id: 'bulk-orders',
+    question: 'Do you offer bulk or institutional pricing?',
+    answer: (
+      <div className="space-y-3">
+        <FaqParagraph>
+          For bulk orders or institutional procurement inquiries, please{' '}
+          <Link
+            to="/contact"
+            className="font-medium text-carbon-900 underline underline-offset-4 hover:text-carbon-900/70"
+          >
+            contact our team
+          </Link>{' '}
+          with details of your requirements.
+        </FaqParagraph>
+        <FaqParagraph>
+          We work with research institutions and laboratories to provide competitive pricing for larger volume orders.
+        </FaqParagraph>
+      </div>
+    ),
+  },
+  {
+    id: 'product-appearance',
+    question: 'What form do the peptides arrive in?',
+    answer: (
+      <div className="space-y-3">
+        <FaqParagraph>
+          Most peptide compounds are supplied as{' '}
+          <strong className="font-medium text-carbon-900">
+            lyophilised (freeze-dried) powder
+          </strong>, which is the standard for research-grade peptides.
+        </FaqParagraph>
+        <FaqParagraph>
+          Lyophilised peptides offer superior stability during storage and transport. Researchers can reconstitute the powder using appropriate solvents according to their specific research protocols.
+        </FaqParagraph>
+        <FaqParagraph>
+          Some ancillary products may be supplied in liquid form where indicated on the product page.
+        </FaqParagraph>
+      </div>
+    ),
+  },
+  {
+    id: 'reconstitution',
+    question: 'How do I reconstitute lyophilised peptides?',
+    answer: (
+      <div className="space-y-3">
+        <FaqParagraph>
+          Reconstitution procedures depend on the specific peptide and intended research application.
+        </FaqParagraph>
+        <FaqParagraph>
+          Common solvents include sterile water, bacteriostatic water, or buffered solutions. Researchers should refer to{' '}
+          <strong className="font-medium text-carbon-900">
+            relevant scientific literature and established laboratory protocols
+          </strong>{' '}
+          for appropriate reconstitution methods.
+        </FaqParagraph>
+        <FaqParagraph>
+          After reconstitution, peptides should be stored according to standard laboratory practices and used within appropriate timeframes as determined by stability data and research requirements.
+        </FaqParagraph>
+      </div>
+    ),
+  },
 ];

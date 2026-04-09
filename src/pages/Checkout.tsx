@@ -35,7 +35,6 @@ import SecureCheckoutModal, {
 } from '../components/checkout/SecureCheckoutModal';
 import { validateCheckoutContact } from '../lib/checkoutContactValidation';
 import { getCoreForgePayOrigin } from '../constants/coreforgePay';
-import CoreForgeMark from '../components/brand/CoreForgeMark';
 
 const partnerCheckoutConfigured = Boolean(
   (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)?.trim()
@@ -701,10 +700,9 @@ export default function Checkout() {
                     tabIndex={-1}
                     className="outline-none focus-visible:ring-2 focus-visible:ring-carbon-900/25 focus-visible:ring-offset-2 rounded-sm"
                   >
-                    <div className="mb-4 flex flex-col gap-2 rounded-sm border border-carbon-900/10 bg-neutral-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                      <CoreForgeMark variant="onLight" />
+                    <div className="mb-4 rounded-sm border border-carbon-900/10 bg-neutral-50 px-4 py-3">
                       <p className="text-sm leading-relaxed text-neutral-700 md:text-xs">
-                        Card entry happens on CoreForge after you verify your code — not on this page.
+                        <strong className="font-semibold text-carbon-900">Secure Encrypted Payment:</strong> Your payment is processed through CoreForge Payments, our trusted payment platform integrated with Square. We use end-to-end encryption, two-factor authentication (2FA), and PCI-compliant security standards. All major credit and debit cards are accepted for a seamless and secure checkout experience.
                       </p>
                     </div>
                     <PaymentForm

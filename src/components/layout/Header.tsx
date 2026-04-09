@@ -4,7 +4,6 @@ import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import Container from './Container';
 import CartDrawer from '../cart/CartDrawer';
 import HeaderSearch from './HeaderSearch';
-import CoreForgeMark from '../brand/CoreForgeMark';
 import { useCart } from '../../context/CartContext';
 
 export default function Header() {
@@ -43,9 +42,7 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="hidden min-w-0 flex-1 justify-center sm:flex">
-            <CoreForgeMark variant="onDark" className="scale-[0.85] opacity-95 sm:scale-90 md:scale-100" />
-          </div>
+          <div className="hidden lg:flex flex-1" aria-hidden="true" />
 
           <nav className="hidden lg:flex shrink-0 items-center space-x-1">
             {navLinks.map((link) => (
@@ -121,9 +118,6 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <div className="mt-6 border-t border-white/10 pt-5">
-                <CoreForgeMark variant="onDark" className="scale-95" />
-              </div>
             </nav>
           </Container>
         </div>

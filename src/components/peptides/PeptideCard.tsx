@@ -3,8 +3,10 @@ import Button from '../ui/Button';
 import { Label, Text } from '../ui/Typography';
 import { Peptide } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
-import { getDisplayPriceForPeptide } from '../../data/productPricing';
+import { getDisplayPriceForPeptide, getNumericPriceForVariantOrPeptide } from '../../data/productPricing';
 import { ArrowRight, Plus, ShoppingCart } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
 
 interface PeptideCardProps {
   peptide: Peptide;
@@ -17,6 +19,27 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
   const title = peptide.name.toUpperCase();
   const productPath = `/products/${getProductSlug(peptide.id)}`;
   const priceLabel = getDisplayPriceForPeptide(peptide.id);
+  const { addItem } = useCart();
+  const { showToast } = useToast();
+
+  const handleAddToCart = () => {
+    const price = getNumericPriceForVariantOrPeptide(peptide.id);
+    if (!price) {
+      showToast('Price not available for this product', 'error');
+      return;
+    }
+
+    addItem(
+      {
+        peptideId: peptide.id,
+        name: peptide.name,
+        price,
+        image: peptide.image,
+      },
+      1
+    );
+    showToast(`${peptide.name} added to cart`, 'success');
+  };
 
   return (
     <div className="group flex h-full flex-col motion-safe:transition-transform motion-safe:duration-300 md:hover:-translate-y-1">
@@ -52,6 +75,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
       <div className="mt-auto flex flex-col gap-2">
         <button
           type="button"
+          onClick={handleAddToCart}
           className={addToCartClass}
           aria-label={`Add ${peptide.name} to cart`}
         >

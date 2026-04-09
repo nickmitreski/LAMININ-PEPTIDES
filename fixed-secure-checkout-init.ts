@@ -18,7 +18,6 @@ const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-checkout-init-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -270,25 +269,18 @@ Deno.serve(async (req) => {
   const paymentLinkCreateUrl = Deno.env.get('PAYMENT_LINK_CREATE_URL')?.trim();
   const paymentLinkBearer = Deno.env.get('PAYMENT_LINK_BEARER')?.trim();
   const paymentLinkSecretHeader = Deno.env.get('PAYMENT_LINK_SECRET_HEADER')?.trim();
-  /**
-   * CoreForge project's anon (or publishable) key. Required for default Supabase Edge JWT verification:
-   * the gateway expects a real JWT in `Authorization`, not the shared PAYMENT_LINK_BEARER string.
-   * When set, we send `Authorization: Bearer <this key>` and put PAYMENT_LINK_BEARER in `x-payment-link-secret`.
-   */
   const paymentLinkTargetAnonKey =
     Deno.env.get('PAYMENT_LINK_TARGET_SUPABASE_ANON_KEY')?.trim() ||
     Deno.env.get('COREFORGE_SUPABASE_ANON_KEY')?.trim() ||
     '';
   const paymentLinkCurrency = paymentLinkCurrencyEarly;
   const paymentLinkExpiration = Number(Deno.env.get('PAYMENT_LINK_EXPIRATION_MINUTES') ?? '15');
-  /** Ask CoreForge for an embeddable checkout URL (`/embed/pay/...`). */
   const paymentLinkEmbed = Deno.env.get('PAYMENT_LINK_EMBED') === 'true';
 
   let external_payment_url: string | null = null;
   let payment_link_id: string | null = null;
 
   const paymentLinkConfigured = Boolean(paymentLinkCreateUrl && paymentLinkBearer);
-  /** When delivery is on and partner link is configured, we require a URL before emailing/texting. */
   const requirePaymentLinkForDelivery = deliveryEnabled && paymentLinkConfigured;
 
   if (paymentLinkConfigured) {
@@ -306,7 +298,6 @@ Deno.serve(async (req) => {
         }
       }
       const lines = Array.isArray(enriched_lines) ? enriched_lines : [];
-      /** Partner GoForge/CoreForge treats `lamin` as strict: 6-digit code + reference. */
       const metaSource =
         Deno.env.get('PAYMENT_LINK_METADATA_SOURCE')?.trim() || 'lamin';
       const plBody = {
@@ -450,7 +441,6 @@ Expires in 15 minutes.`;
     : `${deliveryBrand} code: ${formattedCode} (ref ${peptide_order_id}). Expires in 15 min.`;
 
   let emailSent = false;
-  /** True when email channel is satisfied for this session: real Resend send or intentional mock (no API key / MOCK_EMAIL_DELIVERY). */
   let emailChannelOk = false;
   let smsSent = false;
 

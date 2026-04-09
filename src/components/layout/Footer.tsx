@@ -39,7 +39,7 @@ export default function Footer() {
                 className="h-7 mb-6"
               />
               <Text className="text-white max-w-sm" weight="light" variant="small">
-                Australian supplier of high-quality research peptides and
+                Supplier of high-quality research peptides and
                 laboratory materials. Our focus is on transparency, consistent
                 quality, and reliable supply for research applications.
               </Text>

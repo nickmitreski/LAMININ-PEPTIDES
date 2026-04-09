@@ -31,6 +31,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { ProductStructuredData } from '../components/seo/StructuredData';
+import SuggestedPeptides from '../components/products/SuggestedPeptides';
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -280,7 +281,12 @@ export default function ProductPage() {
             </div>
           </div>
 
-          <div className="mx-auto mt-12 w-full max-w-6xl border-t border-carbon-900/10 pt-10 md:mt-16 md:pt-12">
+          {/* Suggested Peptides - Above Accordion */}
+          <div className="mx-auto mt-10 w-full max-w-6xl md:mt-12">
+            <SuggestedPeptides currentPeptide={peptide} maxSuggestions={4} />
+          </div>
+
+          <div className="mx-auto mt-8 w-full max-w-6xl border-t border-carbon-900/10 pt-8 md:mt-10 md:pt-10">
             <ProductPageAccordion
               openId={accordionOpenId}
               onOpenIdChange={setAccordionOpenId}

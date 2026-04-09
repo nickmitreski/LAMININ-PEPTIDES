@@ -13,12 +13,12 @@ export default function Shipping() {
           subtitle="Last updated: April 5, 2026"
         />
 
-        <div className="mx-auto max-w-3xl space-y-8">
-          <Text variant="body" className="text-neutral-600">
+        <div className="mx-auto max-w-6xl space-y-8">
+          <Text variant="body" weight="medium" className="text-neutral-600">
             Laminin Peptide Lab provides express shipping across Australia, prioritising reliability,
             discretion, and efficient delivery.
           </Text>
-          <Text variant="body" className="text-neutral-600">
+          <Text variant="body" weight="medium" className="text-neutral-600">
             All orders are processed and dispatched the next business day to ensure efficient handling
             and timely delivery.
           </Text>
@@ -26,14 +26,14 @@ export default function Shipping() {
           <div>
             <PolicySectionHeading>Shipping</PolicySectionHeading>
             <ul className="mb-4 ml-4 list-disc space-y-2 pl-1">
-              <Text variant="body" as="li" className="text-neutral-600">
+              <Text variant="body" weight="medium" as="li" className="text-neutral-600">
                 Complimentary express shipping on orders over $250
               </Text>
-              <Text variant="body" as="li" className="text-neutral-600">
+              <Text variant="body" weight="medium" as="li" className="text-neutral-600">
                 Flat rate express shipping of $11.90 for all other orders
               </Text>
             </ul>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" weight="medium" className="text-neutral-600">
               All shipments are sent via express service Australia-wide, with tracking details provided
               upon dispatch.
             </Text>
@@ -42,12 +42,12 @@ export default function Shipping() {
           <div>
             <PolicySectionHeading>Delivery</PolicySectionHeading>
             <div className="space-y-3 text-neutral-600">
-              <Text variant="body">
+              <Text variant="body" weight="medium">
                 All deliveries are sent with authority to leave (ATL). Parcels may be left unattended
                 at the delivery address, and customers are responsible for ensuring the location is
                 secure.
               </Text>
-              <Text variant="body">
+              <Text variant="body" weight="medium">
                 Laminin Peptide Lab is not responsible for parcels once marked as delivered.
               </Text>
             </div>
@@ -55,7 +55,7 @@ export default function Shipping() {
 
           <div>
             <PolicySectionHeading>Discreet Packaging</PolicySectionHeading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" weight="medium" className="text-neutral-600">
               All orders are shipped in discreet packaging, with no external indication of contents.
             </Text>
           </div>

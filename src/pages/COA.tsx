@@ -76,21 +76,21 @@ export default function COA() {
         />
 
         <div
-          className="mx-auto mb-10 max-w-3xl space-y-6 rounded-sm border border-accent/45 px-4 py-6 text-left sm:px-6 sm:py-7 md:mb-12"
+          className="mx-auto mb-10 max-w-6xl space-y-6 rounded-sm border border-accent/45 px-6 py-8 text-left sm:px-8 sm:py-10 md:mb-12"
           aria-label="About certificates of analysis"
         >
           <div className="space-y-4">
             <PolicySectionHeading>Certificates of Analysis</PolicySectionHeading>
             <div className="space-y-3">
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 Laminin Peptide Lab provides batch-specific Certificates of Analysis to support
                 analytical transparency and product verification.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 Each batch undergoes analytical verification prior to release. Documentation confirming
                 compound identity and purity is made available to researchers for review.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 Certificates of Analysis can be accessed directly on each product page within the
                 Analytical Documentation section.
               </Text>
@@ -100,30 +100,30 @@ export default function COA() {
           <div className="space-y-4 pt-2">
             <PolicySectionHeading>Quality &amp; Analytical Integrity</PolicySectionHeading>
             <div className="space-y-3">
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 At Laminin Peptide Lab, maintaining the analytical integrity of the compounds we
                 supply is a core priority.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 We conduct ongoing verification of products supplied by manufacturing partners that
                 operate under recognised quality management systems, including GMP-aligned processes,
                 ISO 9001, and ISO 13485 certifications.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 In certain cases, identifying details relating to the original manufacturing partner
                 may be redacted from publicly available Certificates of Analysis. This is standard
                 practice to protect supplier confidentiality while still providing researchers with
                 the relevant analytical data confirming compound identity and purity.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 All batches supplied are verified using HPLC purity analysis as a minimum standard
                 before release.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 To reinforce our commitment to quality, Laminin Peptide Lab provides a{' '}
                 <Link
                   to="/guarantee"
-                  className="font-medium text-accent-dark underline decoration-accent/60 underline-offset-2 transition-opacity hover:opacity-90 touch-manipulation"
+                  className="font-semibold text-accent-dark underline decoration-accent/60 underline-offset-2 transition-opacity hover:opacity-90 touch-manipulation"
                 >
                   Purity Assurance Guarantee
                 </Link>
@@ -131,7 +131,7 @@ export default function COA() {
                 compound does not meet the stated specification of ≥99% purity, we will provide a
                 full refund.
               </Text>
-              <Text variant="body" weight="light" tone="muted">
+              <Text variant="body" weight="medium" tone="muted">
                 Our objective is to provide researchers with transparent documentation and consistent
                 analytical standards across every compound supplied.
               </Text>

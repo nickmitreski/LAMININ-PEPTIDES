@@ -17,11 +17,11 @@ export default function FAQ() {
           subtitle="Laboratory use, certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our Purity Assurance Guarantee."
         />
 
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <FaqAccordion items={faqItems} />
         </div>
 
-        <Card padding="lg" className="mt-16 md:mt-20 bg-grey max-w-3xl mx-auto">
+        <Card padding="lg" className="mt-16 md:mt-20 bg-grey max-w-6xl mx-auto">
           <Heading level={5} className="mb-3">
             Didn’t find what you need?
           </Heading>
