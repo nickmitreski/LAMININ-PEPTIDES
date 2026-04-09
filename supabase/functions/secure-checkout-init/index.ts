@@ -269,6 +269,15 @@ Deno.serve(async (req) => {
   const paymentLinkCreateUrl = Deno.env.get('PAYMENT_LINK_CREATE_URL')?.trim();
   const paymentLinkBearer = Deno.env.get('PAYMENT_LINK_BEARER')?.trim();
   const paymentLinkSecretHeader = Deno.env.get('PAYMENT_LINK_SECRET_HEADER')?.trim();
+  /**
+   * CoreForge project's anon (or publishable) key. Required for default Supabase Edge JWT verification:
+   * the gateway expects a real JWT in `Authorization`, not the shared PAYMENT_LINK_BEARER string.
+   * When set, we send `Authorization: Bearer <this key>` and put PAYMENT_LINK_BEARER in `x-payment-link-secret`.
+   */
+  const paymentLinkTargetAnonKey =
+    Deno.env.get('PAYMENT_LINK_TARGET_SUPABASE_ANON_KEY')?.trim() ||
+    Deno.env.get('COREFORGE_SUPABASE_ANON_KEY')?.trim() ||
+    '';
   const paymentLinkCurrency = paymentLinkCurrencyEarly;
   const paymentLinkExpiration = Number(Deno.env.get('PAYMENT_LINK_EXPIRATION_MINUTES') ?? '15');
   /** Ask CoreForge for an embeddable checkout URL (`/embed/pay/...`). */
@@ -285,10 +294,15 @@ Deno.serve(async (req) => {
     try {
       const plHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${paymentLinkBearer}`,
       };
-      if (paymentLinkSecretHeader) {
-        plHeaders['x-payment-link-secret'] = paymentLinkSecretHeader;
+      if (paymentLinkTargetAnonKey) {
+        plHeaders['Authorization'] = `Bearer ${paymentLinkTargetAnonKey}`;
+        plHeaders['x-payment-link-secret'] = paymentLinkSecretHeader || paymentLinkBearer;
+      } else {
+        plHeaders['Authorization'] = `Bearer ${paymentLinkBearer}`;
+        if (paymentLinkSecretHeader) {
+          plHeaders['x-payment-link-secret'] = paymentLinkSecretHeader;
+        }
       }
       const lines = Array.isArray(enriched_lines) ? enriched_lines : [];
       /** Partner GoForge/CoreForge treats `lamin` as strict: 6-digit code + reference. */
