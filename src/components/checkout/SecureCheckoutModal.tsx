@@ -27,12 +27,19 @@ interface SecureCheckoutModalProps {
   /** Pay UI opens on partner site via API; this page does not navigate to payment. */
   partnerOpensPaymentUi?: boolean;
   /**
+   * When set (e.g. CoreForge session exists but `VITE_COREFORGE_PAY_ORIGIN` is unset), show this and
+   * the parent should disable Continue — otherwise checkout skips the iframe and jumps to confirmation.
+   */
+  blockingConfigMessage?: string | null;
+  /**
    * Demo-only: OTP returned by Edge when `RETURN_CHECKOUT_OTP_IN_RESPONSE=true`. Never enable in production.
    */
   demoOtp?: string | null;
   errorMessage?: string | null;
   onContinue: () => void;
   onDismissError: () => void;
+  /** Shown below the primary button when `blockingConfigMessage` is set (e.g. return to checkout). */
+  onDismissBlocking?: () => void;
   continueDisabled?: boolean;
   continueLabel?: string;
 }
@@ -50,10 +57,12 @@ export default function SecureCheckoutModal({
   deliveryEnabledAtEdge = false,
   linkDeliveredInMessages = false,
   partnerOpensPaymentUi = false,
+  blockingConfigMessage = null,
   demoOtp = null,
   errorMessage,
   onContinue,
   onDismissError,
+  onDismissBlocking,
   continueDisabled = false,
   continueLabel = 'Continue to secure payment',
 }: SecureCheckoutModalProps) {
@@ -261,6 +270,15 @@ export default function SecureCheckoutModal({
                 )}
               </div>
             ) : null}
+            {blockingConfigMessage ? (
+              <div
+                className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-950 sm:text-xs"
+                role="alert"
+              >
+                <p className="font-semibold">Payment iframe cannot open</p>
+                <p className="mt-2">{blockingConfigMessage}</p>
+              </div>
+            ) : null}
             <Button
               type="button"
               variant="primary"
@@ -271,6 +289,17 @@ export default function SecureCheckoutModal({
             >
               {continueLabel}
             </Button>
+            {blockingConfigMessage && onDismissBlocking ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="min-h-12 w-full touch-manipulation"
+                onClick={onDismissBlocking}
+              >
+                Return to checkout
+              </Button>
+            ) : null}
           </div>
         ) : null}
 

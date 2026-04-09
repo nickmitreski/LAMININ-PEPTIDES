@@ -312,6 +312,14 @@ export default function Checkout() {
     if (!payload) return;
 
     const cfOrigin = getCoreForgePayOrigin();
+    if (coreforgePaySession && !cfOrigin) {
+      showToast(
+        'Embedded CoreForge checkout needs VITE_COREFORGE_PAY_ORIGIN on this site (Vercel → Environment Variables → https://core-forge.shop). Redeploy Laminin after saving.',
+        'error',
+        14000
+      );
+      return;
+    }
     if (cfOrigin && coreforgePaySession) {
       setPaymentPhase('redirecting');
       setSecureModalOpen(false);
@@ -400,6 +408,10 @@ export default function Checkout() {
     setDemoCheckoutOtp(null);
   };
 
+  const dismissSecureModalToCheckout = () => {
+    closeSecureModalAfterError();
+  };
+
   const handleRetry = () => {
     setPaymentPhase('idle');
     setPaymentError(null);
@@ -438,6 +450,26 @@ export default function Checkout() {
   const checkoutBusy =
     paymentPhase === 'redirecting' ||
     (secureModalOpen && secureModalPhase === 'encrypting');
+
+  const coreForgePayOriginConfigured = Boolean(getCoreForgePayOrigin());
+  const embedCheckoutBlocked =
+    secureModalOpen &&
+    secureModalPhase === 'sent' &&
+    Boolean(coreforgePaySession) &&
+    !coreForgePayOriginConfigured;
+
+  const secureModalContinueLabel = (() => {
+    if (paymentPortalUrl) return 'Continue to pay';
+    if (coreforgePaySession) {
+      return coreForgePayOriginConfigured
+        ? 'Continue to CoreForge payment'
+        : 'Set VITE_COREFORGE_PAY_ORIGIN to continue';
+    }
+    if (partnerOpensPaymentUi) {
+      return checkoutSoftLaunch ? 'Continue to order confirmation' : 'Continue on this site';
+    }
+    return checkoutSoftLaunch ? 'Continue to order confirmation' : 'Continue to secure payment';
+  })();
 
   return (
     <div className="min-h-screen bg-platinum overscroll-contain">
@@ -717,25 +749,22 @@ export default function Checkout() {
             partnerOpensPaymentUi={
               secureModalPhase === 'sent' && partnerOpensPaymentUi
             }
+            blockingConfigMessage={
+              embedCheckoutBlocked
+                ? 'This storefront has a CoreForge payment session but no pay-app URL. In Vercel → Laminin project → Environment Variables, set VITE_COREFORGE_PAY_ORIGIN to https://core-forge.shop (no trailing path), save, and redeploy. Then run checkout again.'
+                : null
+            }
             errorMessage={secureModalError}
             onContinue={finishRedirectAfterCode}
             onDismissError={closeSecureModalAfterError}
+            onDismissBlocking={dismissSecureModalToCheckout}
             continueDisabled={
               paymentPhase === 'redirecting' ||
               !pendingCheckoutPayload ||
-              (secureModalPhase === 'sent' && !sentContinueEnabled)
+              (secureModalPhase === 'sent' && !sentContinueEnabled) ||
+              embedCheckoutBlocked
             }
-            continueLabel={
-              paymentPortalUrl
-                ? 'Continue to pay'
-                : partnerOpensPaymentUi
-                  ? checkoutSoftLaunch
-                    ? 'Continue to order confirmation'
-                    : 'Continue on this site'
-                  : checkoutSoftLaunch
-                    ? 'Continue to order confirmation'
-                    : 'Continue to secure payment'
-            }
+            continueLabel={secureModalContinueLabel}
           />
         </div>
       </Section>
