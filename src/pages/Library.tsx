@@ -113,7 +113,7 @@ export default function Library() {
           </div>
         )}
 
-        <Card padding="lg" className="mt-12 bg-grey sm:mt-16">
+        <Card padding="lg" className="mt-12 bg-platinum sm:mt-16">
           <div className="max-w-xl">
             <Heading level={5} className="mb-3">
               Need Help Finding a Compound?

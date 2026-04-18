@@ -38,7 +38,7 @@ export function Heading({
 
 interface TextProps extends TypographyProps {
   variant?: 'body' | 'lead' | 'small' | 'caption';
-  weight?: 'light' | 'normal' | 'medium' | 'semibold';
+  weight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   muted?: boolean;
   tone?: 'default' | 'muted' | 'inverse' | 'inverse-muted';
 }
@@ -66,6 +66,7 @@ export function Text({
     normal: 'font-normal',
     medium: 'font-medium',
     semibold: 'font-semibold',
+    bold: 'font-bold',
   };
 
   const tones = {

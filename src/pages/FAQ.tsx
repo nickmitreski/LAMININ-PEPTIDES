@@ -21,7 +21,7 @@ export default function FAQ() {
           <FaqAccordion items={faqItems} />
         </div>
 
-        <Card padding="lg" className="mt-16 md:mt-20 bg-grey max-w-3xl mx-auto">
+        <Card padding="lg" className="mt-16 md:mt-20 bg-platinum max-w-3xl mx-auto">
           <Heading level={5} className="mb-3">
             Didn’t find what you need?
           </Heading>

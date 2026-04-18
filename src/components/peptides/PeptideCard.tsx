@@ -10,9 +10,6 @@ interface PeptideCardProps {
   peptide: Peptide;
 }
 
-const addToCartClass =
-  'btn inline-flex min-h-11 w-full touch-manipulation items-center justify-center gap-2 rounded-sm px-3 py-2.5 text-[0.65rem] font-semibold uppercase leading-tight tracking-wide bg-accent text-carbon-900 border border-carbon-900/15 shadow-sm transition-all duration-200 hover:bg-accent-dark active:scale-[0.99] active:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-carbon-900 sm:min-h-0 sm:px-4 sm:text-xs';
-
 export default function PeptideCard({ peptide }: PeptideCardProps) {
   const title = peptide.name.toUpperCase();
   const productPath = `/products/${getProductSlug(peptide.id)}`;
@@ -50,14 +47,15 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
       </Text>
 
       <div className="mt-auto flex flex-col gap-2">
-        <button
-          type="button"
-          className={addToCartClass}
+        <Button
+          variant="accent"
+          size="sm"
+          className="min-h-10 w-full touch-manipulation text-[0.65rem] sm:min-h-0 sm:text-xs gap-2"
           aria-label={`Add ${peptide.name} to cart`}
         >
           <ShoppingCart className="h-4 w-4" strokeWidth={2} aria-hidden />
           Add to cart
-        </button>
+        </Button>
         <Link to={productPath} className="block touch-manipulation">
           <Button
             variant="outline"
