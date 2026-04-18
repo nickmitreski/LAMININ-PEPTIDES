@@ -9,6 +9,7 @@ import ProductPageAccordion, {
   ProductOverviewBody,
 } from '../components/products/ProductPageAccordion';
 import ProductDescriptionModal from '../components/products/ProductDescriptionModal';
+import SuggestedPeptides from '../components/products/SuggestedPeptides';
 import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
 import {
@@ -200,6 +201,8 @@ export default function ProductPage() {
               <h1 className="text-2xl font-bold uppercase leading-[1.15] tracking-[0.06em] text-carbon-900 sm:text-3xl md:text-4xl md:tracking-[0.07em]">
                 {headline}
               </h1>
+
+              <SuggestedPeptides currentPeptide={peptide} />
 
               {variants && variants.length > 0 && (
                 <div className="mt-4 max-w-xs">
