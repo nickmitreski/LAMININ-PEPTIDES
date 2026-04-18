@@ -28,12 +28,12 @@ export default function ResearchLibrary() {
   return (
     <div className="min-h-screen bg-platinum">
       {/* Hero Section */}
-      <Section background="carbon" spacing="lg">
+      <Section background="white" spacing="lg" className="bg-accent">
         <div className="max-w-4xl mx-auto text-center">
-          <Heading level={2} className="mb-4 text-white">
+          <Heading level={2} className="mb-4 text-black">
             PEPTIDE SCIENCE
           </Heading>
-          <Text variant="body" className="text-white/80 max-w-2xl mx-auto">
+          <Text variant="body" className="text-black/80 max-w-2xl mx-auto">
             Comprehensive research resource featuring cutting-edge peptides and compounds
             for qualified research institutions. Explore published findings and research opportunities
             across metabolic, regenerative, neurological, and longevity applications.
@@ -67,10 +67,10 @@ export default function ResearchLibrary() {
       <Section background="white" spacing="sm">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <Heading level={4} className="mb-3">
+            <Heading level={4} className="mb-4 text-center">
               Filter by category
             </Heading>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
               {CATEGORY_FILTERS.map(filter => (
                 <button
                   key={filter.id}
@@ -98,7 +98,7 @@ export default function ResearchLibrary() {
                 </button>
               )}
             </div>
-            <Text variant="caption" muted className="mt-3">
+            <Text variant="caption" muted className="mt-3 text-center">
               {filteredPeptides.length} compound{filteredPeptides.length !== 1 ? 's' : ''} shown
               {activeFilters.length > 0 && ` (filtered by ${activeFilters.length} categor${activeFilters.length !== 1 ? 'ies' : 'y'})`}
             </Text>
@@ -111,7 +111,7 @@ export default function ResearchLibrary() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPeptides.map(peptide => (
-              <Card key={peptide.id} padding="lg" className="flex flex-col h-full">
+              <Card key={peptide.id} padding="lg" className="flex flex-col h-full border-2 border-accent">
                 {/* Category tags */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {peptide.categories.map(cat => {
