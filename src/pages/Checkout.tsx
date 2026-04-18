@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   checkoutGstAmount,
@@ -15,58 +15,17 @@ import { Heading, Text } from '../components/ui/Typography';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { cartLineKey } from '../types/cart';
-import PaymentForm, {
-  type CheckoutPaymentPhase,
-} from '../components/checkout/PaymentForm';
-import CheckoutPaymentErrorBoundary from '../components/checkout/CheckoutPaymentErrorBoundary';
+import BankTransferModal from '../components/checkout/BankTransferModal';
 import {
-  buildCheckoutPayload,
-  createOrderReferenceRecord,
-  completeProteinCheckoutRedirect,
-  checkoutLog,
-  type CheckoutPayload,
-} from '../services/proteinCheckout';
-import {
-  initiateSecureCheckoutSession,
-  describeCodeDestinations,
-} from '../services/secureCheckoutSession';
-import SecureCheckoutModal, {
-  type SecureCheckoutModalPhase,
-} from '../components/checkout/SecureCheckoutModal';
-import { validateCheckoutContact } from '../lib/checkoutContactValidation';
-import { CHECKOUT_BRAND_NAME } from '../constants/checkoutCopy';
+  createPaymentTracking,
+  markPaymentInstructionsViewed,
+} from '../services/bankTransferPayment';
 
-const partnerCheckoutConfigured = Boolean(
-  (import.meta.env.VITE_PROTEIN_STORE_URL as string | undefined)?.trim()
-);
-const checkoutSoftLaunch =
-  import.meta.env.VITE_CHECKOUT_SOFT_LAUNCH === 'true' || !partnerCheckoutConfigured;
-
-/** Minimum time the encrypting modal stays on screen (ms) before showing the next step. */
-const CHECKOUT_ENCRYPT_MIN_MS = Math.max(
-  0,
-  Number(import.meta.env.VITE_CHECKOUT_ENCRYPT_MIN_MS ?? 3000)
-);
-
-/** After “CODE SENT” / sent step, delay before Continue is enabled (ms). */
-const CHECKOUT_SENT_CONTINUE_MIN_MS = Math.max(
-  0,
-  Number(import.meta.env.VITE_CHECKOUT_SENT_CONTINUE_MIN_MS ?? 5000)
-);
-
-/** If true, this storefront may redirect to payment_portal_url. Default false: partner opens pay UI via API. */
-const OPEN_PAYMENT_URL_ON_THIS_SITE =
-  import.meta.env.VITE_OPEN_PAYMENT_URL_ON_THIS_SITE === 'true';
-
-/** Match Edge `PAYMENT_LINK_CURRENCY` / Square when using international card rails; default AUD for this storefront. */
-const CHECKOUT_DISPLAY_CURRENCY =
-  (import.meta.env.VITE_CHECKOUT_DISPLAY_CURRENCY as string | undefined)?.trim() || 'AUD';
-
-const CHECKOUT_CURRENCY_LOCALE =
-  CHECKOUT_DISPLAY_CURRENCY === 'AUD' ? 'en-AU' : 'en-US';
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// Generate order reference (UUID-like)
+function generateOrderReference(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+  return `LAMIN-${timestamp}-${randomPart}`;
 }
 
 interface ShippingFormData {
@@ -85,9 +44,7 @@ export default function Checkout() {
   const { state, clearCart } = useCart();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [paymentPhase, setPaymentPhase] = useState<CheckoutPaymentPhase>('idle');
-  const [paymentError, setPaymentError] = useState<string | null>(null);
-  const checkoutStatusRef = useRef<HTMLDivElement | null>(null);
+
   const [formData, setFormData] = useState<ShippingFormData>({
     firstName: '',
     lastName: '',
@@ -99,34 +56,11 @@ export default function Checkout() {
     postcode: '',
     country: 'Australia',
   });
-  const [securityAcknowledged, setSecurityAcknowledged] = useState(false);
-  const [secureModalOpen, setSecureModalOpen] = useState(false);
-  const [secureModalPhase, setSecureModalPhase] =
-    useState<SecureCheckoutModalPhase>('encrypting');
-  const [secureModalError, setSecureModalError] = useState<string | null>(null);
-  const [codeDestinationsText, setCodeDestinationsText] = useState('');
-  const [pendingCheckoutPayload, setPendingCheckoutPayload] =
-    useState<CheckoutPayload | null>(null);
-  const [paymentPortalUrl, setPaymentPortalUrl] = useState<string | null>(null);
-  const [secureCodeDeliveryPending, setSecureCodeDeliveryPending] = useState(false);
-  const [partnerOpensPaymentUi, setPartnerOpensPaymentUi] = useState(false);
-  const [linkDeliveredInMessages, setLinkDeliveredInMessages] = useState(false);
-  const [secureOrderReference, setSecureOrderReference] = useState<string | null>(null);
-  const [secureGrandTotalLabel, setSecureGrandTotalLabel] = useState<string | null>(null);
-  const [sentContinueEnabled, setSentContinueEnabled] = useState(false);
 
-  useEffect(() => {
-    if (!secureModalOpen || secureModalPhase !== 'sent') {
-      setSentContinueEnabled(false);
-      return;
-    }
-    setSentContinueEnabled(false);
-    const t = window.setTimeout(
-      () => setSentContinueEnabled(true),
-      CHECKOUT_SENT_CONTINUE_MIN_MS
-    );
-    return () => window.clearTimeout(t);
-  }, [secureModalOpen, secureModalPhase]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bankTransferModalOpen, setBankTransferModalOpen] = useState(false);
+  const [currentOrderReference, setCurrentOrderReference] = useState<string>('');
+  const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -138,228 +72,94 @@ export default function Checkout() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (secureModalOpen) return;
-    if (!securityAcknowledged) {
-      showToast(
-        `Please confirm you understand ${CHECKOUT_BRAND_NAME} and the payment code process.`,
-        'error',
-        5000
-      );
+
+    if (isSubmitting || bankTransferModalOpen) return;
+
+    // Basic validation
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      showToast('Please enter your full name.', 'error', 5000);
       return;
     }
 
-    const contact = validateCheckoutContact(formData.email, formData.phone);
-    if (!contact.ok) {
-      showToast(contact.message ?? 'Check your contact details.', 'error', 6000);
+    if (!formData.phone.trim()) {
+      showToast('Please enter your phone number.', 'error', 5000);
       return;
     }
 
-    setPaymentError(null);
+    if (!formData.address.trim() || !formData.city.trim() || !formData.state.trim() || !formData.postcode.trim()) {
+      showToast('Please complete your shipping address.', 'error', 5000);
+      return;
+    }
 
-    const shipping = expressShippingAud(state.total);
-    const tax = checkoutGstAmount(state.total, checkoutGstRate());
-    const grand_total = state.total + shipping + tax;
-
-    const customer = {
-      email: formData.email.trim(),
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      phone: formData.phone,
-      address: formData.address,
-      city: formData.city,
-      state: formData.state,
-      postcode: formData.postcode,
-      country: formData.country,
-    };
-
-    const totals = {
-      subtotal: state.total,
-      shipping,
-      tax,
-      grand_total,
-    };
-
-    setSecureModalOpen(true);
-    setSecureModalPhase('encrypting');
-    setSecureModalError(null);
-    setPendingCheckoutPayload(null);
-    setPaymentPortalUrl(null);
-    setSecureCodeDeliveryPending(false);
-    setPartnerOpensPaymentUi(false);
-    setLinkDeliveredInMessages(false);
-    setSecureOrderReference(null);
-    setSecureGrandTotalLabel(null);
-
-    const encryptStartedAt = Date.now();
+    setIsSubmitting(true);
 
     try {
-      const payload = await buildCheckoutPayload(state.items, customer, totals);
-      await createOrderReferenceRecord(payload);
-      setSecureOrderReference(payload.peptide_order_id);
-      setSecureGrandTotalLabel(
-        new Intl.NumberFormat(CHECKOUT_CURRENCY_LOCALE, {
-          style: 'currency',
-          currency: CHECKOUT_DISPLAY_CURRENCY,
-        }).format(payload.totals.grand_total)
-      );
+      const shipping = expressShippingAud(state.total);
+      const tax = checkoutGstAmount(state.total, checkoutGstRate());
+      const grandTotal = state.total + shipping + tax;
+      const orderRef = generateOrderReference();
 
-      const secure = await initiateSecureCheckoutSession(payload, state.items, {
-        sendEmail: contact.emailValid,
-        sendSms: contact.phoneValid,
+      // Create payment tracking record
+      const result = await createPaymentTracking({
+        orderReference: orderRef,
+        customerEmail: formData.email.trim() || 'noemail@provided.com',
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        customerPhone: formData.phone.trim(),
+        customerAddress: {
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          postcode: formData.postcode,
+          country: formData.country,
+        },
+        cartItems: state.items.map(item => ({
+          id: item.peptideId,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+        })),
+        subtotal: state.total,
+        shipping,
+        tax,
+        totalAmount: grandTotal,
+        currency: 'AUD',
       });
 
-      if (!secure.ok) {
-        setSecureModalPhase('error');
-        setSecureModalError(secure.error ?? 'Secure checkout failed.');
-        return;
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create order');
       }
 
-      const portalRaw =
-        typeof secure.payment_portal_url === 'string' &&
-        secure.payment_portal_url.startsWith('http')
-          ? secure.payment_portal_url
-          : null;
+      // Mark that customer will view payment instructions
+      await markPaymentInstructionsViewed(orderRef);
 
-      const deliveryPending = Boolean(secure.code_delivery_pending);
-      const paymentLinkCreated = Boolean(secure.payment_link_created);
-      const partnerNotifyOk = Boolean(secure.partner_payment_ui_notify_ok);
-      const linkInMessages = Boolean(secure.payment_link_in_delivery);
-      const handoffToPartner =
-        !OPEN_PAYMENT_URL_ON_THIS_SITE &&
-        !linkInMessages &&
-        (paymentLinkCreated || partnerNotifyOk || Boolean(portalRaw));
+      // Show bank transfer modal
+      setCurrentOrderReference(orderRef);
+      setCurrentTotalAmount(grandTotal);
+      setBankTransferModalOpen(true);
 
-      const elapsed = Date.now() - encryptStartedAt;
-      const waitMs = Math.max(0, CHECKOUT_ENCRYPT_MIN_MS - elapsed);
-      if (waitMs > 0) {
-        await sleep(waitMs);
-      }
-
-      if (portalRaw && OPEN_PAYMENT_URL_ON_THIS_SITE) {
-        const u = new URL(portalRaw);
-        if (deliveryPending) {
-          u.searchParams.set('secure_session', '1');
-        } else {
-          u.searchParams.set('secure_code_sent', '1');
-        }
-        checkoutLog('auto-redirect payment portal', u.toString());
-        clearCart();
-        setSecureModalOpen(false);
-        setPendingCheckoutPayload(null);
-        setPaymentPortalUrl(null);
-        window.location.assign(u.toString());
-        return;
-      }
-
-      setPendingCheckoutPayload(payload);
-      setPaymentPortalUrl(
-        OPEN_PAYMENT_URL_ON_THIS_SITE && portalRaw ? portalRaw : null
-      );
-      setPartnerOpensPaymentUi(handoffToPartner);
-      setLinkDeliveredInMessages(linkInMessages);
-      setSecureCodeDeliveryPending(deliveryPending);
-      setCodeDestinationsText(
-        deliveryPending
-          ? describeCodeDestinations(contact.emailValid, contact.phoneValid)
-          : describeCodeDestinations(!!secure.sent_email, !!secure.sent_sms)
-      );
-      setSecureModalPhase('sent');
+      showToast('Order created! Please complete payment using the details shown.', 'success', 6000);
     } catch (err) {
-      checkoutLog('secure checkout init failed', err);
-      setSecureModalPhase('error');
-      setSecureModalError(
-        err instanceof Error
-          ? err.message
-          : 'Could not prepare secure checkout. Please try again.'
+      console.error('Checkout error:', err);
+      showToast(
+        err instanceof Error ? err.message : 'Failed to create order. Please try again.',
+        'error',
+        6000
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const finishRedirectAfterCode = async () => {
-    const payload = pendingCheckoutPayload;
-    if (!payload) return;
+  const handleCloseBankTransferModal = () => {
+    setBankTransferModalOpen(false);
 
-    setPaymentPhase('redirecting');
-    setSecureModalOpen(false);
+    // Clear cart and redirect to a confirmation page
+    clearCart();
 
-    try {
-      if (paymentPortalUrl) {
-        const u = new URL(paymentPortalUrl);
-        if (secureCodeDeliveryPending) {
-          u.searchParams.set('secure_session', '1');
-        } else {
-          u.searchParams.set('secure_code_sent', '1');
-        }
-        checkoutLog('redirect payment portal', u.toString());
-        clearCart();
-        setPendingCheckoutPayload(null);
-        setPaymentPortalUrl(null);
-        window.location.assign(u.toString());
-        return;
-      }
-
-      const { redirectUrl, peptide_order_id } =
-        await completeProteinCheckoutRedirect(payload);
-
-      checkoutLog('redirect', { redirectUrl, peptide_order_id });
-      clearCart();
-      setPendingCheckoutPayload(null);
-
-      const target = new URL(redirectUrl, window.location.href);
-      const isSameOrigin = target.origin === window.location.origin;
-      const isOrderConfirm = target.pathname.includes('order-confirmation');
-
-      if (secureCodeDeliveryPending) {
-        target.searchParams.set('secure_session', '1');
-      } else {
-        target.searchParams.set('secure_code_sent', '1');
-      }
-
-      if (isSameOrigin && isOrderConfirm) {
-        navigate(`${target.pathname}${target.search}${target.hash}`);
-      } else {
-        const u = new URL(redirectUrl);
-        if (secureCodeDeliveryPending) {
-          u.searchParams.set('secure_session', '1');
-        } else {
-          u.searchParams.set('secure_code_sent', '1');
-        }
-        window.location.assign(u.toString());
-      }
-    } catch (err) {
-      checkoutLog('checkout redirect failed', err);
-      const msg =
-        err instanceof Error
-          ? err.message
-          : 'Could not continue to payment. Please try again.';
-      setPaymentError(msg);
-      setPaymentPhase('error');
-      showToast(msg, 'error', 6000);
-    }
+    // Navigate to order confirmation with order reference
+    navigate(`/order-confirmation?ref=${currentOrderReference}&status=pending_payment`);
   };
-
-  const closeSecureModalAfterError = () => {
-    setSecureModalOpen(false);
-    setSecureModalError(null);
-    setPendingCheckoutPayload(null);
-    setPaymentPortalUrl(null);
-    setSecureCodeDeliveryPending(false);
-    setPartnerOpensPaymentUi(false);
-    setLinkDeliveredInMessages(false);
-    setSecureOrderReference(null);
-    setSecureGrandTotalLabel(null);
-  };
-
-  const handleRetry = () => {
-    setPaymentPhase('idle');
-    setPaymentError(null);
-  };
-
-  useEffect(() => {
-    if (paymentPhase === 'error') {
-      checkoutStatusRef.current?.focus();
-    }
-  }, [paymentPhase]);
 
   if (state.items.length === 0) {
     return (
@@ -385,9 +185,6 @@ export default function Checkout() {
 
   const shipping = expressShippingAud(state.total);
   const tax = checkoutGstAmount(state.total, checkoutGstRate());
-  const checkoutBusy =
-    paymentPhase === 'redirecting' ||
-    (secureModalOpen && secureModalPhase === 'encrypting');
 
   return (
     <div className="min-h-screen bg-platinum overscroll-contain">
@@ -404,15 +201,10 @@ export default function Checkout() {
             <Heading level={3}>Checkout</Heading>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            aria-busy={
-              paymentPhase === 'redirecting' ||
-              (secureModalOpen && secureModalPhase === 'encrypting')
-            }
-          >
+          <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
               <div className="space-y-6 lg:col-span-2">
+                {/* Contact Information */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
                     Contact Information
@@ -426,7 +218,7 @@ export default function Checkout() {
                         value={formData.firstName}
                         onChange={handleChange}
                         required
-                        disabled={checkoutBusy}
+                        disabled={isSubmitting}
                       />
                       <Input
                         id="lastName"
@@ -435,17 +227,9 @@ export default function Checkout() {
                         value={formData.lastName}
                         onChange={handleChange}
                         required
-                        disabled={checkoutBusy}
+                        disabled={isSubmitting}
                       />
                     </div>
-                    <Text
-                      variant="caption"
-                      muted
-                      className="-mt-1 block text-sm leading-relaxed sm:text-xs"
-                    >
-                      Provide <span className="text-red-600 font-medium">*</span> at least one: a valid
-                      email or a mobile number — we send your code by SMS and/or email.
-                    </Text>
                     <Input
                       id="email"
                       name="email"
@@ -454,23 +238,25 @@ export default function Checkout() {
                       value={formData.email}
                       onChange={handleChange}
                       autoComplete="email"
-                      disabled={checkoutBusy}
-                      helperText="Optional if you enter a mobile number below."
+                      disabled={isSubmitting}
+                      helperText="For order updates and receipts."
                     />
                     <Input
                       id="phone"
                       name="phone"
                       type="tel"
-                      label="Mobile number (optional)"
+                      label="Mobile number"
                       value={formData.phone}
                       onChange={handleChange}
                       autoComplete="tel"
-                      disabled={checkoutBusy}
-                      helperText="Optional if you enter an email above. Include country/area code."
+                      required
+                      disabled={isSubmitting}
+                      helperText="Required for delivery updates."
                     />
                   </div>
                 </Card>
 
+                {/* Shipping Address */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
                     Shipping Address
@@ -483,7 +269,7 @@ export default function Checkout() {
                       value={formData.address}
                       onChange={handleChange}
                       required
-                      disabled={checkoutBusy}
+                      disabled={isSubmitting}
                     />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Input
@@ -493,7 +279,7 @@ export default function Checkout() {
                         value={formData.city}
                         onChange={handleChange}
                         required
-                        disabled={checkoutBusy}
+                        disabled={isSubmitting}
                       />
                       <Input
                         id="state"
@@ -502,7 +288,7 @@ export default function Checkout() {
                         value={formData.state}
                         onChange={handleChange}
                         required
-                        disabled={checkoutBusy}
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -513,7 +299,7 @@ export default function Checkout() {
                         value={formData.postcode}
                         onChange={handleChange}
                         required
-                        disabled={checkoutBusy}
+                        disabled={isSubmitting}
                       />
                       <div>
                         <label
@@ -528,7 +314,7 @@ export default function Checkout() {
                           value={formData.country}
                           onChange={handleChange}
                           required
-                          disabled={checkoutBusy}
+                          disabled={isSubmitting}
                           className="min-h-11 w-full rounded-sm border border-carbon-900/20 px-4 py-2.5 text-base transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-carbon-900 md:min-h-0 md:text-sm"
                         >
                           <option value="Australia">Australia</option>
@@ -542,24 +328,28 @@ export default function Checkout() {
                   </div>
                 </Card>
 
-                <CheckoutPaymentErrorBoundary>
-                  <Card padding="lg">
-                    <Heading level={5} className="mb-4">
-                      Payment
-                    </Heading>
-                    <Text
-                      variant="caption"
-                      muted
-                      className="mb-4 block text-sm leading-relaxed sm:text-xs"
-                    >
-                      {checkoutSoftLaunch
-                        ? 'Use the order summary on the right (below on mobile) to submit your order request. No card is charged until we enable payment and confirm with you.'
-                        : 'Complete your purchase from the order summary — you will be redirected to our secure partner checkout.'}
-                    </Text>
-                  </Card>
-                </CheckoutPaymentErrorBoundary>
+                {/* Payment Method */}
+                <Card padding="lg">
+                  <Heading level={5} className="mb-4">
+                    Payment Method
+                  </Heading>
+                  <Text
+                    variant="caption"
+                    muted
+                    className="mb-4 block text-sm leading-relaxed sm:text-xs"
+                  >
+                    Payment is made via bank transfer. After placing your order, you will receive detailed payment instructions including our bank account details and your unique order reference number.
+                  </Text>
+                  <div className="rounded-sm border border-carbon-900/10 bg-neutral-50 px-4 py-3">
+                    <p className="text-sm font-medium text-carbon-900">Bank Transfer / PayID</p>
+                    <p className="mt-1 text-xs text-neutral-600">
+                      Complete payment using your banking app
+                    </p>
+                  </div>
+                </Card>
               </div>
 
+              {/* Order Summary */}
               <div className="lg:col-span-1">
                 <Card padding="lg" className="lg:sticky lg:top-24">
                   <Heading level={5} className="mb-6">
@@ -613,23 +403,15 @@ export default function Checkout() {
                     .
                   </Text>
 
-                  <div
-                    ref={checkoutStatusRef}
-                    tabIndex={-1}
-                    className="outline-none focus-visible:ring-2 focus-visible:ring-carbon-900/25 focus-visible:ring-offset-2 rounded-sm"
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    className="min-h-12 w-full touch-manipulation"
+                    disabled={isSubmitting}
                   >
-                    <PaymentForm
-                      phase={paymentPhase}
-                      errorMessage={paymentError}
-                      onRetry={handleRetry}
-                      softLaunch={checkoutSoftLaunch}
-                      securityAcknowledged={securityAcknowledged}
-                      onSecurityAcknowledgedChange={setSecurityAcknowledged}
-                      interactionsLocked={
-                        secureModalOpen && secureModalPhase === 'encrypting'
-                      }
-                    />
-                  </div>
+                    {isSubmitting ? 'Processing...' : 'Place Order'}
+                  </Button>
 
                   <div className="mt-6 border-t border-carbon-900/10 pt-6">
                     <Text variant="caption" muted className="leading-relaxed">
@@ -641,44 +423,13 @@ export default function Checkout() {
             </div>
           </form>
 
-          <SecureCheckoutModal
-            open={secureModalOpen}
-            phase={secureModalPhase}
-            orderReference={secureModalPhase === 'sent' ? secureOrderReference : null}
-            grandTotalLabel={
-              secureModalPhase === 'sent' && linkDeliveredInMessages
-                ? secureGrandTotalLabel
-                : null
-            }
-            destinationsDescription={codeDestinationsText}
-            codeDeliveryPending={
-              secureModalPhase === 'sent' && secureCodeDeliveryPending
-            }
-            linkDeliveredInMessages={
-              secureModalPhase === 'sent' && linkDeliveredInMessages
-            }
-            partnerOpensPaymentUi={
-              secureModalPhase === 'sent' && partnerOpensPaymentUi
-            }
-            errorMessage={secureModalError}
-            onContinue={finishRedirectAfterCode}
-            onDismissError={closeSecureModalAfterError}
-            continueDisabled={
-              paymentPhase === 'redirecting' ||
-              !pendingCheckoutPayload ||
-              (secureModalPhase === 'sent' && !sentContinueEnabled)
-            }
-            continueLabel={
-              paymentPortalUrl
-                ? 'Continue to pay'
-                : partnerOpensPaymentUi
-                  ? checkoutSoftLaunch
-                    ? 'Continue to order confirmation'
-                    : 'Continue on this site'
-                  : checkoutSoftLaunch
-                    ? 'Continue to order confirmation'
-                    : 'Continue to secure payment'
-            }
+          {/* Bank Transfer Modal */}
+          <BankTransferModal
+            open={bankTransferModalOpen}
+            orderReference={currentOrderReference}
+            totalAmount={currentTotalAmount}
+            currency="AUD"
+            onClose={handleCloseBankTransferModal}
           />
         </div>
       </Section>

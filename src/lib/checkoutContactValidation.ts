@@ -7,7 +7,7 @@ export interface ContactValidationResult {
   phoneValid: boolean;
 }
 
-/** At least one channel: valid email and/or mobile (≥10 digits). Email is optional if phone is valid. */
+/** Mobile (≥10 digits) is required. Email is optional; if filled it must be valid. */
 export function validateCheckoutContact(email: string, phone: string): ContactValidationResult {
   const emailTrim = email.trim();
   const phoneDigits = phone.replace(/\D/g, '');
@@ -15,12 +15,12 @@ export function validateCheckoutContact(email: string, phone: string): ContactVa
   const emailValid = emailTrim.length > 0 && EMAIL_RE.test(emailTrim);
   const phoneValid = phoneDigits.length >= 10;
 
-  if (!emailValid && !phoneValid) {
+  if (!phoneValid) {
     return {
       ok: false,
       message:
-        'Enter a valid email and/or a mobile number (with area code) so we can send your verification code.',
-      emailValid: false,
+        'Enter a mobile number with country/area code (at least 10 digits) so we can send your verification code by SMS.',
+      emailValid,
       phoneValid: false,
     };
   }
@@ -28,19 +28,9 @@ export function validateCheckoutContact(email: string, phone: string): ContactVa
   if (emailTrim.length > 0 && !emailValid) {
     return {
       ok: false,
-      message: 'Please enter a valid email address, or clear the field and use SMS only.',
+      message: 'Please enter a valid email address or clear the email field.',
       emailValid: false,
-      phoneValid,
-    };
-  }
-
-  if (phone.trim().length > 0 && !phoneValid) {
-    return {
-      ok: false,
-      message:
-        'Please enter a full phone number with area code (at least 10 digits), or clear the field and use email only.',
-      emailValid,
-      phoneValid: false,
+      phoneValid: true,
     };
   }
 

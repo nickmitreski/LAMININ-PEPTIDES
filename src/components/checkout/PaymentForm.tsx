@@ -90,18 +90,19 @@ export default function PaymentForm({
         </div>
       )}
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-sm border border-carbon-900/15 bg-white p-4 touch-manipulation">
+      <label className="flex cursor-pointer items-start gap-3 rounded-sm border border-carbon-900/15 bg-white p-4 sm:p-5 touch-manipulation">
         <input
           type="checkbox"
           checked={securityAcknowledged}
           onChange={(e) => onSecurityAcknowledgedChange(e.target.checked)}
           disabled={redirecting || interactionsLocked}
-          className="mt-1 h-[1.125rem] w-[1.125rem] shrink-0 rounded border-carbon-900/30 text-carbon-900 focus:ring-2 focus:ring-carbon-900/25"
+          className="mt-1 h-5 w-5 shrink-0 rounded border-carbon-900/30 text-carbon-900 focus:ring-2 focus:ring-carbon-900/25 md:h-[1.125rem] md:w-[1.125rem]"
         />
-        <span className="min-w-0 text-sm leading-relaxed text-carbon-900 sm:text-xs">
-          I understand that this secure checkout payment is using the{' '}
-          <strong className="font-semibold">COREFORGE</strong> payment for their strong 256 bit
-          encryption. I will receive a one-time code by SMS and/or Email before completing payment.
+        <span className="min-w-0 text-base leading-relaxed text-carbon-900 md:text-sm">
+          I understand that my payment will be completed through the{' '}
+          <strong className="font-semibold">CoreForge</strong> encrypted secure payment portal
+          (industry-standard TLS encryption). I will use the one-time verification code sent by SMS
+          and/or email before entering card details on CoreForge.
         </span>
       </label>
 

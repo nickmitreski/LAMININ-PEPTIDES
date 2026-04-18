@@ -35,16 +35,6 @@ function formatVerificationCode(code: string): string {
   return code;
 }
 
-/** Best-effort E.164; AU mobiles often stored as 04xx — map to +61. */
-function toE164(raw: string): string {
-  const t = raw.trim();
-  if (t.startsWith('+')) return t;
-  const d = t.replace(/\D/g, '');
-  if (d.startsWith('04') && d.length >= 10) return `+61${d.slice(1)}`;
-  if (d.startsWith('61')) return `+${d}`;
-  return `+${d}`;
-}
-
 function formatMoney(amount: number, currency: string): string {
   const cur = currency.trim().toUpperCase() || 'AUD';
   try {
@@ -169,7 +159,7 @@ Deno.serve(async (req) => {
     `Amount: ${amountLabel}. Code: ${formattedCode}. Open: ${payment_url.trim()}`;
 
   const smsResult = await sendTwilioSms({
-    toE164: toE164(phone),
+    toE164: phone,
     body: smsBody,
     mock: mockSms,
   });

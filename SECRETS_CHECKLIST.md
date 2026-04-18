@@ -35,10 +35,16 @@ Configure these in: **Supabase Dashboard → Edge Functions → Secrets**
 - [ ] `RESEND_FROM` - From email address (e.g., `orders@yourdomain.com`)
   - **Status**: Not configured (SMS-only mode)
   - **Set these if you want email + SMS delivery**
+- [ ] `MOCK_EMAIL_DELIVERY` - Set to `true` to skip Resend even when `RESEND_API_KEY` is set (testing only)
+  - **If `RESEND_API_KEY` is unset**, `secure-checkout-init` does not send email but still clears the “email pending” state so SMS-only checkout does not show a false “delivery pending” warning.
 
 #### **Payment Link Integration**
 - [ ] `PAYMENT_LINK_CREATE_URL` - Partner payment link creation endpoint
 - [ ] `PAYMENT_LINK_BEARER` - Bearer token for partner API
+- [ ] `PAYMENT_LINK_EMBED` - `true` = send `"embed": true` to CoreForge for `/embed/pay/...` URLs
+- [ ] `COREFORGE_SMS_PAYMENT_LINK_MODE` - `parent` (LAMIN `/pay?pid=`) or `direct` (full CoreForge URL in SMS/email)
+- [ ] `LAMIN_PUBLIC_SITE_URL` - Storefront origin, no trailing slash (required for `parent` mode)
+- [ ] `COREFORGE_PAYMENTS_DISCLOSURE_SMS` / `COREFORGE_PAYMENTS_DISCLOSURE_EMAIL` - Optional; default mentions CoreForge Payments
 - [ ] `PAYMENT_LINK_CURRENCY` - Currency code (default: AUD)
 - [ ] `PAYMENT_LINK_EXPIRATION_MINUTES` - Link expiration (default: 15)
 - [ ] `PAYMENT_LINK_SECRET_HEADER` - Optional extra auth header

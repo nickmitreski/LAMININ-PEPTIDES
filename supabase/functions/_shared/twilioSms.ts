@@ -5,6 +5,27 @@ export interface TwilioSmsResult {
   error?: string;
 }
 
+/**
+ * Best-effort E.164 for Twilio Messages API.
+ * Handles AU mobiles: 04xx xxx xxx → +614… ; 61… → +61… ; already +… unchanged.
+ */
+export function normalizePhoneForTwilio(raw: string): string {
+  const t = raw.trim();
+  if (/^whatsapp:/i.test(t)) return t;
+  if (t.startsWith('+')) return t;
+  const d = raw.replace(/\D/g, '');
+  if (d.startsWith('0') && d.length >= 10 && d[1] === '4') {
+    return `+61${d.slice(1)}`;
+  }
+  if (d.startsWith('61') && d.length >= 11) {
+    return `+${d}`;
+  }
+  if (d.length >= 10 && d.length <= 15) {
+    return `+${d}`;
+  }
+  return t;
+}
+
 /** Turn +61… or 04… into whatsapp:+61… for Twilio WhatsApp API. */
 export function ensureWhatsAppAddress(input: string): string {
   const t = input.trim();
@@ -35,7 +56,8 @@ export async function sendTwilioSms(params: {
 }): Promise<TwilioSmsResult> {
   if (params.mock) {
     const useWa = Deno.env.get('TWILIO_USE_WHATSAPP') === 'true';
-    const to = useWa ? ensureWhatsAppAddress(params.toE164) : params.toE164;
+    const normalized = normalizePhoneForTwilio(params.toE164);
+    const to = useWa ? ensureWhatsAppAddress(normalized) : normalized;
     console.log('[MOCK_SMS_DELIVERY] to=', to, 'body=', params.body);
     return { ok: true, mocked: true };
   }
@@ -60,7 +82,8 @@ export async function sendTwilioSms(params: {
     };
   }
 
-  const toAddress = useWhatsApp ? ensureWhatsAppAddress(params.toE164) : params.toE164;
+  const normalized = normalizePhoneForTwilio(params.toE164);
+  const toAddress = useWhatsApp ? ensureWhatsAppAddress(normalized) : normalized;
   const fromFinal = useWhatsApp
     ? /^whatsapp:/i.test(twilioFrom)
       ? twilioFrom

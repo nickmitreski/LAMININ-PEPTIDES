@@ -24,6 +24,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
+// const Pay = lazy(() => import('./pages/Pay')); // CoreForge - temporarily disabled
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 const Shipping = lazy(() => import('./pages/Shipping'));
@@ -32,6 +33,7 @@ const AdminInventory = lazy(() => import('./pages/AdminInventory'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
+const AdminPaymentTracking = lazy(() => import('./pages/AdminPaymentTracking'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 
 function App() {
@@ -62,6 +64,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/payments"
+                  element={
+                    <ProtectedRoute>
+                      <AdminPaymentTracking />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Public Routes (with header/footer) */}
                 <Route
@@ -81,6 +91,8 @@ function App() {
                           <Route path="/contact" element={<Contact />} />
                           <Route path="/cart" element={<Cart />} />
                           <Route path="/checkout" element={<Checkout />} />
+                          {/* CoreForge payment link page - temporarily disabled */}
+                          {/* <Route path="/pay" element={<Pay />} /> */}
                         <Route path="/order-confirmation" element={<OrderConfirmation />} />
                         <Route path="/oops" element={<ErrorPage />} />
                         <Route path="/privacy" element={<Privacy />} />

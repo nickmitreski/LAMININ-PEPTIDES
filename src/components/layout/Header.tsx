@@ -4,6 +4,7 @@ import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import Container from './Container';
 import CartDrawer from '../cart/CartDrawer';
 import HeaderSearch from './HeaderSearch';
+import CoreForgeMark from '../brand/CoreForgeMark';
 import { useCart } from '../../context/CartContext';
 
 export default function Header() {
@@ -27,8 +28,8 @@ export default function Header() {
   return (
     <header className="bg-carbon-900 sticky top-0 z-50 border-b border-white/5 pt-safe">
       <Container>
-        <div className="flex min-h-[4.25rem] items-center justify-between py-2 md:min-h-24 md:py-0">
-          <div className="flex-shrink-0">
+        <div className="flex min-h-[4.25rem] w-full items-center gap-2 py-2 md:min-h-24 md:gap-4 md:py-0">
+          <div className="shrink-0">
             <Link
               to="/"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -42,7 +43,11 @@ export default function Header() {
             </Link>
           </div>
 
-          <nav className="hidden lg:flex items-center space-x-1">
+          <div className="hidden min-w-0 flex-1 justify-center sm:flex">
+            <CoreForgeMark variant="onDark" className="scale-[0.85] opacity-95 sm:scale-90 md:scale-100" />
+          </div>
+
+          <nav className="hidden lg:flex shrink-0 items-center space-x-1">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
@@ -61,7 +66,7 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-0.5 sm:gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
@@ -116,6 +121,9 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
+              <div className="mt-6 border-t border-white/10 pt-5">
+                <CoreForgeMark variant="onDark" className="scale-95" />
+              </div>
             </nav>
           </Container>
         </div>
