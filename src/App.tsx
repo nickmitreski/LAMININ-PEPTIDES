@@ -13,9 +13,11 @@ import PageFallback from './components/routing/PageFallback';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import EntryGate from './components/entry/EntryGate';
+import ChatLauncher from './components/chat/ChatLauncher';
 
 const Home = lazy(() => import('./pages/Home'));
 const Library = lazy(() => import('./pages/Library'));
+const ResearchLibrary = lazy(() => import('./pages/ResearchLibrary'));
 const COA = lazy(() => import('./pages/COA'));
 const Contact = lazy(() => import('./pages/Contact'));
 const FAQ = lazy(() => import('./pages/FAQ'));
@@ -43,6 +45,7 @@ function App() {
         <EntryGate>
           <SkipLink />
           <ScrollToTop />
+          <ChatLauncher />
           <div className="min-h-screen bg-platinum text-carbon-900">
             <Suspense fallback={<PageFallback />}>
               <Routes>
@@ -83,6 +86,7 @@ function App() {
                         <Routes>
                           <Route path="/" element={<Home />} />
                           <Route path="/library" element={<Library />} />
+                          <Route path="/research" element={<ResearchLibrary />} />
                           <Route path="/products/:slug" element={<ProductPage />} />
                           <Route path="/faq" element={<FAQ />} />
                           <Route path="/collection" element={<Navigate to="/faq" replace />} />
