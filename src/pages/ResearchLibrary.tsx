@@ -34,27 +34,28 @@ export default function ResearchLibrary() {
             PEPTIDE SCIENCE
           </Heading>
           <Text variant="body" className="text-white/80 max-w-2xl mx-auto">
-            Educational resource covering investigational compounds from published research.
-            For laboratory and research purposes only.
+            Comprehensive research resource featuring cutting-edge peptides and compounds
+            for qualified research institutions. Explore published findings and research opportunities
+            across metabolic, regenerative, neurological, and longevity applications.
           </Text>
         </div>
       </Section>
 
-      {/* Disclaimer */}
+      {/* Research Notice */}
       <Section background="white" spacing="sm">
         <div className="max-w-6xl mx-auto">
-          <Card padding="md" className="bg-amber-50 border border-amber-200">
+          <Card padding="md" className="bg-blue-50 border border-blue-200">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
               <div>
-                <Text variant="small" weight="medium" className="mb-1 text-amber-900">
-                  Important: Educational content only
+                <Text variant="small" weight="medium" className="mb-1 text-blue-900">
+                  Research-Grade Compounds
                 </Text>
-                <Text variant="caption" className="text-amber-800 leading-relaxed">
-                  Information on this page is for <strong>general education</strong> about published research.
-                  It is <strong>not medical advice</strong>, <strong>not a substitute for professional care</strong>,
-                  and <strong>not an offer to diagnose or treat</strong>. Product availability and regulations vary by jurisdiction.
-                  Laminin does not claim that any compound is safe or effective for a particular person.
+                <Text variant="caption" className="text-blue-800 leading-relaxed">
+                  All compounds are supplied for <strong>laboratory research purposes only</strong>.
+                  Information presented is derived from published peer-reviewed research and scientific literature.
+                  These materials are intended for qualified research institutions and laboratories
+                  conducting legitimate scientific investigations.
                 </Text>
               </div>
             </div>
@@ -203,25 +204,24 @@ export default function ResearchLibrary() {
         </div>
       </Section>
 
-      {/* Bottom Disclaimer */}
+      {/* Research Support */}
       <Section background="platinum" spacing="md">
         <div className="max-w-4xl mx-auto text-center">
           <Text variant="small" muted className="leading-relaxed">
-            All compounds listed are for <strong>research use only</strong>.
-            Many are not TGA-approved (Australia) or FDA-approved (US) for the uses described in popular media.
-            Evidence levels range from preclinical (animal/lab) to early clinical trials.{' '}
-            <strong>Always discuss any health decisions with a qualified clinician.</strong>
+            Supporting research institutions worldwide with <strong>high-purity research compounds</strong>.
+            All products are manufactured to exacting standards with comprehensive quality documentation.
+            Evidence levels span preclinical research through clinical trials, representing diverse research opportunities.
           </Text>
           <Text variant="caption" muted className="mt-4 block">
-            For questions about products or ordering, visit our{' '}
+            For research inquiries or ordering information, visit our{' '}
             <a href="/contact" className="font-medium text-carbon-900 underline underline-offset-2">
               contact page
             </a>
-            {' '}or check the{' '}
+            {' '}or review our{' '}
             <a href="/coa" className="font-medium text-carbon-900 underline underline-offset-2">
               Certificate of Analysis
             </a>{' '}
-            page for product quality documentation.
+            documentation for quality verification.
           </Text>
         </div>
       </Section>
