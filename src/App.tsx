@@ -36,6 +36,7 @@ const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
 const AdminPaymentTracking = lazy(() => import('./pages/AdminPaymentTracking'));
+const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 
 function App() {
@@ -75,6 +76,22 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/inventory"
+                  element={
+                    <ProtectedRoute>
+                      <AdminInventory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/customers"
+                  element={
+                    <ProtectedRoute>
+                      <AdminCustomers />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Public Routes (with header/footer) */}
                 <Route
@@ -106,14 +123,6 @@ function App() {
                           />
                           <Route path="/disclaimer" element={<Disclaimer />} />
                           <Route path="/shipping" element={<Shipping />} />
-                          <Route
-                            path="/admin/inventory"
-                            element={
-                              <ProtectedRoute>
-                                <AdminInventory />
-                              </ProtectedRoute>
-                            }
-                          />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </main>

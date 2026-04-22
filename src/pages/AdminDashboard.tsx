@@ -27,6 +27,7 @@ import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
 import OrderDetailsModal from '../components/admin/OrderDetailsModal';
+import AdminNavigation from '../components/admin/AdminNavigation';
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string; icon: typeof Clock }[] = [
   { value: 'pending', label: 'Pending', icon: Clock },
@@ -129,37 +130,19 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-platinum">
-      {/* Header */}
-      <div className="border-b border-carbon-900/10 bg-white">
-        <Section spacing="sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <Heading level={2} className="mb-1">
-                Admin Dashboard
-              </Heading>
-              <Text variant="small" muted>
-                Welcome back, {user?.name}
-              </Text>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/admin/products')}
-              >
-                <Package className="mr-2 h-4 w-4" />
-                Products
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </Section>
-      </div>
+      <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">
+        {/* Header */}
+        <div className="mb-6">
+          <Heading level={1} className="mb-2">
+            Orders Dashboard
+          </Heading>
+          <Text className="text-carbon-600">
+            Manage customer orders and update their status
+          </Text>
+        </div>
+
         {/* Stats Cards */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Card padding="md" className="border-l-4 border-l-accent">

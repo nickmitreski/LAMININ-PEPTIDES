@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Package, RefreshCw, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { getAllProductMappings } from '../services/supabaseService';
+import AdminNavigation from '../components/admin/AdminNavigation';
+import ProductEditor from '../components/admin/ProductEditor';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -23,10 +25,16 @@ interface ProductMapping {
 
 export default function AdminProducts() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAdminAuth();
+  const { isAuthenticated, logout } = useAdminAuth();
   const { showToast } = useToast();
   const [products, setProducts] = useState<ProductMapping[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -50,36 +58,25 @@ export default function AdminProducts() {
 
   return (
     <div className="min-h-screen bg-platinum">
-      {/* Header */}
-      <div className="border-b border-carbon-900/10 bg-white">
-        <Section spacing="sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/admin/dashboard')}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <Heading level={2} className="mb-1">
-                  Product Mappings
-                </Heading>
-                <Text variant="small" muted>
-                  CFG code to protein product mappings
-                </Text>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={loadProducts}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
-            </Button>
-          </div>
-        </Section>
-      </div>
+      <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <Heading level={1} className="mb-2">
+              Product Mappings
+            </Heading>
+            <Text className="text-carbon-600">
+              CFG code to protein product mappings
+            </Text>
+          </div>
+          <Button variant="outline" size="sm" onClick={loadProducts}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
+
         {/* Stats */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card padding="md" className="border-l-4 border-l-accent">
@@ -144,6 +141,9 @@ export default function AdminProducts() {
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
                       Updated
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-neutral-600">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-carbon-900/10">
@@ -185,6 +185,17 @@ export default function AdminProducts() {
                           {new Date(product.updated_at).toLocaleDateString()}
                         </Text>
                       </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingProductId(product.id)}
+                          className="inline-flex items-center gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -192,28 +203,20 @@ export default function AdminProducts() {
             </div>
           )}
         </Card>
-
-        {/* Info Card */}
-        <Card padding="md" className="mt-6 border-l-4 border-l-blue-500 bg-blue-50">
-          <div className="flex items-start gap-3">
-            <Package className="h-5 w-5 flex-shrink-0 text-blue-600" />
-            <div>
-              <Text variant="small" weight="medium" className="mb-1 text-blue-900">
-                Product Mapping Information
-              </Text>
-              <Text variant="caption" className="text-blue-800">
-                These mappings connect your CFG product codes to the protein store's product
-                names. When a customer places an order, their cart items are mapped using these
-                CFG codes for fulfillment.
-              </Text>
-              <Text variant="caption" className="mt-2 block text-blue-800">
-                <strong>Note:</strong> To add or edit mappings, you'll need to update them
-                directly in the Supabase dashboard or add an edit interface here.
-              </Text>
-            </div>
-          </div>
-        </Card>
       </Section>
+
+      {/* Product Editor Modal */}
+      {editingProductId && (
+        <ProductEditor
+          productId={editingProductId}
+          onClose={() => setEditingProductId(null)}
+          onSave={() => {
+            setEditingProductId(null);
+            loadProducts();
+            showToast('Product updated successfully!', 'success');
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import AdminNavigation from '../components/admin/AdminNavigation';
+import Section from '../components/layout/Section';
 import { Heading, Text } from '../components/ui/Typography';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -26,10 +30,17 @@ interface PaymentTracking {
 }
 
 export default function AdminPaymentTracking() {
+  const navigate = useNavigate();
+  const { logout } = useAdminAuth();
   const [payments, setPayments] = useState<PaymentTracking[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
 
   const fetchPayments = async () => {
     try {
@@ -180,14 +191,16 @@ export default function AdminPaymentTracking() {
     .reduce((sum, p) => sum + p.total_amount, 0);
 
   return (
-    <div className="min-h-screen bg-platinum p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-platinum">
+      <AdminNavigation onLogout={handleLogout} />
+
+      <Section spacing="lg">
         {/* Header */}
-        <div className="mb-8">
-          <Heading level={2} className="mb-2">
+        <div className="mb-6">
+          <Heading level={1} className="mb-2">
             Payment Tracking
           </Heading>
-          <Text variant="small" muted>
+          <Text className="text-carbon-600">
             Manage manual bank transfer payments
           </Text>
         </div>
@@ -398,7 +411,7 @@ export default function AdminPaymentTracking() {
             ))}
           </div>
         )}
-      </div>
+      </Section>
     </div>
   );
 }

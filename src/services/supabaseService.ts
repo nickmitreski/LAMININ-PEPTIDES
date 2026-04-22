@@ -236,6 +236,98 @@ export async function getOrdersByStatus(
   return data as OrderReferenceRow[];
 }
 
+/** Admin: Get all customers */
+export async function getAllCustomers(
+  client: SupabaseClient | null = supabase
+): Promise<
+  Array<{
+    id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    phone: string | null;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    postcode: string | null;
+    country: string | null;
+    total_orders: number;
+    total_spent: number;
+    last_order_date: string | null;
+    created_at: string;
+  }>
+> {
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('customers')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    console.error('[supabase] getAllCustomers', error);
+    return [];
+  }
+
+  return data;
+}
+
+/** Admin: Delete customer and all their orders */
+export async function deleteCustomerAndOrders(
+  customerEmail: string,
+  client: SupabaseClient | null = supabase
+): Promise<{
+  success: boolean;
+  error?: string;
+  orders_deleted?: number;
+  notes_deleted?: number;
+}> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('delete_customer_and_orders', {
+    p_customer_email: customerEmail,
+  });
+
+  if (error) {
+    console.error('[supabase] deleteCustomerAndOrders', error);
+    return { success: false, error: error.message };
+  }
+
+  return data as {
+    success: boolean;
+    error?: string;
+    orders_deleted?: number;
+    notes_deleted?: number;
+  };
+}
+
+/** Admin: Delete individual order */
+export async function deleteOrder(
+  orderId: string,
+  client: SupabaseClient | null = supabase
+): Promise<{
+  success: boolean;
+  error?: string;
+  notes_deleted?: number;
+}> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('delete_order', {
+    p_order_id: orderId,
+  });
+
+  if (error) {
+    console.error('[supabase] deleteOrder', error);
+    return { success: false, error: error.message };
+  }
+
+  return data as {
+    success: boolean;
+    error?: string;
+    notes_deleted?: number;
+  };
+}
+
 /** Admin: Get all product mappings (including inactive) */
 export async function getAllProductMappings(
   client: SupabaseClient | null = supabase
@@ -264,4 +356,139 @@ export async function getAllProductMappings(
   }
 
   return data;
+}
+
+/** Admin: Get product with images */
+export async function getProductWithImages(
+  productId: string,
+  client: SupabaseClient | null = supabase
+): Promise<{
+  success: boolean;
+  product?: any;
+  error?: string;
+}> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('get_product_with_images', {
+    p_product_id: productId,
+  });
+
+  if (error) {
+    console.error('[supabase] getProductWithImages', error);
+    return { success: false, error: error.message };
+  }
+
+  return data as { success: boolean; product?: any; error?: string };
+}
+
+/** Admin: Update product */
+export async function updateProduct(
+  productId: string,
+  updates: {
+    peptide_name?: string;
+    protein_name?: string;
+    description?: string;
+    price?: number;
+    category?: string;
+    is_active?: boolean;
+    stock_quantity?: number;
+    low_stock_threshold?: number;
+    track_inventory?: boolean;
+  },
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('update_product', {
+    p_product_id: productId,
+    p_peptide_name: updates.peptide_name || null,
+    p_protein_name: updates.protein_name || null,
+    p_description: updates.description || null,
+    p_price: updates.price || null,
+    p_category: updates.category || null,
+    p_is_active: updates.is_active !== undefined ? updates.is_active : null,
+    p_stock_quantity: updates.stock_quantity !== undefined ? updates.stock_quantity : null,
+    p_low_stock_threshold: updates.low_stock_threshold || null,
+    p_track_inventory: updates.track_inventory !== undefined ? updates.track_inventory : null,
+  });
+
+  if (error) {
+    console.error('[supabase] updateProduct', error);
+    return { success: false, error: error.message };
+  }
+
+  return data as { success: boolean; error?: string };
+}
+
+/** Admin: Save product image record */
+export async function saveProductImage(
+  productId: string,
+  imageUrl: string,
+  storagePath: string,
+  fileName: string,
+  fileSize: number,
+  isPrimary: boolean = false,
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client
+    .from('product_images')
+    .insert({
+      product_id: productId,
+      image_url: imageUrl,
+      storage_path: storagePath,
+      file_name: fileName,
+      file_size: fileSize,
+      is_primary: isPrimary,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('[supabase] saveProductImage', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data.id };
+}
+
+/** Admin: Set primary product image */
+export async function setPrimaryProductImage(
+  imageId: string,
+  productId: string,
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('set_primary_product_image', {
+    p_image_id: imageId,
+    p_product_id: productId,
+  });
+
+  if (error) {
+    console.error('[supabase] setPrimaryProductImage', error);
+    return { success: false, error: error.message };
+  }
+
+  return data as { success: boolean; error?: string };
+}
+
+/** Admin: Delete product image */
+export async function deleteProductImageRecord(
+  imageId: string,
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; storage_path?: string; error?: string }> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('delete_product_image', {
+    p_image_id: imageId,
+  });
+
+  if (error) {
+    console.error('[supabase] deleteProductImageRecord', error);
+    return { success: false, error: error.message };
+  }
+
+  return data as { success: boolean; storage_path?: string; error?: string };
 }
