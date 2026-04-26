@@ -39,11 +39,11 @@ export default function ChatLauncher() {
           onClick={handleOpen}
           className={`
             fixed bottom-6 right-6 z-[100]
-            flex items-center gap-5
-            px-10 py-6
+            flex items-center gap-3
+            px-6 py-2
             text-white
             rounded-full shadow-lg
-            border-4 border-black
+            border-2 border-black
             hover:brightness-110 active:brightness-95
             transition-all duration-200
             touch-manipulation
@@ -52,8 +52,8 @@ export default function ChatLauncher() {
           style={{ backgroundColor: '#00CED1' }}
           aria-label="Open chat assistant"
         >
-          <MessageCircle className="h-10 w-10" strokeWidth={2.5} />
-          <span className="font-bold text-sm sm:text-lg">
+          <MessageCircle className="h-6 w-6" strokeWidth={2.5} />
+          <span className="font-bold text-xs sm:text-sm">
             {isMinimized ? 'Peptide Science AI (1)' : 'Peptide Science AI'}
           </span>
         </button>
