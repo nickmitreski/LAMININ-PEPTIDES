@@ -1,4 +1,4 @@
-import { MessageCircle, X } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ChatPanel from './ChatPanel';
 
@@ -39,23 +39,22 @@ export default function ChatLauncher() {
           onClick={handleOpen}
           className={`
             fixed bottom-6 right-6 z-[100]
-            flex items-center gap-3
-            px-5 py-3
-            bg-carbon-900 text-white
+            flex items-center gap-5
+            px-10 py-6
+            text-white
             rounded-full shadow-lg
-            hover:bg-carbon-900/90 active:bg-carbon-900/95
+            border-4 border-black
+            hover:brightness-110 active:brightness-95
             transition-all duration-200
             touch-manipulation
             ${isMinimized ? 'ring-2 ring-accent ring-offset-2' : ''}
           `}
+          style={{ backgroundColor: '#00CED1' }}
           aria-label="Open chat assistant"
         >
-          <MessageCircle className="h-5 w-5" strokeWidth={2} />
-          <span className="font-medium text-sm hidden sm:inline">
-            {isMinimized ? 'Chat (1)' : 'Ask about peptides'}
-          </span>
-          <span className="font-medium text-sm sm:hidden">
-            Chat
+          <MessageCircle className="h-10 w-10" strokeWidth={2.5} />
+          <span className="font-bold text-sm sm:text-lg">
+            {isMinimized ? 'Peptide Sciece AI (1)' : 'Peptide Sciece AI'}
           </span>
         </button>
       )}
