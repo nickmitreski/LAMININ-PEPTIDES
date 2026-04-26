@@ -54,7 +54,7 @@ export default function ChatLauncher() {
         >
           <MessageCircle className="h-10 w-10" strokeWidth={2.5} />
           <span className="font-bold text-sm sm:text-lg">
-            {isMinimized ? 'Peptide Sciece AI (1)' : 'Peptide Sciece AI'}
+            {isMinimized ? 'Peptide Science AI (1)' : 'Peptide Science AI'}
           </span>
         </button>
       )}

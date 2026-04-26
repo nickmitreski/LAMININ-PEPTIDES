@@ -149,7 +149,7 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
           </div>
           <div className="min-w-0">
             <h2 id="chat-title" className="text-sm font-semibold text-white truncate">
-              Peptide Sciece AI
+              Peptide Science AI
             </h2>
             <Text variant="caption" className="text-white/70 text-xs">
               Research education
