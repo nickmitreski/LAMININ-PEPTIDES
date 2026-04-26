@@ -15,6 +15,7 @@ export default function FAQ() {
           label="Support"
           title="Frequently asked questions"
           subtitle="Laboratory use, certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our Purity Assurance Guarantee."
+          titleClassName="!font-bold"
         />
 
         <div className="max-w-3xl mx-auto">

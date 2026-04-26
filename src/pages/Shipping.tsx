@@ -11,6 +11,7 @@ export default function Shipping() {
         <SectionTitle
           title="Shipping Terms & Policy"
           subtitle="Last updated: April 5, 2026"
+          titleClassName="!font-bold"
         />
 
         <div className="mx-auto max-w-3xl space-y-8">

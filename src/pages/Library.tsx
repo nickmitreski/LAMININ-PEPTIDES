@@ -58,6 +58,7 @@ export default function Library() {
         <SectionTitle
           title="Research Library"
           subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity"
+          titleClassName="!font-bold"
         />
 
         <div className="mx-auto mb-8 max-w-xl md:mb-12">

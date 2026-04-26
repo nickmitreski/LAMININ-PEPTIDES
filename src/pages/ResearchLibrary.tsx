@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, AlertCircle } from 'lucide-react';
 import Section from '../components/layout/Section';
+import SectionTitle from '../components/ui/SectionTitle';
 import Card from '../components/ui/Card';
 import { Heading, Text } from '../components/ui/Typography';
 import { PEPTIDE_PROFILES, CATEGORY_FILTERS } from '../data/peptideData';
@@ -28,16 +29,42 @@ export default function ResearchLibrary() {
   return (
     <div className="min-h-screen bg-platinum">
       {/* Hero Section */}
-      <Section background="white" spacing="lg" className="bg-accent">
-        <div className="max-w-4xl mx-auto text-center">
-          <Heading level={2} className="mb-4 text-black">
-            PEPTIDE SCIENCE
-          </Heading>
-          <Text variant="body" className="text-black/80 max-w-2xl mx-auto">
-            Comprehensive research resource featuring cutting-edge peptides and compounds
-            for qualified research institutions. Explore published findings and research opportunities
-            across metabolic, regenerative, neurological, and longevity applications.
-          </Text>
+      <Section background="white" spacing="lg" className="bg-gradient-to-b from-accent/40 to-white">
+        <div className="mx-auto max-w-5xl rounded-sm border border-carbon-900/10 bg-white/90 px-6 py-8 shadow-sm backdrop-blur-sm sm:px-10 sm:py-10">
+          <SectionTitle
+            title="Peptide Science"
+            subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."
+            titleClassName="!font-bold"
+            subtitleClassName="max-w-2xl"
+            className="mb-6"
+          />
+
+          <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
+            <div className="rounded-sm border border-carbon-900/10 bg-platinum px-4 py-3">
+              <Text variant="caption" muted className="uppercase tracking-wide">
+                Coverage
+              </Text>
+              <Text variant="small" weight="medium" className="mt-1">
+                Multi-domain peptide classes
+              </Text>
+            </div>
+            <div className="rounded-sm border border-carbon-900/10 bg-platinum px-4 py-3">
+              <Text variant="caption" muted className="uppercase tracking-wide">
+                Focus
+              </Text>
+              <Text variant="small" weight="medium" className="mt-1">
+                Research-grade compounds only
+              </Text>
+            </div>
+            <div className="rounded-sm border border-carbon-900/10 bg-platinum px-4 py-3">
+              <Text variant="caption" muted className="uppercase tracking-wide">
+                Evidence
+              </Text>
+              <Text variant="small" weight="medium" className="mt-1">
+                Profiled with citation links
+              </Text>
+            </div>
+          </div>
         </div>
       </Section>
 

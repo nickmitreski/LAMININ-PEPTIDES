@@ -73,6 +73,7 @@ export default function COA() {
         <SectionTitle
           title="Certificate of Analysis"
           subtitle="View third-party verification and purity reports for all compounds"
+          titleClassName="!font-bold"
         />
 
         <div
