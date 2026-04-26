@@ -20,12 +20,16 @@ import {
   createPaymentTracking,
   markPaymentInstructionsViewed,
 } from '../services/bankTransferPayment';
+import { sendOrderEmail } from '../services/emailService';
 
-// Generate order reference (UUID-like)
+// Generate order reference: LM-[6 alphanumeric chars]
 function generateOrderReference(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
-  return `LAMIN-${timestamp}-${randomPart}`;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `LM-${code}`;
 }
 
 interface ShippingFormData {
@@ -133,12 +137,23 @@ export default function Checkout() {
       // Mark that customer will view payment instructions
       await markPaymentInstructionsViewed(orderRef);
 
+      // Send payment instruction email (non-blocking — don't fail checkout if email fails)
+      if (formData.email.trim()) {
+        sendOrderEmail({
+          orderReference: orderRef,
+          customerEmail: formData.email.trim(),
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          totalAmount: grandTotal,
+          currency: 'AUD',
+        }).catch((err) => console.error('Email send failed:', err));
+      }
+
       // Show bank transfer modal
       setCurrentOrderReference(orderRef);
       setCurrentTotalAmount(grandTotal);
       setBankTransferModalOpen(true);
 
-      showToast('Order created! Please complete payment using the details shown.', 'success', 6000);
+      showToast('Order created! Check your email for payment instructions.', 'success', 6000);
     } catch (err) {
       console.error('Checkout error:', err);
       showToast(

@@ -344,6 +344,9 @@ verify_jwt = false
 [functions.partner-payment-ready]
 verify_jwt = false
 
+[functions.send-order-email]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

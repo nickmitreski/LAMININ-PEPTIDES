@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Copy, CheckCircle2, X } from 'lucide-react';
+import { Copy, CheckCircle2, X, Mail } from 'lucide-react';
 import { useState } from 'react';
 import Button from '../ui/Button';
 import { Heading, Text } from '../ui/Typography';
@@ -13,8 +13,8 @@ interface BankTransferModalProps {
 }
 
 /**
- * Bank Transfer Payment Instructions Modal
- * Shows payment details after customer places order
+ * Order Confirmation Modal
+ * Shows order reference and email notification after customer places order
  */
 export default function BankTransferModal({
   open,
@@ -70,10 +70,10 @@ export default function BankTransferModal({
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
             <Heading level={4} className="mb-2">
-              Payment Instructions
+              Order Confirmed
             </Heading>
             <Text variant="small" muted>
-              Complete your order by transferring to the account below
+              Your order has been received
             </Text>
           </div>
           <button
@@ -87,12 +87,12 @@ export default function BankTransferModal({
         </div>
 
         {/* Order Reference */}
-        <div className="mb-6 rounded-sm border-2 border-accent/30 bg-accent/10 px-4 py-3">
+        <div className="mb-6 rounded-sm border-2 border-accent/30 bg-accent/10 px-4 py-4">
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-600">
             Your Order Reference
           </p>
           <div className="flex items-center justify-between gap-3">
-            <p className="break-all font-mono text-base font-semibold text-carbon-900 sm:text-sm">
+            <p className="break-all font-mono text-lg font-bold text-carbon-900 sm:text-base">
               {orderReference}
             </p>
             <button
@@ -122,95 +122,19 @@ export default function BankTransferModal({
           <p className="text-2xl font-bold text-carbon-900 sm:text-xl">{formattedAmount}</p>
         </div>
 
-        {/* Bank Details */}
-        <div className="mb-6 space-y-3">
-          <Heading level={5} className="mb-3">
-            Bank Account Details
-          </Heading>
-
-          {/* BSB */}
-          <div className="flex items-center justify-between gap-3 rounded-sm border border-carbon-900/10 bg-white px-4 py-3">
-            <div className="flex-1">
-              <p className="mb-0.5 text-xs font-medium uppercase tracking-wide text-neutral-600">
-                BSB
-              </p>
-              <p className="font-mono text-base font-semibold text-carbon-900 sm:text-sm">
-                013402
+        {/* Email Notification */}
+        <div className="mb-6 rounded-sm border border-blue-200 bg-blue-50 px-4 py-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+              <Mail className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-900 mb-1">Check Your Email</p>
+              <p className="text-sm leading-relaxed text-blue-800">
+                You will receive an email with payment instructions shortly. Please follow the instructions in the email to complete your payment.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard('013402', 'bsb')}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-carbon-900 transition-colors hover:bg-neutral-50"
-              aria-label="Copy BSB"
-            >
-              {copiedField === 'bsb' ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </button>
           </div>
-
-          {/* Account Number */}
-          <div className="flex items-center justify-between gap-3 rounded-sm border border-carbon-900/10 bg-white px-4 py-3">
-            <div className="flex-1">
-              <p className="mb-0.5 text-xs font-medium uppercase tracking-wide text-neutral-600">
-                Account Number
-              </p>
-              <p className="font-mono text-base font-semibold text-carbon-900 sm:text-sm">
-                807892935
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard('807892935', 'account')}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-carbon-900 transition-colors hover:bg-neutral-50"
-              aria-label="Copy account number"
-            >
-              {copiedField === 'account' ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-
-          {/* Business Name */}
-          <div className="flex items-center justify-between gap-3 rounded-sm border border-carbon-900/10 bg-white px-4 py-3">
-            <div className="flex-1">
-              <p className="mb-0.5 text-xs font-medium uppercase tracking-wide text-neutral-600">
-                Account Name
-              </p>
-              <p className="text-base font-semibold text-carbon-900 sm:text-sm">MJCA Group</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard('MJCA Group', 'name')}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-carbon-900 transition-colors hover:bg-neutral-50"
-              aria-label="Copy account name"
-            >
-              {copiedField === 'name' ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Reference Requirement Notice */}
-        <div className="mb-6 rounded-sm border-2 border-red-200 bg-red-50 px-4 py-3">
-          <p className="mb-2 text-sm font-semibold text-red-900">Reference Requirement</p>
-          <p className="text-sm leading-relaxed text-red-950">
-            When completing payment, include your{' '}
-            <strong className="font-semibold">invoice reference number only</strong> as the payment
-            reference.
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-red-900">
-            No additional information is to be included. Payments submitted without the correct
-            reference may result in delays.
-          </p>
         </div>
 
         {/* Processing Info */}

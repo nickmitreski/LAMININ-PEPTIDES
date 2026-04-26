@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   CreditCard,
   Users,
+  Mail,
   LogOut,
 } from 'lucide-react';
 import Button from '../ui/Button';
@@ -50,6 +51,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Customers',
     icon: Users,
     description: 'Manage customers',
+  },
+  {
+    path: '/admin/emails',
+    label: 'Emails',
+    icon: Mail,
+    description: 'Email templates & history',
   },
 ];
 

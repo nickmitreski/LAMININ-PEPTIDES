@@ -37,6 +37,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
 const AdminPaymentTracking = lazy(() => import('./pages/AdminPaymentTracking'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
+const AdminEmails = lazy(() => import('./pages/AdminEmails'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 
 function App() {
@@ -89,6 +90,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AdminCustomers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/emails"
+                  element={
+                    <ProtectedRoute>
+                      <AdminEmails />
                     </ProtectedRoute>
                   }
                 />
