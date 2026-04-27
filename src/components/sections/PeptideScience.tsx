@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Section from '../layout/Section';
 import { Heading, Label, Text } from '../ui/Typography';
+import useScrollReveal from '../../hooks/useScrollReveal';
 
 const AQUA_CTA =
   'btn inline-flex items-center justify-center rounded-sm px-7 py-3 text-sm font-medium tracking-wide uppercase bg-accent text-carbon-900 border border-carbon-900/10 transition-all duration-200 hover:bg-accent-dark active:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-carbon-900';
@@ -54,6 +55,11 @@ const sources = [
 ];
 
 export default function PeptideScience() {
+  const { ref: headingRef, revealed: headingRevealed } =
+    useScrollReveal<HTMLDivElement>();
+  const { ref: gridRef, revealed: gridRevealed } =
+    useScrollReveal<HTMLDivElement>();
+
   return (
     <Section
       background="white"
@@ -61,7 +67,11 @@ export default function PeptideScience() {
       id="peptide-science"
       aria-labelledby="peptide-science-heading"
     >
-      <div className="mx-auto max-w-3xl text-center">
+      <div
+        ref={headingRef}
+        data-revealed={headingRevealed}
+        className="reveal mx-auto max-w-3xl text-center"
+      >
         <Label className="mb-4 inline-block text-accent-dark">
           Peptide Science
         </Label>
@@ -81,13 +91,17 @@ export default function PeptideScience() {
         </Text>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-        {pillars.map((p) => {
+      <div
+        ref={gridRef}
+        className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6"
+      >
+        {pillars.map((p, idx) => {
           const Icon = p.icon;
           return (
             <div
               key={p.title}
-              className="group relative flex h-full flex-col rounded-lg border border-carbon-900/10 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-dark/40 hover:shadow-md"
+              data-revealed={gridRevealed}
+              className={`reveal reveal-delay-${idx + 1} group relative flex h-full flex-col rounded-lg border border-carbon-900/10 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-dark/40 hover:shadow-md`}
             >
               <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
                 <Icon className="h-6 w-6" strokeWidth={1.75} />

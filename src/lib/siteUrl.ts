@@ -2,7 +2,7 @@
  * Public site origin for JSON-LD, sitemaps, and absolute URLs.
  * Set `VITE_APP_URL` in production (e.g. https://your-domain.com.au) — no trailing slash required.
  */
-export const SITE_FALLBACK_ORIGIN = 'https://laminincollective.com';
+export const SITE_FALLBACK_ORIGIN = 'https://lamininpeplab.com.au';
 
 export function normalizeSiteOrigin(input: string | undefined | null): string | null {
   const raw = input?.trim();

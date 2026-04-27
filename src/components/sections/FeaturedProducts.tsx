@@ -8,8 +8,11 @@ import {
   getDisplayPriceForPeptide,
 } from '../../data/featuredProducts';
 import { getProductSlug } from '../../data/productContent';
+import useScrollReveal from '../../hooks/useScrollReveal';
 
 export default function FeaturedProducts() {
+  const { ref, revealed } = useScrollReveal<HTMLDivElement>();
+
   return (
     <Section background="white" spacing="xl">
       <SectionTitle
@@ -17,12 +20,16 @@ export default function FeaturedProducts() {
         title="High purity peptides for advanced research applications"
       />
 
-      <div className="mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6">
-        {featuredProducts.map((product) => (
+      <div
+        ref={ref}
+        className="mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6"
+      >
+        {featuredProducts.map((product, idx) => (
           <Link
             key={product.peptideId}
             to={`/products/${getProductSlug(product.peptideId)}`}
-            className="group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1"
+            data-revealed={revealed}
+            className={`reveal reveal-delay-${Math.min(idx, 4)} group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1`}
           >
             <div className="mb-3 aspect-square overflow-hidden rounded-lg bg-neutral-50 sm:mb-4">
               <img

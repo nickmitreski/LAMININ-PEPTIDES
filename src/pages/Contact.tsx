@@ -73,10 +73,12 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen">
-      <Section background="white">
+      <Section background="white" spacing="lg">
         <SectionTitle
+          label="Contact"
           title="Get in touch"
           subtitle="Have a question about our products or need assistance with an order? Our team is here to help."
+          titleClassName="!font-bold"
         />
 
         <div className="max-w-lg mx-auto">

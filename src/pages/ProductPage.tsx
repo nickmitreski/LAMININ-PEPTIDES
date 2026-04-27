@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Section from '../components/layout/Section';
@@ -9,6 +9,7 @@ import ProductPageAccordion, {
   ProductOverviewBody,
 } from '../components/products/ProductPageAccordion';
 import ProductDescriptionModal from '../components/products/ProductDescriptionModal';
+import ProductStickyAddToCart from '../components/products/ProductStickyAddToCart';
 import SuggestedPeptides from '../components/products/SuggestedPeptides';
 import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
@@ -44,6 +45,7 @@ export default function ProductPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
+  const inPageCtaRef = useRef<HTMLDivElement | null>(null);
 
   const peptideId = slug ? getPeptideIdFromSlug(slug) : undefined;
   const peptide = peptideId
@@ -149,7 +151,7 @@ export default function ProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-platinum pb-20">
+    <div className="min-h-screen bg-platinum pb-32 md:pb-20">
       <ProductStructuredData
         name={headline}
         description={copy.paragraphs[0] || ''}
@@ -243,7 +245,7 @@ export default function ProductPage() {
                 </Button>
               </div>
 
-              <div className="mt-8 flex flex-col gap-5">
+              <div className="mt-8 flex flex-col gap-5" ref={inPageCtaRef}>
                 <ProductQuantityStepper
                   value={quantity}
                   onChange={setQuantity}
@@ -411,6 +413,22 @@ export default function ProductPage() {
         onClose={() => setDescriptionModalOpen(false)}
         productTitle={peptide.name}
         paragraphs={copy.paragraphs}
+      />
+
+      <ProductStickyAddToCart
+        watchRef={inPageCtaRef}
+        priceLabel={priceLine}
+        secondaryLabel={selectedVariant ? selectedVariant.label : peptide.category}
+        onAddToCart={handleAddToCart}
+        ctaLabel={
+          isInCart(
+            peptide.id,
+            variants?.length ? effectiveVariantId : undefined
+          )
+            ? 'Add more'
+            : 'Add to cart'
+        }
+        disabled={price === null}
       />
     </div>
   );

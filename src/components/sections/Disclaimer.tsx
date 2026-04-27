@@ -2,12 +2,18 @@ import Section from '../layout/Section';
 import { Heading, Text } from '../ui/Typography';
 import IconTile from '../ui/IconTile';
 import { AlertTriangle } from 'lucide-react';
+import useScrollReveal from '../../hooks/useScrollReveal';
 
 export default function Disclaimer() {
+  const { ref, revealed } = useScrollReveal<HTMLDivElement>();
+
   return (
     <Section background="white">
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-carbon-900 rounded-xl p-8 md:p-10">
+      <div ref={ref} className="max-w-5xl mx-auto">
+        <div
+          data-revealed={revealed}
+          className="reveal bg-carbon-900 rounded-xl p-8 md:p-10"
+        >
           <div className="flex items-start gap-5">
             <IconTile tone="light" className="bg-white/10 border-white/20">
               <AlertTriangle className="w-4 h-4 text-accent" strokeWidth={1.5} />

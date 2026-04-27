@@ -35,8 +35,8 @@ export default function Header() {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
-    { path: '/research', label: 'Peptide science' },
     { path: '/coa', label: 'Certificate of analysis' },
+    { path: '/research', label: 'Peptide science' },
     { path: '/guarantee', label: 'Purity guarantee' },
     { path: '/faq', label: 'FAQ' },
     { path: '/shipping', label: 'Shipping' },

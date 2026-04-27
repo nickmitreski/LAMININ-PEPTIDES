@@ -79,8 +79,9 @@ export default function Library() {
 
   return (
     <div className="min-h-screen">
-      <Section background="white">
+      <Section background="white" spacing="lg">
         <SectionTitle
+          label="Compound library"
           title="Compound catalogue"
           subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity"
           titleClassName="!font-bold"

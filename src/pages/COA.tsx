@@ -74,8 +74,9 @@ export default function COA() {
 
   return (
     <div className="min-h-screen">
-      <Section background="white">
+      <Section background="white" spacing="lg">
         <SectionTitle
+          label="Quality assurance"
           title="Certificate of analysis"
           subtitle="View third-party verification and purity reports for all compounds"
           titleClassName="!font-bold"

@@ -13,8 +13,10 @@ export default function Disclaimer() {
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <SectionTitle
+          label="Legal"
           title="Disclaimer"
           subtitle="Last updated: March 29, 2026"
+          titleClassName="!font-bold"
         />
 
         <div className="mx-auto max-w-3xl space-y-6">

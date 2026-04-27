@@ -46,6 +46,36 @@
   animation: slideInRight 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
+/* Reveal-on-scroll. Use with `useScrollReveal()` and `data-revealed`. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 700ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 700ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: opacity, transform;
+}
+
+.reveal[data-revealed='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 80ms;
+}
+
+.reveal-delay-2 {
+  transition-delay: 160ms;
+}
+
+.reveal-delay-3 {
+  transition-delay: 240ms;
+}
+
+.reveal-delay-4 {
+  transition-delay: 320ms;
+}
+
 /* Respect users who request reduced motion: skip the entrance animation and
  * land at the final state immediately. */
 @media (prefers-reduced-motion: reduce) {
@@ -55,5 +85,12 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .reveal,
+  .reveal[data-revealed='true'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

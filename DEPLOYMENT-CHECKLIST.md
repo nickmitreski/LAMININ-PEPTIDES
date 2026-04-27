@@ -68,7 +68,7 @@ git push origin main
 ### Step 3: Configure Custom Domain (Optional)
 
 1. Vercel Dashboard > Settings > Domains
-2. Add: `laminincollective.com`
+2. Add: `lamininpeplab.com.au`
 3. Update DNS records (Vercel provides instructions)
 4. Wait for SSL certificate (automatic)
 5. Update `VITE_APP_URL` to your custom domain
@@ -117,11 +117,11 @@ git push origin main
 ### Google Search Console:
 
 1. **Submit Sitemap:**
-   - Add property: `https://laminincollective.com`
-   - Submit sitemap: `https://laminincollective.com/sitemap.xml`
+   - Add property: `https://lamininpeplab.com.au`
+   - Submit sitemap: `https://lamininpeplab.com.au/sitemap.xml`
 
 2. **Verify robots.txt:**
-   - Check: `https://laminincollective.com/robots.txt`
+   - Check: `https://lamininpeplab.com.au/robots.txt`
 
 3. **Test Rich Results:**
    - Use: https://search.google.com/test/rich-results
@@ -132,7 +132,7 @@ git push origin main
 
 ```bash
 # Run Lighthouse
-npx lighthouse https://laminincollective.com --view
+npx lighthouse https://lamininpeplab.com.au --view
 ```
 
 **Target Scores:**
@@ -189,7 +189,7 @@ npx lighthouse https://laminincollective.com --view
 ### Resend Setup (Recommended):
 
 1. **Sign up:** https://resend.com
-2. **Add domain:** `laminincollective.com`
+2. **Add domain:** `lamininpeplab.com.au`
 3. **Verify DNS** records
 4. **Get API key**
 
@@ -293,7 +293,7 @@ npm run build
 git push origin main
 
 # Verify
-open https://laminincollective.com
+open https://lamininpeplab.com.au
 ```
 
 ---

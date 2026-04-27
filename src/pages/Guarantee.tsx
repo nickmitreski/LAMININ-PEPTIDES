@@ -14,10 +14,10 @@ export default function Guarantee() {
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <SectionTitle
+          label="Quality assurance"
           title="Purity assurance guarantee"
           subtitle="Last updated: March 29, 2026"
           titleClassName="!font-bold"
-          subtitleClassName="!font-bold"
         />
 
         <div className="mx-auto max-w-3xl space-y-8">

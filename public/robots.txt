@@ -6,4 +6,4 @@ Allow: /
 Disallow: /admin/
 
 # Sitemap
-Sitemap: https://laminincollective.com/sitemap.xml
+Sitemap: https://lamininpeplab.com.au/sitemap.xml

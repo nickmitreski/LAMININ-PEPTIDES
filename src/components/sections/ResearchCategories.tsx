@@ -1,6 +1,7 @@
 import Section from '../layout/Section';
 import { Heading, Label, Text } from '../ui/Typography';
 import { productImageFile, cfgProductFiles } from '../../data/peptides';
+import useScrollReveal from '../../hooks/useScrollReveal';
 
 const tileFrame =
   'group relative h-full w-full overflow-hidden rounded-2xl border-2 border-white/70 bg-white shadow-lg shadow-carbon-900/10 ring-1 ring-white/50';
@@ -60,9 +61,18 @@ function CategoryTile({
 }
 
 export default function ResearchCategories() {
+  const { ref: headingRef, revealed: headingRevealed } =
+    useScrollReveal<HTMLDivElement>();
+  const { ref: gridRef, revealed: gridRevealed } =
+    useScrollReveal<HTMLDivElement>();
+
   return (
     <Section background="none" spacing="xl" className="bg-accent">
-      <div className="mx-auto mb-10 max-w-2xl text-center md:mb-14">
+      <div
+        ref={headingRef}
+        data-revealed={headingRevealed}
+        className="reveal mx-auto mb-10 max-w-2xl text-center md:mb-14"
+      >
         <Label className="mb-3 inline-block text-carbon-900/80">
           Research focus areas
         </Label>
@@ -76,36 +86,52 @@ export default function ResearchCategories() {
         </Text>
       </div>
       <div
+        ref={gridRef}
         className="
           grid grid-cols-1 gap-4 md:gap-6
           md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(12rem,auto)]
         "
       >
-        <div className="md:col-span-2 md:row-start-1 md:min-h-[18rem] min-h-[12rem]">
+        <div
+          data-revealed={gridRevealed}
+          className="reveal reveal-delay-1 md:col-span-2 md:row-start-1 md:min-h-[18rem] min-h-[12rem]"
+        >
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.retatrutide)}
             title="Metabolic research"
           />
         </div>
-        <div className="md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]">
+        <div
+          data-revealed={gridRevealed}
+          className="reveal reveal-delay-2 md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]"
+        >
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.nad)}
             title="Longevity & cellular research"
           />
         </div>
-        <div className="md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]">
+        <div
+          data-revealed={gridRevealed}
+          className="reveal reveal-delay-3 md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]"
+        >
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.semax)}
             title="Cognitive & neurological research"
           />
         </div>
-        <div className="md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]">
+        <div
+          data-revealed={gridRevealed}
+          className="reveal reveal-delay-3 md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]"
+        >
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.bpcTb)}
             title="Tissue regeneration"
           />
         </div>
-        <div className="md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]">
+        <div
+          data-revealed={gridRevealed}
+          className="reveal reveal-delay-4 md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]"
+        >
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.cjcNoDac)}
             title="Performance biology"

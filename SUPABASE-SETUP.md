@@ -198,7 +198,7 @@ VITE_SUPABASE_URL=https://ytacbvfcltikxzudlkzn.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_jRLtLGh7uslmqubJ_qQY7w_ogbknh7D
 VITE_PROTEIN_STORE_URL=https://your-protein-store.com
 VITE_PROTEIN_STORE_API_KEY=your_api_key
-VITE_APP_URL=https://laminincollective.com
+VITE_APP_URL=https://lamininpeplab.com.au
 ```
 
 ### Database Security (RLS Policies)
@@ -278,7 +278,7 @@ Partner store should call this to update order status:
 
 ```typescript
 // POST to your API endpoint (you'll need to create this)
-POST https://laminincollective.com/api/orders/status
+POST https://lamininpeplab.com.au/api/orders/status
 
 {
   "peptide_order_id": "PEP-20260330-AB12",

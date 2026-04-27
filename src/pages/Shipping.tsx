@@ -14,6 +14,7 @@ export default function Shipping() {
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <SectionTitle
+          label="Logistics"
           title="Shipping terms & policy"
           subtitle="Last updated: April 5, 2026"
           titleClassName="!font-bold"

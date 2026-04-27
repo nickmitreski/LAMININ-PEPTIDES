@@ -1,5 +1,6 @@
 import Hero from '../components/sections/Hero';
 import TrustBar from '../components/sections/TrustBar';
+import PromoVideo from '../components/sections/PromoVideo';
 import FeaturedProducts from '../components/sections/FeaturedProducts';
 import PeptideToggleSection from '../components/sections/PeptideToggleSection';
 import PeptideScience from '../components/sections/PeptideScience';
@@ -24,6 +25,7 @@ export default function Home() {
       <WebsiteStructuredData />
       <Hero />
       <TrustBar />
+      <PromoVideo />
       <FeaturedProducts />
       <PeptideToggleSection />
       <PeptideScience />

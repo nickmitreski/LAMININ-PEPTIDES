@@ -15,7 +15,7 @@ export default function FAQ() {
   );
   return (
     <div className="min-h-screen">
-      <Section background="white">
+      <Section background="white" spacing="lg">
         <SectionTitle
           label="Support"
           title="Frequently asked questions"

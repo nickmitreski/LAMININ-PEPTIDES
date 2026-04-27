@@ -1,13 +1,15 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck, FileCheck2, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 
 export interface FinancialHeroProps {
   title: ReactNode;
   description: string;
+  /** Optional small label rendered above the title (e.g. "AUSTRALIAN PEPTIDE LAB"). */
+  eyebrow?: string;
   primaryButtonText: string;
   /** In-app route, e.g. /library */
   primaryButtonTo: string;
@@ -19,6 +21,12 @@ export interface FinancialHeroProps {
   imageAlt2?: string;
   className?: string;
 }
+
+const HERO_TRUST_PILLS = [
+  { icon: ShieldCheck, label: '99%+ purity' },
+  { icon: FileCheck2, label: 'COA per batch' },
+  { icon: MapPin, label: 'Shipped from AU' },
+];
 
 function useHeroMotionVariants(reduce: boolean | null) {
   if (reduce) {
@@ -69,6 +77,7 @@ function useHeroMotionVariants(reduce: boolean | null) {
 export function FinancialHero({
   title,
   description,
+  eyebrow = 'AUSTRALIAN PEPTIDE LAB',
   primaryButtonText,
   primaryButtonTo,
   secondaryButtonText,
@@ -108,16 +117,29 @@ export function FinancialHero({
         variants={v.container}
       >
         <div className="flex w-full flex-col items-center text-center lg:w-1/2 lg:items-start lg:text-left">
+          {eyebrow ? (
+            <motion.span
+              variants={v.item}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-carbon-900/20 bg-white/55 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-carbon-900/80 backdrop-blur-sm"
+            >
+              <span
+                aria-hidden
+                className="inline-block h-1.5 w-1.5 rounded-full bg-carbon-900"
+              />
+              {eyebrow}
+            </motion.span>
+          ) : null}
+
           <motion.div
             variants={v.item}
-            className="font-sans text-2xl font-bold uppercase leading-[1.25] tracking-[0.12em] text-carbon-900 sm:text-3xl sm:leading-snug sm:tracking-[0.18em] md:text-4xl md:tracking-[0.22em] lg:text-5xl lg:tracking-[0.26em]"
+            className="font-sans text-3xl font-bold uppercase leading-[1.1] tracking-[0.06em] text-carbon-900 sm:text-4xl sm:tracking-[0.08em] md:text-5xl md:tracking-[0.1em] lg:text-[3.5rem] lg:leading-[1.05] lg:tracking-[0.1em]"
           >
             {title}
           </motion.div>
 
           <motion.p
             variants={v.item}
-            className="mt-6 max-w-xl font-sans text-base leading-relaxed text-carbon-900/85 sm:text-base md:text-lg"
+            className="mt-6 max-w-xl font-sans text-base leading-relaxed text-carbon-900/80 sm:text-base md:text-lg"
           >
             {description}
           </motion.p>
@@ -154,18 +176,40 @@ export function FinancialHero({
               </Link>
             ) : null}
           </motion.div>
+
+          <motion.ul
+            variants={v.item}
+            className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-carbon-900/75 lg:justify-start"
+            aria-label="Quality highlights"
+          >
+            {HERO_TRUST_PILLS.map(({ icon: Icon, label }) => (
+              <li
+                key={label}
+                className="inline-flex items-center gap-2 rounded-full border border-carbon-900/15 bg-white/45 px-3 py-1.5 backdrop-blur-sm"
+              >
+                <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                {label}
+              </li>
+            ))}
+          </motion.ul>
         </div>
 
         <motion.div
           className="relative mx-auto h-[320px] w-full max-w-xl sm:h-[380px] lg:mx-0 lg:h-[440px] lg:w-1/2 lg:max-w-none"
           variants={v.cards}
         >
+          {/* Soft ambient glow behind the cards. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-6 inset-y-10 -z-10 rounded-[3rem] bg-white/35 blur-3xl"
+          />
           {/* Rear card — sits lower & further right, tilted the other way */}
           <motion.img
             src={imageUrl2}
             alt={imageAlt2}
             variants={v.cardItem}
-            loading="lazy"
+            loading="eager"
+            decoding="async"
             {...(!reduceMotion
               ? {
                   whileHover: {
@@ -182,7 +226,9 @@ export function FinancialHero({
             src={imageUrl1}
             alt={imageAlt1}
             variants={v.cardItem}
-            loading="lazy"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
             {...(!reduceMotion
               ? {
                   whileHover: {
