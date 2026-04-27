@@ -32,6 +32,17 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
 
+  // Lock body scroll while the search dialog is open so the page behind doesn't
+  // scroll on mobile when the user interacts with the keyboard or backdrop.
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [isOpen]);
+
   const runSearch = () => {
     const trimmed = query.trim();
     if (!trimmed) {
@@ -75,7 +86,7 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
             <button
               type="button"
               onClick={onClose}
-              className="-m-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 touch-manipulation"
+              className="-m-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 touch-manipulation"
               aria-label="Close search"
             >
               <X className="h-5 w-5" strokeWidth={2} aria-hidden />

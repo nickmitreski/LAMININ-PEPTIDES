@@ -45,3 +45,15 @@
 .animate-slideInRight {
   animation: slideInRight 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
+
+/* Respect users who request reduced motion: skip the entrance animation and
+ * land at the final state immediately. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-fadeInUp,
+  .animate-slideInRight {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

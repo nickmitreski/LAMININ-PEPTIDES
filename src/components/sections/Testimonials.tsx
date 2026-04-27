@@ -9,8 +9,8 @@ export default function Testimonials() {
   return (
     <Section background="neutral">
       <SectionTitle
-        label="Trusted by Researchers"
-        title="What Scientists Say About Our Work"
+        label="Trusted by researchers"
+        title="What scientists say about our work"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">

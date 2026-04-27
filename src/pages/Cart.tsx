@@ -9,9 +9,21 @@ import Card from '../components/ui/Card';
 import { Heading, Text } from '../components/ui/Typography';
 import { useCart } from '../context/CartContext';
 import { cartLineKey } from '../types/cart';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Cart() {
+  useDocumentTitle(
+    'Your Cart',
+    'Review the research peptides in your cart before continuing to checkout.'
+  );
   const { state, updateQuantity, removeItem, clearCart } = useCart();
+  const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleClearCart = () => {
+    if (window.confirm('Remove all items from your cart? This cannot be undone.')) {
+      clearCart();
+    }
+  };
 
   if (state.items.length === 0) {
     return (
@@ -27,7 +39,7 @@ export default function Cart() {
             </Text>
             <Link to="/library">
               <Button variant="primary" size="lg">
-                Browse Library
+                Browse library
               </Button>
             </Link>
           </div>
@@ -40,12 +52,17 @@ export default function Cart() {
     <div className="min-h-screen bg-platinum">
       <Section background="white" spacing="lg">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8 flex items-center justify-between">
-            <Heading level={3}>Shopping Cart</Heading>
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <div>
+              <Heading level={3}>Shopping cart</Heading>
+              <Text variant="caption" muted className="mt-1 block">
+                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              </Text>
+            </div>
             <button
               type="button"
-              onClick={clearCart}
-              className="text-sm text-neutral-600 hover:text-carbon-900 underline transition-colors"
+              onClick={handleClearCart}
+              className="rounded-sm text-sm text-neutral-600 underline underline-offset-4 transition-colors hover:text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2"
             >
               Clear cart
             </button>
@@ -69,7 +86,7 @@ export default function Cart() {
                 <div className="mt-6 pt-6 border-t border-carbon-900/10">
                   <Link to="/library">
                     <Button variant="outline" size="md">
-                      Continue Shopping
+                      Continue shopping
                     </Button>
                   </Link>
                 </div>
@@ -80,7 +97,7 @@ export default function Cart() {
             <div className="lg:col-span-1">
               <Card padding="lg" className="sticky top-24">
                 <Heading level={5} className="mb-6">
-                  Order Summary
+                  Order summary
                 </Heading>
 
                 <CartSummary subtotal={state.total} className="mb-6" />
@@ -88,7 +105,7 @@ export default function Cart() {
                 <div className="space-y-3">
                   <Link to="/checkout" className="block">
                     <Button variant="primary" size="lg" className="w-full">
-                      Proceed to Checkout
+                      Proceed to checkout
                     </Button>
                   </Link>
 

@@ -3,6 +3,7 @@ import type { OrderReferenceRow } from '../../services/supabaseService';
 import { Heading, Text } from '../ui/Typography';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { formatPrice } from '../../lib/formatCurrency';
 
 interface OrderDetailsModalProps {
   order: OrderReferenceRow;
@@ -18,7 +19,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-carbon-900/50 p-4">
       <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-sm bg-white shadow-xl">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-carbon-900/10 bg-white px-6 py-4">
-          <Heading level={4}>Order Details</Heading>
+          <Heading level={4}>Order details</Heading>
           <button
             onClick={onClose}
             className="rounded-sm p-2 text-neutral-500 hover:bg-grey/30 hover:text-carbon-900 transition-colors"
@@ -53,7 +54,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
                   Total
                 </Text>
                 <Text variant="small" weight="semibold" className="text-lg">
-                  ${order.total_price?.toFixed(2) || '0.00'}
+                  {formatPrice(order.total_price ?? 0)}
                 </Text>
               </div>
               <div>
@@ -76,7 +77,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
             <Card padding="lg">
               <Heading level={5} className="mb-4 flex items-center gap-2">
                 <Mail className="h-5 w-5 text-accent" />
-                Customer Information
+                Customer information
               </Heading>
               <div className="space-y-3">
                 <div>
@@ -121,7 +122,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
             <Card padding="lg">
               <Heading level={5} className="mb-4 flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-accent" />
-                Shipping Address
+                Shipping address
               </Heading>
               <div className="space-y-1">
                 {order.customer_address && (
@@ -150,7 +151,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
           <Card padding="lg">
             <Heading level={5} className="mb-4 flex items-center gap-2">
               <Package className="h-5 w-5 text-accent" />
-              Order Items ({peptideItems.length})
+              Order items ({peptideItems.length})
             </Heading>
             <div className="space-y-3">
               {peptideItems.length > 0 ? (
@@ -169,10 +170,10 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
                     </div>
                     <div className="text-right">
                       <Text variant="small" weight="medium">
-                        ${item.line_total?.toFixed(2) || '0.00'}
+                        {formatPrice(item.line_total ?? 0)}
                       </Text>
                       <Text variant="caption" muted>
-                        ${item.unit_price?.toFixed(2)} each
+                        {formatPrice(item.unit_price ?? 0)} each
                       </Text>
                     </div>
                   </div>
@@ -189,7 +190,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
           {order.notes && (
             <Card padding="lg" className="bg-grey/20">
               <Heading level={5} className="mb-2">
-                Internal Notes
+                Internal notes
               </Heading>
               <Text variant="small" className="whitespace-pre-wrap">
                 {order.notes}

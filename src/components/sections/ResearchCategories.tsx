@@ -1,4 +1,5 @@
 import Section from '../layout/Section';
+import { Heading, Label, Text } from '../ui/Typography';
 import { productImageFile, cfgProductFiles } from '../../data/peptides';
 
 const tileFrame =
@@ -45,6 +46,7 @@ function CategoryTile({
       <img
         src={imageSrc}
         alt=""
+        aria-hidden="true"
         className={tileImage}
         loading="lazy"
         decoding="async"
@@ -60,7 +62,19 @@ function CategoryTile({
 export default function ResearchCategories() {
   return (
     <Section background="none" spacing="xl" className="bg-accent">
-      <h2 className="sr-only">Research focus areas</h2>
+      <div className="mx-auto mb-10 max-w-2xl text-center md:mb-14">
+        <Label className="mb-3 inline-block text-carbon-900/80">
+          Research focus areas
+        </Label>
+        <Heading level={2} className="mb-4 text-carbon-900">
+          Compounds organised by application
+        </Heading>
+        <Text variant="lead" weight="light" className="text-carbon-900/85">
+          Browse our peptide catalogue grouped by primary research area, from
+          metabolic and tissue regeneration to neurology, longevity, and
+          performance biology.
+        </Text>
+      </div>
       <div
         className="
           grid grid-cols-1 gap-4 md:gap-6

@@ -1,68 +1,199 @@
 import { useState } from 'react';
-import { ExternalLink, AlertCircle } from 'lucide-react';
+import {
+  Activity,
+  AlertCircle,
+  BookOpen,
+  Brain,
+  Droplets,
+  ExternalLink,
+  FlaskConical,
+  HeartPulse,
+  Microscope,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import Card from '../components/ui/Card';
-import { Heading, Text } from '../components/ui/Typography';
+import { Heading, Label, Text } from '../components/ui/Typography';
 import { PEPTIDE_PROFILES, CATEGORY_FILTERS } from '../data/peptideData';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+
+type CategoryTheme = {
+  id: string;
+  shortLabel: string;
+  icon: typeof Activity;
+  // Static Tailwind classes (no dynamic interpolation — Tailwind would purge them).
+  bg: string;
+  bgSoft: string;
+  text: string;
+  ring: string;
+  bar: string;
+  pillActive: string;
+};
+
+const CATEGORY_THEMES: Record<string, CategoryTheme> = {
+  metabolic: {
+    id: 'metabolic',
+    shortLabel: 'Metabolic',
+    icon: Activity,
+    bg: 'bg-amber-100',
+    bgSoft: 'bg-amber-50',
+    text: 'text-amber-700',
+    ring: 'ring-amber-200',
+    bar: 'bg-amber-400',
+    pillActive: 'bg-amber-500 text-white border-amber-500',
+  },
+  repair: {
+    id: 'repair',
+    shortLabel: 'Repair',
+    icon: HeartPulse,
+    bg: 'bg-emerald-100',
+    bgSoft: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    ring: 'ring-emerald-200',
+    bar: 'bg-emerald-400',
+    pillActive: 'bg-emerald-600 text-white border-emerald-600',
+  },
+  neurology: {
+    id: 'neurology',
+    shortLabel: 'Neurology',
+    icon: Brain,
+    bg: 'bg-indigo-100',
+    bgSoft: 'bg-indigo-50',
+    text: 'text-indigo-700',
+    ring: 'ring-indigo-200',
+    bar: 'bg-indigo-400',
+    pillActive: 'bg-indigo-600 text-white border-indigo-600',
+  },
+  longevity: {
+    id: 'longevity',
+    shortLabel: 'Longevity',
+    icon: Sparkles,
+    bg: 'bg-sky-100',
+    bgSoft: 'bg-sky-50',
+    text: 'text-sky-700',
+    ring: 'ring-sky-200',
+    bar: 'bg-sky-400',
+    pillActive: 'bg-sky-600 text-white border-sky-600',
+  },
+  skin: {
+    id: 'skin',
+    shortLabel: 'Skin',
+    icon: Droplets,
+    bg: 'bg-rose-100',
+    bgSoft: 'bg-rose-50',
+    text: 'text-rose-700',
+    ring: 'ring-rose-200',
+    bar: 'bg-rose-400',
+    pillActive: 'bg-rose-600 text-white border-rose-600',
+  },
+};
+
+const FALLBACK_THEME: CategoryTheme = {
+  id: 'default',
+  shortLabel: 'Research',
+  icon: FlaskConical,
+  bg: 'bg-neutral-100',
+  bgSoft: 'bg-neutral-50',
+  text: 'text-carbon-900',
+  ring: 'ring-carbon-900/10',
+  bar: 'bg-carbon-900',
+  pillActive: 'bg-carbon-900 text-white border-carbon-900',
+};
+
+const themeFor = (id: string): CategoryTheme =>
+  CATEGORY_THEMES[id] ?? FALLBACK_THEME;
 
 export default function ResearchLibrary() {
+  useDocumentTitle(
+    'Research Library',
+    'Curated peptide research summaries with credible references — covering metabolic, regenerative, healing, and longevity research.'
+  );
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const toggleFilter = (filterId: string) => {
-    setActiveFilters(prev =>
+    setActiveFilters((prev) =>
       prev.includes(filterId)
-        ? prev.filter(f => f !== filterId)
+        ? prev.filter((f) => f !== filterId)
         : [...prev, filterId]
     );
   };
 
   const clearFilters = () => setActiveFilters([]);
 
-  // Filter peptides by active categories
-  const filteredPeptides = activeFilters.length === 0
-    ? PEPTIDE_PROFILES
-    : PEPTIDE_PROFILES.filter(peptide =>
-        peptide.categories.some(cat => activeFilters.includes(cat))
-      );
+  const filteredPeptides =
+    activeFilters.length === 0
+      ? PEPTIDE_PROFILES
+      : PEPTIDE_PROFILES.filter((peptide) =>
+          peptide.categories.some((cat) => activeFilters.includes(cat))
+        );
+
+  const totalCount = PEPTIDE_PROFILES.length;
 
   return (
     <div className="min-h-screen bg-platinum">
-      {/* Hero Section */}
-      <Section background="white" spacing="lg" className="bg-gradient-to-b from-accent/40 to-white">
-        <div className="mx-auto max-w-5xl rounded-sm border border-carbon-900/10 bg-white/90 px-6 py-8 shadow-sm backdrop-blur-sm sm:px-10 sm:py-10">
+      {/* Hero */}
+      <Section
+        background="white"
+        spacing="lg"
+        className="bg-gradient-to-b from-accent/30 via-accent/10 to-white"
+      >
+        <div className="mx-auto max-w-5xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm backdrop-blur-sm sm:px-10 sm:py-12">
+          <div className="mb-2 flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1 text-xs font-medium tracking-wider uppercase text-accent-dark ring-1 ring-accent-200">
+              <Microscope className="h-3.5 w-3.5" />
+              Research Library
+            </span>
+          </div>
+
           <SectionTitle
-            title="Peptide Science"
+            title="Peptide science"
             subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."
             titleClassName="!font-bold"
             subtitleClassName="max-w-2xl"
-            className="mb-6"
+            className="mb-8 text-center"
           />
 
-          <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
-            <div className="rounded-sm border border-carbon-900/10 bg-platinum px-4 py-3">
-              <Text variant="caption" muted className="uppercase tracking-wide">
-                Coverage
-              </Text>
-              <Text variant="small" weight="medium" className="mt-1">
-                Multi-domain peptide classes
-              </Text>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
+              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                <BookOpen className="h-4 w-4" />
+              </span>
+              <div>
+                <Text variant="caption" muted className="uppercase tracking-wide">
+                  Coverage
+                </Text>
+                <Text variant="small" weight="medium" className="mt-1">
+                  Multi-domain peptide classes
+                </Text>
+              </div>
             </div>
-            <div className="rounded-sm border border-carbon-900/10 bg-platinum px-4 py-3">
-              <Text variant="caption" muted className="uppercase tracking-wide">
-                Focus
-              </Text>
-              <Text variant="small" weight="medium" className="mt-1">
-                Research-grade compounds only
-              </Text>
+            <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
+              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                <FlaskConical className="h-4 w-4" />
+              </span>
+              <div>
+                <Text variant="caption" muted className="uppercase tracking-wide">
+                  Focus
+                </Text>
+                <Text variant="small" weight="medium" className="mt-1">
+                  Research-grade compounds only
+                </Text>
+              </div>
             </div>
-            <div className="rounded-sm border border-carbon-900/10 bg-platinum px-4 py-3">
-              <Text variant="caption" muted className="uppercase tracking-wide">
-                Evidence
-              </Text>
-              <Text variant="small" weight="medium" className="mt-1">
-                Profiled with citation links
-              </Text>
+            <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
+              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <div>
+                <Text variant="caption" muted className="uppercase tracking-wide">
+                  Evidence
+                </Text>
+                <Text variant="small" weight="medium" className="mt-1">
+                  Profiled with citation links
+                </Text>
+              </div>
             </div>
           </div>
         </div>
@@ -70,19 +201,21 @@ export default function ResearchLibrary() {
 
       {/* Research Notice */}
       <Section background="white" spacing="sm">
-        <div className="max-w-6xl mx-auto">
-          <Card padding="md" className="bg-blue-50 border border-blue-200">
+        <div className="mx-auto max-w-6xl">
+          <Card padding="md" className="border border-blue-200 bg-blue-50">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
               <div>
                 <Text variant="small" weight="medium" className="mb-1 text-blue-900">
                   Research-Grade Compounds
                 </Text>
-                <Text variant="caption" className="text-blue-800 leading-relaxed">
-                  All compounds are supplied for <strong>laboratory research purposes only</strong>.
-                  Information presented is derived from published peer-reviewed research and scientific literature.
-                  These materials are intended for qualified research institutions and laboratories
-                  conducting legitimate scientific investigations.
+                <Text variant="caption" className="leading-relaxed text-blue-800">
+                  All compounds are supplied for{' '}
+                  <strong>laboratory research purposes only</strong>. Information
+                  presented is derived from published peer-reviewed research and
+                  scientific literature. These materials are intended for qualified
+                  research institutions and laboratories conducting legitimate
+                  scientific investigations.
                 </Text>
               </div>
             </div>
@@ -92,42 +225,53 @@ export default function ResearchLibrary() {
 
       {/* Category Filters */}
       <Section background="white" spacing="sm">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-6">
             <Heading level={4} className="mb-4 text-center">
               Filter by category
             </Heading>
             <div className="flex flex-wrap justify-center gap-3">
-              {CATEGORY_FILTERS.map(filter => (
-                <button
-                  key={filter.id}
-                  type="button"
-                  onClick={() => toggleFilter(filter.id)}
-                  className={`
-                    px-4 py-2 rounded-sm text-sm font-medium transition-all duration-200 touch-manipulation
-                    ${activeFilters.includes(filter.id)
-                      ? 'bg-carbon-900 text-white'
-                      : 'bg-neutral-100 text-carbon-900 hover:bg-neutral-200'
-                    }
-                  `}
-                  title={filter.description}
-                >
-                  {filter.label}
-                </button>
-              ))}
+              {CATEGORY_FILTERS.map((filter) => {
+                const theme = themeFor(filter.id);
+                const Icon = theme.icon;
+                const isActive = activeFilters.includes(filter.id);
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => toggleFilter(filter.id)}
+                    className={`
+                      inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium
+                      transition-all duration-200 touch-manipulation
+                      ${
+                        isActive
+                          ? `${theme.pillActive} shadow-sm`
+                          : `border-carbon-900/15 bg-white text-carbon-900 hover:border-carbon-900/30 hover:bg-neutral-50`
+                      }
+                    `}
+                    title={filter.description}
+                    aria-pressed={isActive}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {filter.label}
+                  </button>
+                );
+              })}
               {activeFilters.length > 0 && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="px-4 py-2 rounded-sm text-sm font-medium text-carbon-900 border border-carbon-900/20 hover:bg-neutral-50 transition-colors touch-manipulation"
+                  className="inline-flex items-center rounded-full border border-carbon-900/20 px-4 py-2 text-sm font-medium text-carbon-900 transition-colors hover:bg-neutral-50 touch-manipulation"
                 >
                   Clear all
                 </button>
               )}
             </div>
             <Text variant="caption" muted className="mt-3 text-center">
-              {filteredPeptides.length} compound{filteredPeptides.length !== 1 ? 's' : ''} shown
-              {activeFilters.length > 0 && ` (filtered by ${activeFilters.length} categor${activeFilters.length !== 1 ? 'ies' : 'y'})`}
+              Showing {filteredPeptides.length} of {totalCount} compound
+              {totalCount !== 1 ? 's' : ''}
+              {activeFilters.length > 0 &&
+                ` (filtered by ${activeFilters.length} categor${activeFilters.length !== 1 ? 'ies' : 'y'})`}
             </Text>
           </div>
         </div>
@@ -135,84 +279,121 @@ export default function ResearchLibrary() {
 
       {/* Peptide Cards Grid */}
       <Section background="white" spacing="lg">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPeptides.map(peptide => (
-              <Card key={peptide.id} padding="lg" className="flex flex-col h-full border-2 border-accent">
-                {/* Category tags */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {peptide.categories.map(cat => {
-                    const filter = CATEGORY_FILTERS.find(f => f.id === cat);
-                    return (
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredPeptides.map((peptide) => {
+              const primaryCategory = peptide.categories[0];
+              const theme = themeFor(primaryCategory);
+              const Icon = theme.icon;
+              return (
+                <article
+                  key={peptide.id}
+                  className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-carbon-900/10 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-carbon-900/20 hover:shadow-md"
+                >
+                  {/* Top color bar */}
+                  <div className={`h-1 w-full ${theme.bar}`} aria-hidden="true" />
+
+                  <div className="flex flex-1 flex-col p-6">
+                    {/* Header row: icon + category tags */}
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {peptide.categories.map((cat) => {
+                          const filter = CATEGORY_FILTERS.find(
+                            (f) => f.id === cat
+                          );
+                          const catTheme = themeFor(cat);
+                          return (
+                            <span
+                              key={cat}
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${catTheme.bgSoft} ${catTheme.text} ring-1 ${catTheme.ring}`}
+                            >
+                              {catTheme.shortLabel ||
+                                filter?.label.split(' &')[0]}
+                            </span>
+                          );
+                        })}
+                      </div>
                       <span
-                        key={cat}
-                        className="px-2 py-1 text-xs font-medium text-carbon-900 bg-neutral-100 rounded-sm"
+                        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${theme.bg} ${theme.text} ring-1 ${theme.ring}`}
+                        aria-hidden="true"
                       >
-                        {filter?.label.split(' &')[0]}
+                        <Icon className="h-5 w-5" strokeWidth={1.75} />
                       </span>
-                    );
-                  })}
-                </div>
+                    </div>
 
-                {/* Title & Class */}
-                <Heading level={5} className="mb-2">
-                  {peptide.name}
-                </Heading>
-                <Text variant="caption" muted className="mb-4 italic">
-                  {peptide.class}
-                </Text>
+                    {/* Title & Class */}
+                    <Heading level={5} className="mb-1 text-carbon-900">
+                      {peptide.name}
+                    </Heading>
+                    <Text variant="caption" muted className="mb-4 italic">
+                      {peptide.class}
+                    </Text>
 
-                {/* Overview */}
-                <Text variant="small" className="mb-4 leading-relaxed text-carbon-900 flex-1">
-                  {peptide.overview}
-                </Text>
+                    {/* Overview */}
+                    <Text
+                      variant="small"
+                      className="mb-5 flex-1 leading-relaxed text-carbon-700"
+                    >
+                      {peptide.overview}
+                    </Text>
 
-                {/* Mechanism */}
-                <div className="mb-4">
-                  <Text variant="caption" weight="medium" className="mb-1 text-carbon-900">
-                    Mechanism
-                  </Text>
-                  <Text variant="caption" className="text-neutral-700 leading-relaxed">
-                    {peptide.mechanism}
-                  </Text>
-                </div>
-
-                {/* Evidence Note */}
-                <div className="mb-4 p-3 bg-neutral-50 rounded-sm border border-carbon-900/10">
-                  <Text variant="caption" weight="medium" className="mb-1 text-carbon-900">
-                    Evidence level
-                  </Text>
-                  <Text variant="caption" className="text-neutral-700">
-                    {peptide.evidenceNote}
-                  </Text>
-                </div>
-
-                {/* Citations */}
-                <div className="pt-4 border-t border-carbon-900/10">
-                  <Text variant="caption" weight="medium" className="mb-2 text-carbon-900">
-                    Key citations
-                  </Text>
-                  <div className="space-y-2">
-                    {peptide.citations.map((citation, idx) => (
-                      <a
-                        key={idx}
-                        href={citation.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs text-carbon-900 hover:text-carbon-900/80 underline underline-offset-2 transition-colors"
+                    {/* Mechanism */}
+                    <div className="mb-3">
+                      <Label className="mb-1.5 block text-carbon-600">
+                        Mechanism
+                      </Label>
+                      <Text
+                        variant="caption"
+                        className="leading-relaxed text-carbon-700"
                       >
-                        <ExternalLink className="h-3 w-3 shrink-0" />
-                        <span>{citation.title}</span>
-                      </a>
-                    ))}
+                        {peptide.mechanism}
+                      </Text>
+                    </div>
+
+                    {/* Evidence Note */}
+                    <div className="mb-5 flex items-start gap-2 rounded-lg border border-carbon-900/10 bg-neutral-50 p-3">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent-dark" />
+                      <div>
+                        <Label className="mb-1 block text-carbon-700">
+                          Evidence level
+                        </Label>
+                        <Text
+                          variant="caption"
+                          className="leading-relaxed text-carbon-700"
+                        >
+                          {peptide.evidenceNote}
+                        </Text>
+                      </div>
+                    </div>
+
+                    {/* Citations */}
+                    <div className="mt-auto border-t border-carbon-900/10 pt-4">
+                      <Label className="mb-2 block text-carbon-600">
+                        Key citations
+                      </Label>
+                      <div className="space-y-2">
+                        {peptide.citations.map((citation, idx) => (
+                          <a
+                            key={idx}
+                            href={citation.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-xs text-carbon-900 underline-offset-2 transition-colors hover:text-accent-dark hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3 shrink-0" />
+                            <span>{citation.title}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </article>
+              );
+            })}
           </div>
 
           {filteredPeptides.length === 0 && (
-            <div className="text-center py-16">
+            <div className="py-16 text-center">
               <Heading level={4} className="mb-3">
                 No compounds match your filters
               </Heading>
@@ -222,7 +403,7 @@ export default function ResearchLibrary() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="px-6 py-3 bg-carbon-900 text-white font-medium rounded-sm hover:bg-carbon-900/90 transition-colors touch-manipulation"
+                className="rounded-sm bg-carbon-900 px-6 py-3 font-medium text-white transition-colors hover:bg-carbon-900/90 touch-manipulation"
               >
                 Clear all filters
               </button>
@@ -232,20 +413,28 @@ export default function ResearchLibrary() {
       </Section>
 
       {/* Research Support */}
-      <Section background="platinum" spacing="md">
-        <div className="max-w-4xl mx-auto text-center">
+      <Section background="neutral" spacing="md">
+        <div className="mx-auto max-w-4xl text-center">
           <Text variant="small" muted className="leading-relaxed">
-            Supporting research institutions worldwide with <strong>high-purity research compounds</strong>.
-            All products are manufactured to exacting standards with comprehensive quality documentation.
-            Evidence levels span preclinical research through clinical trials, representing diverse research opportunities.
+            Supporting research institutions worldwide with{' '}
+            <strong>high-purity research compounds</strong>. All products are
+            manufactured to exacting standards with comprehensive quality
+            documentation. Evidence levels span preclinical research through
+            clinical trials, representing diverse research opportunities.
           </Text>
           <Text variant="caption" muted className="mt-4 block">
             For research inquiries or ordering information, visit our{' '}
-            <a href="/contact" className="font-medium text-carbon-900 underline underline-offset-2">
+            <a
+              href="/contact"
+              className="font-medium text-carbon-900 underline underline-offset-2"
+            >
               contact page
-            </a>
-            {' '}or review our{' '}
-            <a href="/coa" className="font-medium text-carbon-900 underline underline-offset-2">
+            </a>{' '}
+            or review our{' '}
+            <a
+              href="/coa"
+              className="font-medium text-carbon-900 underline underline-offset-2"
+            >
               Certificate of Analysis
             </a>{' '}
             documentation for quality verification.

@@ -1,6 +1,6 @@
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'white' | 'outline' | 'ghost' | 'link' | 'accent';
+  variant?: 'primary' | 'secondary' | 'white' | 'outline' | 'ghost' | 'link' | 'accent' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
@@ -40,6 +40,8 @@ export default function Button({
     link: 'text-carbon-900 hover:text-carbon-900/70 underline-offset-4 hover:underline',
     accent:
       'bg-accent text-carbon-900 border border-accent-dark/25 hover:bg-accent-dark active:bg-accent-dark/90',
+    danger:
+      'bg-red-600 text-white border border-red-700/30 hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-600',
   };
 
   const sizes = {

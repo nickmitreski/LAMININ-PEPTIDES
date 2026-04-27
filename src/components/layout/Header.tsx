@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import Container from './Container';
@@ -15,12 +15,29 @@ export default function Header() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Auto-close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
-    { path: '/coa', label: 'Certificate of Analysis' },
-    { path: '/guarantee', label: 'Purity Guarantee' },
-    { path: '/research', label: 'Peptide Science' },
+    { path: '/research', label: 'Peptide science' },
+    { path: '/coa', label: 'Certificate of analysis' },
+    { path: '/guarantee', label: 'Purity guarantee' },
     { path: '/faq', label: 'FAQ' },
     { path: '/shipping', label: 'Shipping' },
   ];
@@ -38,6 +55,8 @@ export default function Header() {
               <img
                 src="/images/brand/logo-reverse.png"
                 alt="Laminin Peptide Lab"
+                decoding="async"
+                fetchPriority="high"
                 className="h-11 w-auto max-h-[2.75rem] transition-opacity group-hover:opacity-90 sm:h-[3.47875rem] sm:max-h-none md:h-[4.1745rem]"
               />
             </Link>
@@ -48,8 +67,10 @@ export default function Header() {
               <Link
                 key={link.label}
                 to={link.path}
+                aria-current={isActive(link.path) ? 'page' : undefined}
                 className={`
                   px-5 py-2.5 text-sm font-medium tracking-wide rounded-sm transition-all duration-200
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900
                   ${
                     isActive(link.path)
                       ? 'text-carbon-900 bg-accent'
@@ -66,7 +87,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 touch-manipulation active:bg-white/15"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation active:bg-white/15"
               aria-label="Search catalogue"
             >
               <Search className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -74,7 +95,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
-              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 touch-manipulation active:bg-white/15"
+              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation active:bg-white/15"
               aria-label={`Shopping cart with ${state.itemCount} items`}
             >
               <ShoppingCart className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -87,8 +108,9 @@ export default function Header() {
             <button
               type="button"
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white touch-manipulation active:bg-white/10 lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation active:bg-white/10 lg:hidden"
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -105,8 +127,10 @@ export default function Header() {
                   key={link.label}
                   to={link.path}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  aria-current={isActive(link.path) ? 'page' : undefined}
                   className={`
                     block min-h-12 px-4 py-3.5 text-sm font-medium leading-snug tracking-wide rounded-sm transition-all duration-200 touch-manipulation
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900
                     ${
                       isActive(link.path)
                         ? 'text-carbon-900 bg-accent'

@@ -3,8 +3,13 @@ import Section from '../components/layout/Section';
 import Button from '../components/ui/Button';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function NotFound() {
+  useDocumentTitle(
+    'Page Not Found',
+    'The page you are looking for could not be found. Browse our research library or return to the home page.'
+  );
   return (
     <div className="min-h-screen">
       <Section
@@ -52,7 +57,7 @@ export default function NotFound() {
             <Text variant="small" muted className="mb-4">
               Try searching our research library or contact our team.
             </Text>
-            <TextLink to="/contact">Contact Support</TextLink>
+            <TextLink to="/contact">Contact support</TextLink>
           </div>
         </div>
       </Section>

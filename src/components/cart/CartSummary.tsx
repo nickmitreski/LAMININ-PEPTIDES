@@ -1,4 +1,5 @@
 import { Text } from '../ui/Typography';
+import { formatPrice } from '../../lib/formatCurrency';
 
 interface CartSummaryProps {
   subtotal: number;
@@ -19,20 +20,20 @@ export default function CartSummary({
     <div className={`space-y-3 ${className}`}>
       <div className="flex justify-between items-center">
         <Text variant="small" muted>Subtotal</Text>
-        <Text variant="small" weight="medium">${subtotal.toFixed(2)}</Text>
+        <Text variant="small" weight="medium">{formatPrice(subtotal)}</Text>
       </div>
 
       {shipping > 0 && (
         <div className="flex justify-between items-center">
           <Text variant="small" muted>Shipping</Text>
-          <Text variant="small" weight="medium">${shipping.toFixed(2)}</Text>
+          <Text variant="small" weight="medium">{formatPrice(shipping)}</Text>
         </div>
       )}
 
       {tax > 0 && (
         <div className="flex justify-between items-center">
           <Text variant="small" muted>Tax (GST)</Text>
-          <Text variant="small" weight="medium">${tax.toFixed(2)}</Text>
+          <Text variant="small" weight="medium">{formatPrice(tax)}</Text>
         </div>
       )}
 
@@ -42,7 +43,7 @@ export default function CartSummary({
             Total
           </Text>
           <Text variant="body" weight="semibold" className="text-carbon-900">
-            ${total.toFixed(2)} AUD
+            {formatPrice(total)} AUD
           </Text>
         </div>
       </div>

@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import { Label, Text } from '../ui/Typography';
 import { Peptide } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
-import { getDisplayPriceForPeptide } from '../../data/productPricing';
-import { ArrowRight, Plus, ShoppingCart } from 'lucide-react';
+import {
+  getDisplayPriceForPeptide,
+  getNumericPriceForVariantOrPeptide,
+  getVariants,
+} from '../../data/productPricing';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
+import { ArrowRight, Plus, ShoppingCart, Check } from 'lucide-react';
 
 interface PeptideCardProps {
   peptide: Peptide;
@@ -14,6 +20,38 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
   const title = peptide.name.toUpperCase();
   const productPath = `/products/${getProductSlug(peptide.id)}`;
   const priceLabel = getDisplayPriceForPeptide(peptide.id);
+  const variants = getVariants(peptide.id);
+  const hasVariants = !!variants?.length;
+
+  const { addItem, isInCart } = useCart();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const inCart = isInCart(peptide.id, hasVariants ? variants?.[0]?.id : undefined);
+
+  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (hasVariants) {
+      navigate(productPath);
+      return;
+    }
+
+    const price = getNumericPriceForVariantOrPeptide(peptide.id);
+    if (price === null) {
+      navigate(productPath);
+      return;
+    }
+
+    addItem({
+      peptideId: peptide.id,
+      name: peptide.name,
+      price,
+      image: peptide.image,
+      purity: peptide.purity,
+    });
+    showToast(`${peptide.name} added to cart`, 'success', 2500);
+  };
 
   return (
     <div className="group flex h-full flex-col motion-safe:transition-transform motion-safe:duration-300 md:hover:-translate-y-1">
@@ -23,6 +61,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
             src={peptide.image}
             alt={`${peptide.name} — laboratory vial`}
             loading="lazy"
+            decoding="async"
             className="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
           />
           <span
@@ -51,10 +90,20 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
           variant="accent"
           size="sm"
           className="min-h-10 w-full touch-manipulation text-[0.65rem] sm:min-h-0 sm:text-xs gap-2"
-          aria-label={`Add ${peptide.name} to cart`}
+          aria-label={hasVariants ? `Choose options for ${peptide.name}` : `Add ${peptide.name} to cart`}
+          onClick={handleAdd}
         >
-          <ShoppingCart className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Add to cart
+          {inCart && !hasVariants ? (
+            <>
+              <Check className="h-4 w-4" strokeWidth={2} aria-hidden />
+              Added — add another
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {hasVariants ? 'Choose options' : 'Add to cart'}
+            </>
+          )}
         </Button>
         <Link to={productPath} className="block touch-manipulation">
           <Button

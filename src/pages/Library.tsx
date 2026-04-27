@@ -15,8 +15,13 @@ import {
   getPeptidesByCategory,
   filterPeptidesByName,
 } from '../data/peptides';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Library() {
+  useDocumentTitle(
+    'Compound Library',
+    'Browse our full compound library of research-grade peptides — categorised by application, with purity certificates available on request.'
+  );
   const location = useLocation();
   const [, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>(peptideCategories[0]);
@@ -39,6 +44,26 @@ export default function Library() {
     }
   }, [location.search]);
 
+  // Debounce search-term to URL for shareable filter URLs
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const currentQ = params.get('q') ?? '';
+    const trimmed = searchTerm.trim();
+    if (currentQ === trimmed) return;
+    const timer = setTimeout(() => {
+      const next: Record<string, string> = {};
+      if (activeCategory && activeCategory !== 'All') {
+        next.category = activeCategory;
+      }
+      if (trimmed) {
+        next.q = trimmed;
+      }
+      setSearchParams(next, { replace: true });
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, activeCategory]);
+
   const handleCategoryChange = (tab: string) => {
     setActiveCategory(tab as string);
     const q = searchTerm.trim();
@@ -56,7 +81,7 @@ export default function Library() {
     <div className="min-h-screen">
       <Section background="white">
         <SectionTitle
-          title="Research Library"
+          title="Compound catalogue"
           subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity"
           titleClassName="!font-bold"
         />
@@ -82,7 +107,7 @@ export default function Library() {
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <Text variant="caption" muted>
-            {filteredPeptides.length} compounds found
+            {filteredPeptides.length} {filteredPeptides.length === 1 ? 'compound' : 'compounds'} found
           </Text>
           <TextLink to="/coa" className="shrink-0 self-start sm:self-auto">
             View all certificates →
@@ -96,35 +121,69 @@ export default function Library() {
         </div>
 
         {filteredPeptides.length === 0 && (
-          <div className="py-12 text-center sm:py-16">
-            <Text variant="small" muted className="mb-4 block">
-              No compounds found matching your search.
-            </Text>
-            {searchTerm ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={() => setSearchTerm('')}
-                className="touch-manipulation"
+          <div className="mx-auto max-w-md py-12 text-center sm:py-16">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-platinum">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6 text-carbon-600"
+                aria-hidden="true"
               >
-                Clear search
-              </Button>
-            ) : null}
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+            </div>
+            <Heading level={5} className="mb-2">
+              No compounds found
+            </Heading>
+            <Text variant="small" muted className="mb-5 block">
+              {searchTerm
+                ? `We couldn't find anything matching "${searchTerm}"${activeCategory !== 'All' ? ` in ${activeCategory}` : ''}. Try a different search or browse another category.`
+                : 'No compounds match the selected filters.'}
+            </Text>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {searchTerm ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={() => setSearchTerm('')}
+                  className="touch-manipulation"
+                >
+                  Clear search
+                </Button>
+              ) : null}
+              {activeCategory !== 'All' && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  onClick={() => handleCategoryChange('All')}
+                  className="touch-manipulation"
+                >
+                  View all compounds
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
         <Card padding="lg" className="mt-12 bg-platinum sm:mt-16">
           <div className="max-w-xl">
             <Heading level={5} className="mb-3">
-              Need Help Finding a Compound?
+              Need help finding a compound?
             </Heading>
             <Text variant="small" muted className="mb-5">
               Can't find what you're looking for? Our team can help source specific research compounds or provide guidance on alternatives.
             </Text>
             <Link to="/contact">
               <Button variant="primary" size="md">
-                Contact Us
+                Contact us
               </Button>
             </Link>
           </div>

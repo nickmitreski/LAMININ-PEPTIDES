@@ -2,14 +2,19 @@ import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Shipping terms (April 2026). */
 export default function Shipping() {
+  useDocumentTitle(
+    'Shipping',
+    'Express shipping terms across Australia: delivery windows, packaging, tracking, and discretion.'
+  );
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <SectionTitle
-          title="Shipping Terms & Policy"
+          title="Shipping terms & policy"
           subtitle="Last updated: April 5, 2026"
           titleClassName="!font-bold"
         />
@@ -55,7 +60,7 @@ export default function Shipping() {
           </div>
 
           <div>
-            <PolicySectionHeading>Discreet Packaging</PolicySectionHeading>
+            <PolicySectionHeading>Discreet packaging</PolicySectionHeading>
             <Text variant="body" className="text-neutral-600">
               All orders are shipped in discreet packaging, with no external indication of contents.
             </Text>

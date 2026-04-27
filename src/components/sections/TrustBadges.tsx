@@ -18,8 +18,8 @@ export default function TrustBadges() {
   return (
     <Section background="white">
       <SectionTitle
-        label="Quality Assurance"
-        title="Verified Standards & Certifications"
+        label="Quality assurance"
+        title="Verified standards & certifications"
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

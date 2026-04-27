@@ -7,6 +7,7 @@ import Section from '../components/layout/Section';
 import { Heading, Text } from '../components/ui/Typography';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import Skeleton from '../components/ui/Skeleton';
 import {
   Mail,
   Send,
@@ -268,7 +269,7 @@ export default function AdminEmails() {
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <Heading level={3} className="mb-1">
-                Email Management
+                Email management
               </Heading>
               <Text variant="small" muted>
                 Manage email templates and view sent email history
@@ -291,7 +292,7 @@ export default function AdminEmails() {
           <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Card padding="md" className="text-center">
               <Text variant="caption" muted className="mb-1 block">
-                Total Sent
+                Total sent
               </Text>
               <p className="text-2xl font-bold text-carbon-900">{stats.total}</p>
             </Card>
@@ -328,7 +329,7 @@ export default function AdminEmails() {
             >
               <div className="flex items-center justify-center gap-2">
                 <Mail className="h-4 w-4" />
-                Sent Emails
+                Sent emails
               </div>
             </button>
             <button
@@ -378,12 +379,25 @@ export default function AdminEmails() {
 
               {/* Email Logs Table */}
               {loading ? (
-                <Card padding="lg" className="text-center">
-                  <RefreshCw className="mx-auto h-6 w-6 animate-spin text-neutral-400" />
-                  <Text variant="small" muted className="mt-2">
-                    Loading emails...
-                  </Text>
-                </Card>
+                <div
+                  role="status"
+                  aria-busy="true"
+                  aria-label="Loading emails"
+                  className="space-y-2"
+                >
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Card key={i} padding="md">
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="h-8 w-8" rounded="full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-3 w-3/5" />
+                          <Skeleton className="h-3 w-2/5" />
+                        </div>
+                        <Skeleton className="h-5 w-16" rounded="full" />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               ) : filteredLogs.length === 0 ? (
                 <Card padding="lg" className="text-center">
                   <Mail className="mx-auto mb-3 h-10 w-10 text-neutral-300" />
@@ -467,7 +481,7 @@ export default function AdminEmails() {
                               {log.order_reference && (
                                 <div>
                                   <Text variant="caption" muted className="mb-1 block text-xs uppercase tracking-wide">
-                                    Order Reference
+                                    Order reference
                                   </Text>
                                   <Text variant="small" className="font-mono text-carbon-900">
                                     {log.order_reference}
@@ -476,7 +490,7 @@ export default function AdminEmails() {
                               )}
                               <div>
                                 <Text variant="caption" muted className="mb-1 block text-xs uppercase tracking-wide">
-                                  Sent At
+                                  Sent at
                                 </Text>
                                 <Text variant="small" className="text-carbon-900">
                                   {log.sent_at ? formatDate(log.sent_at) : 'Not sent yet'}
@@ -509,7 +523,7 @@ export default function AdminEmails() {
                             {/* Email preview */}
                             <div className="mt-4">
                               <Text variant="caption" muted className="mb-2 block text-xs uppercase tracking-wide">
-                                Email Content Preview
+                                Email content preview
                               </Text>
                               <div className="rounded-sm border border-carbon-900/10 bg-white p-4">
                                 {log.body_html ? (
@@ -549,17 +563,29 @@ export default function AdminEmails() {
                   className="flex items-center gap-2"
                 >
                   <Mail className="h-4 w-4" />
-                  New Template
+                  New template
                 </Button>
               </div>
 
               {loading ? (
-                <Card padding="lg" className="text-center">
-                  <RefreshCw className="mx-auto h-6 w-6 animate-spin text-neutral-400" />
-                  <Text variant="small" muted className="mt-2">
-                    Loading templates...
-                  </Text>
-                </Card>
+                <div
+                  role="status"
+                  aria-busy="true"
+                  aria-label="Loading templates"
+                  className="space-y-2"
+                >
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Card key={i} padding="md">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-1/3" />
+                          <Skeleton className="h-3 w-2/3" />
+                        </div>
+                        <Skeleton className="h-8 w-20" rounded="sm" />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               ) : templates.length === 0 ? (
                 <Card padding="lg" className="text-center">
                   <Edit3 className="mx-auto mb-3 h-10 w-10 text-neutral-300" />
@@ -570,7 +596,7 @@ export default function AdminEmails() {
                     Create templates that will be used when sending order confirmations and payment instructions.
                   </Text>
                   <Button variant="primary" size="sm" onClick={createTemplate} disabled={savingTemplate}>
-                    Create First Template
+                    Create first template
                   </Button>
                 </Card>
               ) : (
@@ -621,7 +647,7 @@ export default function AdminEmails() {
             className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl sm:p-8"
           >
             <div className="mb-6 flex items-center justify-between">
-              <Heading level={4}>Edit Template</Heading>
+              <Heading level={4}>Edit template</Heading>
               <button
                 type="button"
                 onClick={() => setEditingTemplate(null)}
@@ -633,10 +659,10 @@ export default function AdminEmails() {
             </div>
 
             <div className="space-y-4">
-              {/* Template Name */}
+              {/* Template name */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
-                  Template Name
+                  Template name
                 </label>
                 <input
                   type="text"
@@ -646,24 +672,24 @@ export default function AdminEmails() {
                 />
               </div>
 
-              {/* Subject Line */}
+              {/* Subject line */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
-                  Subject Line
+                  Subject line
                 </label>
                 <input
                   type="text"
                   value={templateDraft.subject}
                   onChange={(e) => setTemplateDraft((d) => ({ ...d, subject: e.target.value }))}
                   className="w-full rounded-sm border border-carbon-900/20 px-4 py-2.5 text-sm focus:border-carbon-900 focus:outline-none focus:ring-1 focus:ring-carbon-900"
-                  placeholder="e.g. Your Laminin Order Payment Instructions"
+                  placeholder="e.g. Your Laminin order — payment instructions"
                 />
               </div>
 
-              {/* HTML Body */}
+              {/* HTML body */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
-                  Email Body (HTML)
+                  Email body (HTML)
                 </label>
                 <textarea
                   value={templateDraft.body_html}
@@ -677,10 +703,10 @@ export default function AdminEmails() {
                 </Text>
               </div>
 
-              {/* Plain Text Body */}
+              {/* Plain text body */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
-                  Plain Text Fallback
+                  Plain text fallback
                 </label>
                 <textarea
                   value={templateDraft.body_text}
@@ -720,7 +746,7 @@ export default function AdminEmails() {
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {savingTemplate ? 'Saving...' : 'Save Template'}
+                {savingTemplate ? 'Saving...' : 'Save template'}
               </Button>
             </div>
           </div>

@@ -2,14 +2,19 @@ import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Aligned with the Purity Assurance Guarantee (March 2026). */
 export default function Guarantee() {
+  useDocumentTitle(
+    'Purity Assurance Guarantee',
+    'Our purity assurance guarantee: independently verified ≥99% purity, certificates of analysis, and replacement policy.'
+  );
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <SectionTitle
-          title="Purity Assurance Guarantee"
+          title="Purity assurance guarantee"
           subtitle="Last updated: March 29, 2026"
           titleClassName="!font-bold"
           subtitleClassName="!font-bold"

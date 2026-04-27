@@ -1,9 +1,14 @@
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import { Heading, Text } from '../components/ui/Typography';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Research-use disclaimer (March 2026). */
 export default function Disclaimer() {
+  useDocumentTitle(
+    'Disclaimer',
+    'Research-use disclaimer: products supplied by Laminin Peptide Lab are strictly for laboratory research and not for human or veterinary use.'
+  );
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
@@ -65,10 +70,10 @@ export default function Disclaimer() {
             <Text variant="body" className="text-neutral-600">
               Questions about this disclaimer:{' '}
               <a
-                href="mailto:info@lamininpeptab.com.au"
+                href="mailto:info@lamininpeplab.com.au"
                 className="font-medium text-carbon-900 underline decoration-carbon-900/30 underline-offset-2 hover:decoration-carbon-900"
               >
-                info@lamininpeptab.com.au
+                info@lamininpeplab.com.au
               </a>
             </Text>
           </div>

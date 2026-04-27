@@ -7,25 +7,39 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ label, error, helperText, className = '', ...props }, ref) => {
+  ({ label, error, helperText, className = '', id, ...props }, ref) => {
+    const errorId = error && id ? `${id}-error` : undefined;
+    const helperId = helperText && id ? `${id}-helper` : undefined;
+    const describedBy = [errorId, helperId].filter(Boolean).join(' ') || undefined;
+
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-xs font-medium tracking-wide text-carbon-900 mb-2">
+          <label
+            htmlFor={id}
+            className="block text-xs font-medium tracking-wide text-carbon-900 mb-2"
+          >
             {label}
           </label>
         )}
         <textarea
           ref={ref}
+          id={id}
           rows={4}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
           className={`input resize-y ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''} ${className}`}
           {...props}
         />
         {error && (
-          <p className="mt-1 text-xs text-red-600">{error}</p>
+          <p id={errorId} className="mt-1 text-xs text-red-600">
+            {error}
+          </p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-xs text-carbon-900/50">{helperText}</p>
+          <p id={helperId} className="mt-1 text-xs text-carbon-900/50">
+            {helperText}
+          </p>
         )}
       </div>
     );

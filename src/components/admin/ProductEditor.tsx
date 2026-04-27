@@ -21,7 +21,6 @@ import {
   uploadProductImage,
   deleteProductImage,
   validateImageFile,
-  formatFileSize,
 } from '../../utils/imageUpload';
 import Button from '../ui/Button';
 import { Heading, Text } from '../ui/Typography';
@@ -260,7 +259,7 @@ export default function ProductEditor({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-carbon-200">
           <div>
-            <Heading level={2}>Edit Product</Heading>
+            <Heading level={2}>Edit product</Heading>
             <Text className="text-carbon-600 mt-1">
               {product?.cfg_code} - {product?.peptide_name}
             </Text>
@@ -290,15 +289,15 @@ export default function ProductEditor({
             </div>
           )}
 
-          {/* Product Information */}
+          {/* Product information */}
           <div>
             <Heading level={3} className="mb-4">
-              Product Information
+              Product information
             </Heading>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Product Name *
+                  Product name *
                 </label>
                 <input
                   type="text"
@@ -311,7 +310,7 @@ export default function ProductEditor({
 
               <div>
                 <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Protein Name *
+                  Protein name *
                 </label>
                 <input
                   type="text"
@@ -324,7 +323,7 @@ export default function ProductEditor({
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  CFG Code (Read-only)
+                  CFG code (read-only)
                 </label>
                 <input
                   type="text"
@@ -369,7 +368,7 @@ export default function ProductEditor({
                     className="w-4 h-4 text-accent-600 border-carbon-300 rounded focus:ring-accent-500"
                   />
                   <span className="text-sm font-medium text-carbon-700">
-                    Active Product
+                    Active product
                   </span>
                 </label>
               </div>
@@ -411,7 +410,7 @@ export default function ProductEditor({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Stock Quantity
+                  Stock quantity
                 </label>
                 <input
                   type="number"
@@ -424,7 +423,7 @@ export default function ProductEditor({
 
               <div>
                 <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Low Stock Alert
+                  Low stock alert
                 </label>
                 <input
                   type="number"
@@ -444,7 +443,7 @@ export default function ProductEditor({
                     className="w-4 h-4 text-accent-600 border-carbon-300 rounded focus:ring-accent-500"
                   />
                   <span className="text-sm font-medium text-carbon-700">
-                    Track Inventory
+                    Track inventory
                   </span>
                 </label>
               </div>
@@ -454,7 +453,7 @@ export default function ProductEditor({
           {/* Images */}
           <div>
             <Heading level={3} className="mb-4">
-              Product Images
+              Product images
             </Heading>
 
             {/* Upload Area */}
@@ -554,7 +553,7 @@ export default function ProductEditor({
                 Saving...
               </>
             ) : (
-              'Save Changes'
+              'Save changes'
             )}
           </Button>
         </div>

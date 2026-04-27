@@ -14,7 +14,7 @@ export default function FeaturedProducts() {
     <Section background="white" spacing="xl">
       <SectionTitle
         label="PEPTIDE LIBRARY"
-        title="High Purity Peptides for Advanced Research Applications"
+        title="High purity peptides for advanced research applications"
       />
 
       <div className="mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6">
@@ -29,6 +29,7 @@ export default function FeaturedProducts() {
                 src={product.image}
                 alt={product.name}
                 loading="lazy"
+                decoding="async"
                 className="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
               />
             </div>
@@ -49,7 +50,7 @@ export default function FeaturedProducts() {
       <div className="flex justify-center">
         <Link to="/library">
           <Button variant="primary" size="md">
-            Explore the Library
+            Explore the library
           </Button>
         </Link>
       </div>

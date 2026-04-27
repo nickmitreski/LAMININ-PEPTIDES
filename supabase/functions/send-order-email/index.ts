@@ -117,7 +117,7 @@ function buildEmailHtml(vars: {
 
   <div style="border-top: 1px solid #e5e5e5; padding-top: 20px; margin-top: 30px; text-align: center;">
     <p style="margin: 0; font-size: 12px; color: #999;">
-      Questions? Contact us at <a href="mailto:support@lamininpeptides.com" style="color: #1a1a1a;">support@lamininpeptides.com</a>
+      Questions? Contact us at <a href="mailto:info@lamininpeplab.com.au" style="color: #1a1a1a;">info@lamininpeplab.com.au</a>
     </p>
     <p style="margin: 8px 0 0; font-size: 11px; color: #bbb;">All products are intended for laboratory research use only.</p>
   </div>
@@ -154,7 +154,7 @@ When completing payment, include your invoice reference number only as the payme
 PROCESSING
 Orders are processed once payment has been received and confirmed. We will notify you when your order is being prepared for shipment.
 
-Questions? Contact us at support@lamininpeptides.com`;
+Questions? Contact us at info@lamininpeplab.com.au`;
 }
 
 Deno.serve(async (req) => {

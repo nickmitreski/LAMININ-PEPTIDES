@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, RefreshCw, CheckCircle, XCircle, Edit } from 'lucide-react';
+import { Package, RefreshCw, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { getAllProductMappings } from '../services/supabaseService';
@@ -9,8 +9,10 @@ import ProductEditor from '../components/admin/ProductEditor';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Skeleton from '../components/ui/Skeleton';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
+import { formatPrice } from '../lib/formatCurrency';
 
 interface ProductMapping {
   id: string;
@@ -65,10 +67,10 @@ export default function AdminProducts() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <Heading level={1} className="mb-2">
-              Product Mappings
+              Product mappings
             </Heading>
             <Text className="text-carbon-600">
-              CFG code to protein product mappings
+              CFG code to peptide product mappings.
             </Text>
           </div>
           <Button variant="outline" size="sm" onClick={loadProducts}>
@@ -81,7 +83,7 @@ export default function AdminProducts() {
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card padding="md" className="border-l-4 border-l-accent">
             <Text variant="small" muted className="mb-1">
-              Total Products
+              Total products
             </Text>
             <Text variant="body" weight="semibold" className="text-2xl">
               {products.length}
@@ -108,8 +110,22 @@ export default function AdminProducts() {
         {/* Products Table */}
         <Card padding="none">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-accent-dark" />
+            <div role="status" aria-busy="true" aria-label="Loading products">
+              <div className="border-b border-carbon-900/10 bg-grey/30 px-6 py-3">
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <div className="divide-y divide-carbon-900/10">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-6 px-6 py-4">
+                    <Skeleton className="h-10 w-10" rounded="sm" />
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 flex-1 max-w-[14rem]" />
+                    <Skeleton className="hidden h-3 w-24 md:block" />
+                    <Skeleton className="h-5 w-16" rounded="full" />
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : products.length === 0 ? (
             <div className="py-12 text-center">
@@ -124,13 +140,13 @@ export default function AdminProducts() {
                 <thead className="border-b border-carbon-900/10 bg-grey/30">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
-                      CFG Code
+                      CFG code
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
-                      Peptide Name
+                      Peptide name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
-                      Protein Name
+                      Protein name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
                       Price
@@ -164,7 +180,7 @@ export default function AdminProducts() {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <Text variant="small" weight="medium">
-                          ${product.price.toFixed(2)}
+                          {formatPrice(product.price)}
                         </Text>
                       </td>
                       <td className="px-6 py-4">
@@ -213,7 +229,7 @@ export default function AdminProducts() {
           onSave={() => {
             setEditingProductId(null);
             loadProducts();
-            showToast('Product updated successfully!', 'success');
+            showToast('Product updated', 'success');
           }}
         />
       )}

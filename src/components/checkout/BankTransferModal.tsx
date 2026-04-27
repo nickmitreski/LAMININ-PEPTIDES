@@ -129,7 +129,7 @@ export default function BankTransferModal({
               <Mail className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-blue-900 mb-1">Check Your Email</p>
+              <p className="text-sm font-semibold text-blue-900 mb-1">Check your email</p>
               <p className="text-sm leading-relaxed text-blue-800">
                 You will receive an email with payment instructions shortly. Please follow the instructions in the email to complete your payment.
               </p>
@@ -161,10 +161,10 @@ export default function BankTransferModal({
         <p className="mt-4 text-center text-xs text-neutral-500">
           Questions? Contact us at{' '}
           <a
-            href="mailto:support@lamininpeptides.com"
+            href="mailto:info@lamininpeplab.com.au"
             className="font-medium text-carbon-900 underline underline-offset-2 hover:opacity-90"
           >
-            support@lamininpeptides.com
+            info@lamininpeplab.com.au
           </a>
         </p>
       </div>

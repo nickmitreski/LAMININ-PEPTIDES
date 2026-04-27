@@ -5,6 +5,8 @@ export default {
     extend: {
       colors: {
         // Primary color - Pure Black
+        // Numeric scale extended (50-950) so utilities like bg-carbon-100,
+        // border-carbon-200, text-carbon-300 used throughout admin/UI resolve.
         carbon: {
           DEFAULT: '#000000',
           950: '#000000',
@@ -13,6 +15,11 @@ export default {
           700: '#333333',
           600: '#4d4d4d',
           500: '#666666',
+          400: '#808080',
+          300: '#a3a3a3',
+          200: '#cccccc',
+          100: '#e6e6e6',
+          50:  '#f5f5f5',
         },
 
         // Neutral greys for backgrounds and muted text
@@ -30,11 +37,24 @@ export default {
         },
 
         // Brand accent - Aqua/Teal
+        // Numeric scale added so utilities like bg-accent-600 / text-accent-500
+        // resolve correctly. Semantic keys (DEFAULT/light/dark/muted) kept
+        // for backwards compatibility.
         accent: {
           DEFAULT: '#89D1D1',
           light:   '#A5DEDE',
           dark:    '#6BBFBF',
           muted:   '#E8F5F5',
+          50:  '#F0FAFA',
+          100: '#E8F5F5',
+          200: '#C9E9E9',
+          300: '#A5DEDE',
+          400: '#89D1D1',
+          500: '#6BBFBF',
+          600: '#3D8888',
+          700: '#2D6868',
+          800: '#1F4848',
+          900: '#143030',
         },
 
         // Blue for toggle tabs

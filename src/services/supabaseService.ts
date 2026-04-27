@@ -215,6 +215,66 @@ export async function getAllOrders(
   return data as OrderReferenceRow[];
 }
 
+export interface OrderCounts {
+  total: number;
+  pending: number;
+  paid: number;
+  processing: number;
+  shipped: number;
+  delivered: number;
+  cancelled: number;
+}
+
+/**
+ * Admin: Get accurate order counts directly from the DB.
+ * Avoids the inaccuracy of computing stats from a paginated slice in the UI.
+ */
+export async function getOrderCounts(
+  client: SupabaseClient | null = supabase
+): Promise<OrderCounts> {
+  const empty: OrderCounts = {
+    total: 0,
+    pending: 0,
+    paid: 0,
+    processing: 0,
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0,
+  };
+
+  if (!client) return empty;
+
+  const statuses: OrderStatus[] = [
+    'pending',
+    'paid',
+    'processing',
+    'shipped',
+    'delivered',
+    'cancelled',
+  ];
+
+  try {
+    const [totalRes, ...statusRes] = await Promise.all([
+      client.from('order_references').select('*', { count: 'exact', head: true }),
+      ...statuses.map((s) =>
+        client
+          .from('order_references')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', s)
+      ),
+    ]);
+
+    const counts: OrderCounts = { ...empty, total: totalRes.count ?? 0 };
+    statuses.forEach((s, i) => {
+      counts[s] = statusRes[i].count ?? 0;
+    });
+    return counts;
+  } catch (err) {
+    console.error('[supabase] getOrderCounts', err);
+    return empty;
+  }
+}
+
 /** Admin: Get orders by status */
 export async function getOrdersByStatus(
   status: OrderStatus,

@@ -63,12 +63,17 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 border-b border-carbon-900/10 p-4 sm:p-6">
           <Heading level={4} className="min-w-0 truncate text-base sm:text-inherit">
-            Shopping Cart
+            Shopping cart
+            {state.itemCount > 0 && (
+              <span className="ml-2 text-sm font-normal text-neutral-500">
+                ({state.itemCount} {state.itemCount === 1 ? 'item' : 'items'})
+              </span>
+            )}
           </Heading>
           <button
             type="button"
             onClick={onClose}
-            className="-mr-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 touch-manipulation"
+            className="-mr-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 touch-manipulation"
             aria-label="Close cart"
           >
             <X className="h-5 w-5" strokeWidth={2} />
@@ -87,7 +92,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </Text>
             <Link to="/library" onClick={onClose} className="block">
               <Button variant="primary" size="md" className="min-h-12 w-full sm:min-h-0 sm:w-auto">
-                Browse Library
+                Browse library
               </Button>
             </Link>
           </div>
@@ -114,12 +119,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <div className="space-y-2">
                 <Link to="/checkout" onClick={onClose} className="block">
                   <Button variant="primary" size="lg" className="min-h-12 w-full sm:min-h-0">
-                    Proceed to Checkout
+                    Proceed to checkout
                   </Button>
                 </Link>
                 <Link to="/cart" onClick={onClose} className="block">
                   <Button variant="outline" size="md" className="min-h-12 w-full sm:min-h-0">
-                    View Full Cart
+                    View full cart
                   </Button>
                 </Link>
               </div>

@@ -1,12 +1,17 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { CheckCircle2, Copy, Phone, Mail } from 'lucide-react';
+import { CheckCircle2, Copy, Mail } from 'lucide-react';
 import { useState } from 'react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function OrderConfirmation() {
+  useDocumentTitle(
+    'Order Confirmation',
+    'Your order has been received. Bank transfer payment instructions have been emailed to you.'
+  );
   const [searchParams] = useSearchParams();
   const orderRef = searchParams.get('ref') || '';
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -24,7 +29,7 @@ export default function OrderConfirmation() {
         <Section background="white" spacing="xl">
           <div className="mx-auto max-w-2xl px-4 text-center sm:px-0">
             <Heading level={3} className="mb-4">
-              Invalid Order Reference
+              Invalid order reference
             </Heading>
             <Text variant="body" muted className="mb-8 block">
               No order reference was provided. Please check your confirmation email or contact support.
@@ -50,7 +55,7 @@ export default function OrderConfirmation() {
               <CheckCircle2 className="h-10 w-10 text-green-600" strokeWidth={2} />
             </div>
             <Heading level={3} className="mb-3 text-2xl sm:text-3xl">
-              Order Received!
+              Order received
             </Heading>
             <Text
               variant="body"
@@ -90,7 +95,7 @@ export default function OrderConfirmation() {
             {/* Payment Status */}
             <div className="rounded-sm bg-amber-50 border border-amber-200 p-4">
               <Text variant="small" weight="medium" className="mb-2 text-amber-900">
-                Payment Required
+                Payment required
               </Text>
               <Text variant="caption" className="text-amber-800">
                 Your order is reserved pending payment. Please check your email for payment instructions.
@@ -106,7 +111,7 @@ export default function OrderConfirmation() {
               </div>
               <div>
                 <Heading level={5} className="mb-2 text-blue-900">
-                  Check Your Email
+                  Check your email
                 </Heading>
                 <Text variant="body" className="text-blue-800 leading-relaxed">
                   We've sent payment instructions to your email address. Please follow the instructions in the email to complete your payment.
@@ -121,7 +126,7 @@ export default function OrderConfirmation() {
           {/* Important Instructions */}
           <Card padding="lg" className="mb-6">
             <Heading level={5} className="mb-3 text-carbon-900">
-              What Happens Next
+              What happens next
             </Heading>
             <ul className="space-y-2 text-sm text-carbon-900">
               <li className="flex items-start gap-2">
@@ -154,45 +159,26 @@ export default function OrderConfirmation() {
           {/* Contact Support */}
           <Card padding="lg" className="mb-8">
             <Heading level={5} className="mb-4 text-carbon-900">
-              Need Help?
+              Need help?
             </Heading>
             <Text variant="body" className="mb-4 text-carbon-900">
-              For any enquiries about your order or payment, please contact us:
+              For any enquiries about your order or payment, please email us:
             </Text>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent/20">
-                  <Mail className="h-5 w-5 text-accent-dark" />
-                </div>
-                <div>
-                  <Text variant="small" weight="medium" className="text-carbon-900">
-                    Email
-                  </Text>
-                  <a
-                    href="mailto:info@lamininpeptab.com.au"
-                    className="text-sm font-medium text-carbon-900 underline underline-offset-2 hover:opacity-80"
-                  >
-                    info@lamininpeptab.com.au
-                  </a>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent/20">
+                <Mail className="h-5 w-5 text-accent-dark" />
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent/20">
-                  <Phone className="h-5 w-5 text-accent-dark" />
-                </div>
-                <div>
-                  <Text variant="small" weight="medium" className="text-carbon-900">
-                    Phone
-                  </Text>
-                  <a
-                    href="tel:+61412345678"
-                    className="text-sm font-medium text-carbon-900 underline underline-offset-2 hover:opacity-80"
-                  >
-                    +61 4 1234 5678
-                  </a>
-                </div>
+              <div>
+                <Text variant="small" weight="medium" className="text-carbon-900">
+                  Email
+                </Text>
+                <a
+                  href="mailto:info@lamininpeplab.com.au"
+                  className="text-sm font-medium text-carbon-900 underline underline-offset-2 hover:opacity-80"
+                >
+                  info@lamininpeplab.com.au
+                </a>
               </div>
             </div>
 

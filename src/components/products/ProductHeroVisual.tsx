@@ -19,6 +19,8 @@ export default function ProductHeroVisual({
           src={imageSrc}
           alt={`${productName} — laboratory vial`}
           loading="eager"
+          decoding="async"
+          fetchPriority="high"
           className="h-auto w-full max-h-[min(28rem,58vh)] object-contain object-center"
         />
       </div>

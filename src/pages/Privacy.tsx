@@ -1,14 +1,19 @@
 import Section from '../components/layout/Section';
 import SectionTitle from '../components/ui/SectionTitle';
 import { Heading, Text } from '../components/ui/Typography';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Aligned with the published Privacy Policy (March 2026). */
 export default function Privacy() {
+  useDocumentTitle(
+    'Privacy Policy',
+    'How Laminin Peptide Lab collects, uses, and protects your personal information.'
+  );
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <SectionTitle
-          title="Privacy Policy"
+          title="Privacy policy"
           subtitle="Last updated: March 29, 2026"
         />
 
@@ -136,10 +141,10 @@ export default function Privacy() {
             <Text variant="body" className="text-neutral-600">
               Questions about this Privacy Policy:{' '}
               <a
-                href="mailto:info@lamininpeptab.com.au"
+                href="mailto:info@lamininpeplab.com.au"
                 className="font-medium text-carbon-900 underline decoration-carbon-900/30 underline-offset-2 hover:decoration-carbon-900"
               >
-                info@lamininpeptab.com.au
+                info@lamininpeplab.com.au
               </a>
             </Text>
           </div>

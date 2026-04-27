@@ -55,10 +55,16 @@ export function useToast() {
 }
 
 function ToastContainer({ toasts, onClose }: { toasts: Toast[]; onClose: (id: string) => void }) {
-  if (toasts.length === 0) return null;
-
+  // Always render the live region container so assistive tech sees it as a
+  // stable target. Hide it visually when empty.
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0">
+    <div
+      aria-live="polite"
+      aria-atomic="false"
+      className={`pointer-events-none fixed bottom-4 right-4 z-50 flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0 ${
+        toasts.length === 0 ? 'sr-only' : ''
+      }`}
+    >
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onClose={onClose} />
       ))}
@@ -81,17 +87,21 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
     info: 'bg-blue-50 border-blue-200 text-blue-900',
   };
 
+  // Use assertive role for errors/warnings so they interrupt a screen reader,
+  // and the more polite role="status" for success/info.
+  const isAssertive = toast.type === 'error' || toast.type === 'warning';
+
   return (
     <div
-      className={`flex items-start gap-3 p-4 border rounded-sm shadow-lg animate-slideInRight ${styles[toast.type]}`}
-      role="alert"
+      className={`pointer-events-auto flex items-start gap-3 rounded-sm border p-4 shadow-lg animate-slideInRight ${styles[toast.type]}`}
+      role={isAssertive ? 'alert' : 'status'}
     >
       <div className="mt-0.5">{icons[toast.type]}</div>
       <p className="flex-1 text-sm font-medium leading-relaxed">{toast.message}</p>
       <button
         type="button"
         onClick={() => onClose(toast.id)}
-        className="flex-shrink-0 p-0.5 hover:opacity-70 transition-opacity"
+        className="flex-shrink-0 rounded-sm p-0.5 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2"
         aria-label="Close notification"
       >
         <X className="w-4 h-4" strokeWidth={2} />

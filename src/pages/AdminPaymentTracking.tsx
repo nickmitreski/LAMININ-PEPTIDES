@@ -198,7 +198,7 @@ export default function AdminPaymentTracking() {
         {/* Header */}
         <div className="mb-6">
           <Heading level={1} className="mb-2">
-            Payment Tracking
+            Payment tracking
           </Heading>
           <Text className="text-carbon-600">
             Manage manual bank transfer payments
@@ -211,7 +211,7 @@ export default function AdminPaymentTracking() {
             <div className="flex items-center justify-between">
               <div>
                 <Text variant="caption" muted className="mb-1">
-                  Pending Payments
+                  Pending payments
                 </Text>
                 <Heading level={4}>{pendingCount}</Heading>
               </div>
@@ -223,7 +223,7 @@ export default function AdminPaymentTracking() {
             <div className="flex items-center justify-between">
               <div>
                 <Text variant="caption" muted className="mb-1">
-                  Received (Not Archived)
+                  Received (not archived)
                 </Text>
                 <Heading level={4}>{paidCount}</Heading>
               </div>
@@ -235,7 +235,7 @@ export default function AdminPaymentTracking() {
             <div className="flex items-center justify-between">
               <div>
                 <Text variant="caption" muted className="mb-1">
-                  Total Pending Value
+                  Total pending value
                 </Text>
                 <Heading level={4}>{formatCurrency(totalPending, 'AUD')}</Heading>
               </div>
@@ -378,7 +378,7 @@ export default function AdminPaymentTracking() {
                         className="inline-flex items-center gap-1.5"
                       >
                         <CheckCircle2 className="h-4 w-4" />
-                        Mark as Paid
+                        Mark as paid
                       </Button>
                     )}
 

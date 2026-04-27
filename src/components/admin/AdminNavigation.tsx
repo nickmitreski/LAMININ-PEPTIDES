@@ -86,9 +86,12 @@ export default function AdminNavigation({ onLogout }: AdminNavigationProps) {
               return (
                 <button
                   key={item.path}
+                  type="button"
                   onClick={() => navigate(item.path)}
+                  aria-current={active ? 'page' : undefined}
                   className={`
                     flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-medium transition-colors
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2
                     ${
                       active
                         ? 'bg-accent-600 text-white'
@@ -113,7 +116,7 @@ export default function AdminNavigation({ onLogout }: AdminNavigationProps) {
               className="flex items-center gap-2"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline">Sign out</span>
             </Button>
           )}
         </div>
@@ -127,9 +130,12 @@ export default function AdminNavigation({ onLogout }: AdminNavigationProps) {
             return (
               <button
                 key={item.path}
+                type="button"
                 onClick={() => navigate(item.path)}
+                aria-current={active ? 'page' : undefined}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-medium transition-colors
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2
                   ${
                     active
                       ? 'bg-accent-600 text-white'

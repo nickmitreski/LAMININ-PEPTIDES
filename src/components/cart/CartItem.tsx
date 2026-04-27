@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { CartItem as CartItemType, cartLineKey } from '../../types/cart';
 import { Text, Label } from '../ui/Typography';
 import { getProductSlug } from '../../data/productContent';
+import { formatPrice } from '../../lib/formatCurrency';
 
 interface CartItemProps {
   item: CartItemType;
@@ -24,6 +25,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           src={item.image}
           alt={item.name}
           loading="lazy"
+          decoding="async"
           className="w-full h-full object-contain p-2"
         />
       </Link>
@@ -38,7 +40,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           <button
             type="button"
             onClick={() => onRemove(lineKey)}
-            className="-m-1.5 flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 touch-manipulation"
+            className="-m-1.5 flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-grey hover:text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 touch-manipulation"
             aria-label="Remove item"
           >
             <X className="h-4 w-4" strokeWidth={2} />
@@ -55,7 +57,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
               type="button"
               onClick={() => onUpdateQuantity(lineKey, item.quantity - 1)}
               disabled={item.quantity <= 1}
-              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey disabled:cursor-not-allowed disabled:opacity-30 touch-manipulation sm:h-9 sm:w-9"
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-30 touch-manipulation sm:h-9 sm:w-9"
               aria-label="Decrease quantity"
             >
               <span className="text-base font-medium sm:text-sm">−</span>
@@ -68,7 +70,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
             <button
               type="button"
               onClick={() => onUpdateQuantity(lineKey, item.quantity + 1)}
-              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey touch-manipulation sm:h-9 sm:w-9"
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 touch-manipulation sm:h-9 sm:w-9"
               aria-label="Increase quantity"
             >
               <span className="text-base font-medium sm:text-sm">+</span>
@@ -76,7 +78,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           </div>
 
           <Text variant="small" weight="medium" className="text-carbon-900">
-            ${(item.price * item.quantity).toFixed(2)}
+            {formatPrice(item.price * item.quantity)}
           </Text>
         </div>
       </div>

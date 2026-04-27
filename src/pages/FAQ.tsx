@@ -6,15 +6,20 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { faqItems } from '../data/faq';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function FAQ() {
+  useDocumentTitle(
+    'FAQ',
+    'Answers to common questions on certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our purity assurance guarantee.'
+  );
   return (
     <div className="min-h-screen">
       <Section background="white">
         <SectionTitle
           label="Support"
           title="Frequently asked questions"
-          subtitle="Laboratory use, certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our Purity Assurance Guarantee."
+          subtitle="Laboratory use, certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our purity assurance guarantee."
           titleClassName="!font-bold"
         />
 

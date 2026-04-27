@@ -20,9 +20,11 @@ import {
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
+import Skeleton from '../components/ui/Skeleton';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
+import { formatPrice } from '../lib/formatCurrency';
 
 interface Customer {
   id: string;
@@ -89,7 +91,7 @@ export default function AdminCustomers() {
       } else {
         showToast(result.error || 'Failed to delete customer', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('Failed to delete customer', 'error');
     } finally {
       setDeleting(false);
@@ -117,15 +119,15 @@ export default function AdminCustomers() {
     <div className="min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
-      <Section width="xl" spacing="lg">
+      <Section spacing="lg">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <Heading level={1} className="mb-2">
-              Customer Management
+              Customer management
             </Heading>
             <Text className="text-carbon-600">
-              Manage your customer database
+              Manage your customer database.
             </Text>
           </div>
         </div>
@@ -139,7 +141,7 @@ export default function AdminCustomers() {
               </div>
               <div>
                 <Text className="text-sm text-carbon-600">
-                  Total Customers
+                  Total customers
                 </Text>
                 <Heading level={3}>{customers.length}</Heading>
               </div>
@@ -152,7 +154,7 @@ export default function AdminCustomers() {
                 <ShoppingBag className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <Text className="text-sm text-carbon-600">Total Orders</Text>
+                <Text className="text-sm text-carbon-600">Total orders</Text>
                 <Heading level={3}>{totalOrders}</Heading>
               </div>
             </div>
@@ -164,8 +166,8 @@ export default function AdminCustomers() {
                 <DollarSign className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <Text className="text-sm text-carbon-600">Total Revenue</Text>
-                <Heading level={3}>${totalRevenue.toFixed(2)}</Heading>
+                <Text className="text-sm text-carbon-600">Total revenue</Text>
+                <Heading level={3}>{formatPrice(totalRevenue)}</Heading>
               </div>
             </div>
           </Card>
@@ -188,8 +190,24 @@ export default function AdminCustomers() {
         {/* Customers Table */}
         <Card className="mt-6 overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-carbon-600">
-              Loading customers...
+            <div role="status" aria-busy="true" aria-label="Loading customers">
+              <div className="border-b border-carbon-200 bg-carbon-50 px-6 py-3">
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <div className="divide-y divide-carbon-200">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-6 px-6 py-4">
+                    <Skeleton className="h-9 w-9" rounded="full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3 w-1/3" />
+                      <Skeleton className="h-3 w-1/4" />
+                    </div>
+                    <Skeleton className="hidden h-3 w-24 md:block" />
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : filteredCustomers.length === 0 ? (
             <div className="p-8 text-center text-carbon-600">
@@ -213,7 +231,7 @@ export default function AdminCustomers() {
                       Orders
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
-                      Total Spent
+                      Total spent
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
                       Actions
@@ -258,7 +276,7 @@ export default function AdminCustomers() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-medium text-carbon-900">
-                          ${customer.total_spent.toFixed(2)}
+                          {formatPrice(customer.total_spent)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -309,7 +327,7 @@ export default function AdminCustomers() {
             <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
               <Text className="font-medium text-yellow-900 mb-1">
-                Important: Customer Deletion
+                Important: customer deletion
               </Text>
               <Text className="text-sm text-yellow-800">
                 Deleting a customer will permanently remove them and{' '}

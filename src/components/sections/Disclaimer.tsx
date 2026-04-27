@@ -14,7 +14,7 @@ export default function Disclaimer() {
             </IconTile>
             <div>
               <Heading level={5} className="mb-3 text-white">
-                Research Use Only
+                Research use only
               </Heading>
               <div className="space-y-2">
                 <Text variant="small" weight="medium" className="text-white">

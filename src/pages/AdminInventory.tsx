@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import Container from '../components/layout/Container';
 import Button from '../components/ui/Button';
+import Skeleton from '../components/ui/Skeleton';
 import { Heading, Text } from '../components/ui/Typography';
-import { allPeptides } from '../data/peptides';
 import { supabase } from '../lib/supabase';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import AdminNavigation from '../components/admin/AdminNavigation';
+import { formatPrice } from '../lib/formatCurrency';
 
 interface Product {
   id: string;
@@ -37,10 +38,6 @@ type AdjustmentMode = 'add' | 'subtract' | 'set';
 export default function AdminInventory() {
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
-  const sorted = useMemo(
-    () => [...allPeptides].sort((a, b) => a.name.localeCompare(b.name)),
-    []
-  );
 
   const handleLogout = () => {
     logout();
@@ -162,7 +159,7 @@ export default function AdminInventory() {
       p_quantity_change: quantityChange,
       p_transaction_type: transactionType,
       p_notes: adjustmentNotes.trim() || null,
-      p_admin_email: 'admin@lamininpeptides.com'
+      p_admin_email: 'admin@lamininpeplab.com.au'
     });
 
     if (error) {
@@ -220,10 +217,10 @@ export default function AdminInventory() {
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <Heading level={3} className="mb-2">
-                Inventory Management
+                Inventory management
               </Heading>
               <Text variant="small" muted className="max-w-xl">
-                Real-time inventory tracking powered by Supabase database with complete transaction history and low stock alerts.
+                Real-time inventory tracking powered by the Supabase database with full transaction history and low-stock alerts.
               </Text>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -245,7 +242,7 @@ export default function AdminInventory() {
                 <span className="text-2xl">⚠️</span>
                 <div className="flex-1">
                   <Text className="font-bold text-amber-900">
-                    Low Stock Alert
+                    Low stock alert
                   </Text>
                   <Text variant="small" className="text-amber-800 mt-1">
                     {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''} running low:
@@ -279,8 +276,16 @@ export default function AdminInventory() {
                 </div>
                 <div className="max-h-[600px] overflow-y-auto divide-y divide-carbon-900/5">
                   {loading ? (
-                    <div className="p-8 text-center text-neutral-500">
-                      Loading products...
+                    <div role="status" aria-busy="true" aria-label="Loading products">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3">
+                          <Skeleton className="h-9 w-9" rounded="sm" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-3 w-2/3" />
+                            <Skeleton className="h-3 w-1/3" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : products.length === 0 ? (
                     <div className="p-8 text-center text-neutral-500">
@@ -329,19 +334,19 @@ export default function AdminInventory() {
                         {getProductDisplayName(selectedProduct)}
                       </Heading>
                       <Text variant="small" muted>
-                        {selectedProduct.cfg_code} • ${Number(selectedProduct.price).toFixed(2)} AUD
+                        {selectedProduct.cfg_code} • {formatPrice(Number(selectedProduct.price))} AUD
                       </Text>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-grey/30">
                       <div>
-                        <Text variant="caption" muted className="uppercase tracking-wide">Current Stock</Text>
+                        <Text variant="caption" muted className="uppercase tracking-wide">Current stock</Text>
                         <Text className={`text-2xl font-bold mt-1 ${getStockColor(selectedProduct)}`}>
                           {selectedProduct.stock_quantity}
                         </Text>
                       </div>
                       <div>
-                        <Text variant="caption" muted className="uppercase tracking-wide">Low Stock Alert</Text>
+                        <Text variant="caption" muted className="uppercase tracking-wide">Low stock alert</Text>
                         <Text className="text-2xl font-bold mt-1 text-carbon-900">
                           {selectedProduct.low_stock_threshold}
                         </Text>
@@ -358,7 +363,7 @@ export default function AdminInventory() {
                   {/* Adjustment Controls */}
                   <div className="rounded-xl border border-carbon-900/10 bg-white shadow-sm p-6">
                     <Text className="font-bold uppercase tracking-wide text-carbon-900 mb-4">
-                      Adjust Stock
+                      Adjust stock
                     </Text>
 
                     {/* Mode Selection */}
@@ -371,7 +376,7 @@ export default function AdminInventory() {
                             : 'bg-grey/50 text-carbon-900 hover:bg-grey'
                         }`}
                       >
-                        ➕ Add Stock
+                        ➕ Add stock
                       </button>
                       <button
                         onClick={() => setAdjustmentMode('subtract')}
@@ -381,7 +386,7 @@ export default function AdminInventory() {
                             : 'bg-grey/50 text-carbon-900 hover:bg-grey'
                         }`}
                       >
-                        ➖ Remove Stock
+                        ➖ Remove stock
                       </button>
                       <button
                         onClick={() => setAdjustmentMode('set')}
@@ -391,7 +396,7 @@ export default function AdminInventory() {
                             : 'bg-grey/50 text-carbon-900 hover:bg-grey'
                         }`}
                       >
-                        🔢 Set Exact
+                        🔢 Set exact
                       </button>
                     </div>
 
@@ -399,7 +404,7 @@ export default function AdminInventory() {
                     <div className="mb-4">
                       <label className="block mb-2">
                         <Text variant="small" className="font-medium text-carbon-900">
-                          Quantity {adjustmentMode === 'set' ? '(New Total)' : '(Change Amount)'}
+                          Quantity {adjustmentMode === 'set' ? '(new total)' : '(change amount)'}
                         </Text>
                       </label>
                       <input
@@ -422,7 +427,7 @@ export default function AdminInventory() {
                     <div className="mb-4">
                       <label className="block mb-2">
                         <Text variant="small" className="font-medium text-carbon-900">
-                          Notes (Optional)
+                          Notes (optional)
                         </Text>
                       </label>
                       <textarea
@@ -443,7 +448,7 @@ export default function AdminInventory() {
                       disabled={saving || !adjustmentQuantity}
                       className="w-full"
                     >
-                      {saving ? 'Updating...' : 'Apply Adjustment'}
+                      {saving ? 'Updating...' : 'Apply adjustment'}
                     </Button>
                   </div>
 
@@ -451,13 +456,26 @@ export default function AdminInventory() {
                   <div className="rounded-xl border border-carbon-900/10 bg-white shadow-sm overflow-hidden">
                     <div className="border-b border-carbon-900/10 bg-grey/50 px-4 py-3">
                       <Text className="font-bold uppercase tracking-wide text-carbon-900">
-                        Transaction History
+                        Transaction history
                       </Text>
                     </div>
                     <div className="max-h-[400px] overflow-y-auto">
                       {loadingHistory ? (
-                        <div className="p-8 text-center text-neutral-500">
-                          Loading history...
+                        <div
+                          role="status"
+                          aria-busy="true"
+                          aria-label="Loading transaction history"
+                          className="divide-y divide-carbon-900/5"
+                        >
+                          {Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="space-y-2 px-4 py-3">
+                              <div className="flex items-center justify-between">
+                                <Skeleton className="h-3 w-24" />
+                                <Skeleton className="h-3 w-16" />
+                              </div>
+                              <Skeleton className="h-3 w-3/4" />
+                            </div>
+                          ))}
                         </div>
                       ) : history.length === 0 ? (
                         <div className="p-8 text-center text-neutral-500">
@@ -514,7 +532,7 @@ export default function AdminInventory() {
                 <div className="rounded-xl border border-carbon-900/10 bg-white shadow-sm p-12 text-center">
                   <div className="text-6xl mb-4">📦</div>
                   <Heading level={4} className="mb-2">
-                    Select a Product
+                    Select a product
                   </Heading>
                   <Text variant="small" muted>
                     Choose a product from the list to view details and adjust inventory

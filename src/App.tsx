@@ -108,7 +108,7 @@ function App() {
                   element={
                     <>
                       <Header />
-                      <main id="main-content">
+                      <main id="main-content" tabIndex={-1} className="focus:outline-none">
                         <Routes>
                           <Route path="/" element={<Home />} />
                           <Route path="/library" element={<Library />} />

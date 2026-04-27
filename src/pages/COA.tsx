@@ -14,6 +14,7 @@ import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
 import { getVariants } from '../data/productPricing';
 import { coaPdfFilenameForPeptide, coaPdfPublicUrl } from '../data/coaPdfs';
 import { CheckCircle } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type CoaCardEntry = {
   key: string;
@@ -47,6 +48,10 @@ function buildCoaCardEntries(peptides: Peptide[]): CoaCardEntry[] {
 }
 
 export default function COA() {
+  useDocumentTitle(
+    'Certificates of Analysis',
+    'Browse and download certificates of analysis for our research peptide range. Independently verified purity, mass, and identity data.'
+  );
   const [searchTerm, setSearchTerm] = useState('');
 
   const coaEntries = useMemo(() => {
@@ -71,7 +76,7 @@ export default function COA() {
     <div className="min-h-screen">
       <Section background="white">
         <SectionTitle
-          title="Certificate of Analysis"
+          title="Certificate of analysis"
           subtitle="View third-party verification and purity reports for all compounds"
           titleClassName="!font-bold"
         />

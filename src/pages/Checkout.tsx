@@ -21,6 +21,8 @@ import {
   markPaymentInstructionsViewed,
 } from '../services/bankTransferPayment';
 import { sendOrderEmail } from '../services/emailService';
+import { formatPrice } from '../lib/formatCurrency';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 // Generate order reference: LM-[6 alphanumeric chars]
 function generateOrderReference(): string {
@@ -44,7 +46,43 @@ interface ShippingFormData {
   country: string;
 }
 
+type FieldErrors = Partial<Record<keyof ShippingFormData, string>>;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const AU_POSTCODE_RE = /^\d{4}$/;
+const NZ_POSTCODE_RE = /^\d{4}$/;
+const PHONE_RE = /^[\d\s+()-]{6,}$/;
+
+function validateForm(data: ShippingFormData): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!data.firstName.trim()) errors.firstName = 'Required';
+  if (!data.lastName.trim()) errors.lastName = 'Required';
+  if (data.email.trim() && !EMAIL_RE.test(data.email.trim())) {
+    errors.email = 'Enter a valid email address';
+  }
+  if (!data.phone.trim()) {
+    errors.phone = 'Required';
+  } else if (!PHONE_RE.test(data.phone.trim())) {
+    errors.phone = 'Enter a valid phone number';
+  }
+  if (!data.address.trim()) errors.address = 'Required';
+  if (!data.city.trim()) errors.city = 'Required';
+  if (!data.state.trim()) errors.state = 'Required';
+  if (!data.postcode.trim()) {
+    errors.postcode = 'Required';
+  } else if (data.country === 'Australia' && !AU_POSTCODE_RE.test(data.postcode.trim())) {
+    errors.postcode = 'Australian postcodes are 4 digits';
+  } else if (data.country === 'New Zealand' && !NZ_POSTCODE_RE.test(data.postcode.trim())) {
+    errors.postcode = 'NZ postcodes are 4 digits';
+  }
+  return errors;
+}
+
 export default function Checkout() {
+  useDocumentTitle(
+    'Checkout',
+    'Securely complete your order. Bank transfer instructions are emailed immediately after order confirmation.'
+  );
   const { state, clearCart } = useCart();
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -65,6 +103,7 @@ export default function Checkout() {
   const [bankTransferModalOpen, setBankTransferModalOpen] = useState(false);
   const [currentOrderReference, setCurrentOrderReference] = useState<string>('');
   const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -72,6 +111,14 @@ export default function Checkout() {
       ...prev,
       [name]: value,
     }));
+    // Clear this field's error as the user types
+    if (fieldErrors[name as keyof ShippingFormData]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name as keyof ShippingFormData];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -79,21 +126,20 @@ export default function Checkout() {
 
     if (isSubmitting || bankTransferModalOpen) return;
 
-    // Basic validation
-    if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      showToast('Please enter your full name.', 'error', 5000);
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      showToast('Please fix the highlighted fields.', 'error', 4000);
+      const firstErrorField = Object.keys(errors)[0];
+      const el = document.getElementById(firstErrorField);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Defer focus so scroll can settle on mobile browsers
+        setTimeout(() => el.focus({ preventScroll: true }), 250);
+      }
       return;
     }
-
-    if (!formData.phone.trim()) {
-      showToast('Please enter your phone number.', 'error', 5000);
-      return;
-    }
-
-    if (!formData.address.trim() || !formData.city.trim() || !formData.state.trim() || !formData.postcode.trim()) {
-      showToast('Please complete your shipping address.', 'error', 5000);
-      return;
-    }
+    setFieldErrors({});
 
     setIsSubmitting(true);
 
@@ -189,7 +235,7 @@ export default function Checkout() {
             </Text>
             <Link to="/library">
               <Button variant="primary" size="lg">
-                Browse Library
+                Browse library
               </Button>
             </Link>
           </div>
@@ -222,27 +268,31 @@ export default function Checkout() {
                 {/* Contact Information */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
-                    Contact Information
+                    Contact information
                   </Heading>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Input
                         id="firstName"
                         name="firstName"
-                        label="First Name"
+                        label="First name"
                         value={formData.firstName}
                         onChange={handleChange}
                         required
+                        autoComplete="given-name"
                         disabled={isSubmitting}
+                        error={fieldErrors.firstName}
                       />
                       <Input
                         id="lastName"
                         name="lastName"
-                        label="Last Name"
+                        label="Last name"
                         value={formData.lastName}
                         onChange={handleChange}
                         required
+                        autoComplete="family-name"
                         disabled={isSubmitting}
+                        error={fieldErrors.lastName}
                       />
                     </div>
                     <Input
@@ -254,6 +304,7 @@ export default function Checkout() {
                       onChange={handleChange}
                       autoComplete="email"
                       disabled={isSubmitting}
+                      error={fieldErrors.email}
                       helperText="For order updates and receipts."
                     />
                     <Input
@@ -266,6 +317,7 @@ export default function Checkout() {
                       autoComplete="tel"
                       required
                       disabled={isSubmitting}
+                      error={fieldErrors.phone}
                       helperText="Required for delivery updates."
                     />
                   </div>
@@ -274,17 +326,19 @@ export default function Checkout() {
                 {/* Shipping Address */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-6">
-                    Shipping Address
+                    Shipping address
                   </Heading>
                   <div className="space-y-4">
                     <Input
                       id="address"
                       name="address"
-                      label="Street Address"
+                      label="Street address"
                       value={formData.address}
                       onChange={handleChange}
                       required
+                      autoComplete="street-address"
                       disabled={isSubmitting}
+                      error={fieldErrors.address}
                     />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Input
@@ -294,7 +348,9 @@ export default function Checkout() {
                         value={formData.city}
                         onChange={handleChange}
                         required
+                        autoComplete="address-level2"
                         disabled={isSubmitting}
+                        error={fieldErrors.city}
                       />
                       <Input
                         id="state"
@@ -303,7 +359,9 @@ export default function Checkout() {
                         value={formData.state}
                         onChange={handleChange}
                         required
+                        autoComplete="address-level1"
                         disabled={isSubmitting}
+                        error={fieldErrors.state}
                       />
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -314,7 +372,10 @@ export default function Checkout() {
                         value={formData.postcode}
                         onChange={handleChange}
                         required
+                        autoComplete="postal-code"
+                        inputMode="numeric"
                         disabled={isSubmitting}
+                        error={fieldErrors.postcode}
                       />
                       <div>
                         <label
@@ -346,7 +407,7 @@ export default function Checkout() {
                 {/* Payment Method */}
                 <Card padding="lg">
                   <Heading level={5} className="mb-4">
-                    Payment Method
+                    Payment method
                   </Heading>
                   <Text
                     variant="caption"
@@ -356,7 +417,7 @@ export default function Checkout() {
                     Payment is made via bank transfer. After placing your order, you will receive detailed payment instructions including our bank account details and your unique order reference number.
                   </Text>
                   <div className="rounded-sm border border-carbon-900/10 bg-neutral-50 px-4 py-3">
-                    <p className="text-sm font-medium text-carbon-900">Bank Transfer / PayID</p>
+                    <p className="text-sm font-medium text-carbon-900">Bank transfer / PayID</p>
                     <p className="mt-1 text-xs text-neutral-600">
                       Complete payment using your banking app
                     </p>
@@ -368,7 +429,7 @@ export default function Checkout() {
               <div className="lg:col-span-1">
                 <Card padding="lg" className="lg:sticky lg:top-24">
                   <Heading level={5} className="mb-6">
-                    Order Summary
+                    Order summary
                   </Heading>
 
                   <div className="mb-6 space-y-4">
@@ -378,6 +439,7 @@ export default function Checkout() {
                           <img
                             src={item.image}
                             alt=""
+                            aria-hidden="true"
                             decoding="async"
                             loading="lazy"
                             fetchPriority="low"
@@ -393,7 +455,7 @@ export default function Checkout() {
                           </Text>
                         </div>
                         <Text variant="caption" weight="medium">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {formatPrice(item.price * item.quantity)}
                         </Text>
                       </div>
                     ))}
@@ -425,7 +487,7 @@ export default function Checkout() {
                     className="min-h-12 w-full touch-manipulation"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Processing...' : 'Place Order'}
+                    {isSubmitting ? 'Processing…' : 'Place order'}
                   </Button>
 
                   <div className="mt-6 border-t border-carbon-900/10 pt-6">

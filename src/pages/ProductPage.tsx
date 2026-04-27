@@ -32,6 +32,8 @@ import {
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { ProductStructuredData } from '../components/seo/StructuredData';
+import { formatPrice } from '../lib/formatCurrency';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -58,23 +60,10 @@ export default function ProductPage() {
     setSelectedVariantId(v?.[0]?.id);
   }, [peptideId]);
 
-  useEffect(() => {
-    if (!copy) return;
-    const prevTitle = document.title;
-    document.title = copy.metaTitle;
-    let meta = document.querySelector('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute('name', 'description');
-      document.head.appendChild(meta);
-    }
-    const prevDesc = meta.getAttribute('content') ?? '';
-    meta.setAttribute('content', copy.metaDescription);
-    return () => {
-      document.title = prevTitle;
-      meta?.setAttribute('content', prevDesc);
-    };
-  }, [copy]);
+  useDocumentTitle(
+    copy?.metaTitle ?? 'Research Compound',
+    copy?.metaDescription
+  );
 
   if (!slug || !peptide || !copy) {
     return (
@@ -153,7 +142,7 @@ export default function ProductPage() {
     );
 
     // Show success notification
-    showToast(`${cartName} added to cart successfully!`, 'success', 3000);
+    showToast(`${cartName} added to cart`, 'success', 3000);
 
     // Reset quantity
     setQuantity(1);
@@ -221,7 +210,7 @@ export default function ProductPage() {
                   >
                     {variants.map((v) => (
                       <option key={v.id} value={v.id}>
-                        {v.label} — ${v.price.toFixed(2)}
+                        {v.label} — {formatPrice(v.price)}
                       </option>
                     ))}
                   </select>
@@ -271,8 +260,8 @@ export default function ProductPage() {
                     peptide.id,
                     variants?.length ? effectiveVariantId : undefined
                   )
-                    ? 'Add More to Cart'
-                    : 'Add to Cart'}
+                    ? 'Add more to cart'
+                    : 'Add to cart'}
                 </Button>
 
                 <Text variant="small" className="leading-relaxed text-neutral-600">

@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/images/brand/symbol-dark.svg" />
+    <link rel="apple-touch-icon" href="/images/brand/logo-colour.png" />
+    <link rel="mask-icon" href="/images/brand/symbol-dark.svg" color="#3D8888" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -10,10 +12,42 @@
     <meta name="theme-color" content="#F1F2F2" />
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="Australian supplier of high-quality research peptides and laboratory materials. Transparent quality certificates, consistent purity, reliable supply for research applications." />
+    <meta name="author" content="Laminin Peptide Lab" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Preconnect to Supabase to shave the TLS/DNS handshake off the first API call. -->
+    <link rel="preconnect" href="https://ytacbvfcltikxzudlkzn.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://ytacbvfcltikxzudlkzn.supabase.co" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Laminin Peptide Lab" />
+    <meta property="og:title" content="Laminin Peptide Lab — Research-Grade Peptides" />
+    <meta property="og:description" content="Australian supplier of high-quality research peptides and laboratory materials. Transparent quality certificates, consistent purity, reliable supply for research applications." />
+    <meta property="og:image" content="/images/brand/logo-colour.png" />
+    <meta property="og:locale" content="en_AU" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Laminin Peptide Lab — Research-Grade Peptides" />
+    <meta name="twitter:description" content="Australian supplier of high-quality research peptides and laboratory materials. Transparent quality certificates, consistent purity, reliable supply for research applications." />
+    <meta name="twitter:image" content="/images/brand/logo-colour.png" />
+
     <title>Laminin Peptide Lab — Research-Grade Peptides</title>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="max-width: 640px; margin: 64px auto; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; text-align: center;">
+        <h1 style="font-weight: 300; font-size: 1.75rem; margin: 0 0 12px;">JavaScript is required</h1>
+        <p style="margin: 0 0 12px;">
+          Laminin Peptide Lab needs JavaScript to display research-grade peptides and
+          handle secure checkout. Please enable JavaScript in your browser settings,
+          or contact us at
+          <a href="mailto:info@lamininpeplab.com.au" style="color: #3D8888;">info@lamininpeplab.com.au</a>.
+        </p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

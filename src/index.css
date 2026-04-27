@@ -124,4 +124,13 @@
     background-size: 1000px 100%;
     animation: shimmer 2s linear infinite;
   }
+
+  /* Respect prefers-reduced-motion: kill the continuous shimmer/skeleton sweeps
+   * so motion-sensitive users see a calm static fill instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-shimmer,
+    .skeleton {
+      animation: none;
+    }
+  }
 }

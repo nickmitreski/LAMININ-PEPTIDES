@@ -3,15 +3,16 @@ import Container from './Container';
 import { Text, Label } from '../ui/Typography';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
   const footerLinks = {
-    'Research Areas': [
+    'Research areas': [
       { label: 'All compounds', path: '/library?category=All' },
       { label: 'Tissue regeneration', path: '/library?category=Healing' },
       {
         label: 'Cognitive and neurological research',
         path: '/library?category=Cognitive',
       },
-      { label: 'Metabolic Research', path: '/library?category=Metabolic' },
+      { label: 'Metabolic research', path: '/library?category=Metabolic' },
       { label: 'Performance biology', path: '/library?category=Performance' },
       {
         label: 'Longevity and cellular research',
@@ -19,8 +20,9 @@ export default function Footer() {
       },
     ],
     'Resources': [
-      { label: 'Certificate of Analysis', path: '/coa' },
-      { label: 'Research Library', path: '/library' },
+      { label: 'Compound catalogue', path: '/library' },
+      { label: 'Research library', path: '/research' },
+      { label: 'Certificate of analysis', path: '/coa' },
       { label: 'FAQ', path: '/faq' },
       { label: 'Shipping', path: '/shipping' },
       { label: 'Contact', path: '/contact' },
@@ -36,6 +38,8 @@ export default function Footer() {
               <img
                 src="/images/brand/logo-white.png"
                 alt="Laminin Peptide Lab"
+                loading="lazy"
+                decoding="async"
                 className="h-7 mb-6"
               />
               <Text className="text-white max-w-sm" weight="light" variant="small">
@@ -58,7 +62,7 @@ export default function Footer() {
                     <li key={link.path}>
                       <Link
                         to={link.path}
-                        className="inline-flex min-h-10 max-w-full items-center py-1.5 text-xs text-white transition-colors hover:text-accent touch-manipulation"
+                        className="inline-flex min-h-10 max-w-full items-center rounded-sm py-1.5 text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                       >
                         {link.label}
                       </Link>
@@ -71,37 +75,42 @@ export default function Footer() {
 
           <div className="border-t border-white/5 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <Text variant="caption" className="text-white">
-                All products are intended for laboratory research use only.
-              </Text>
+              <div className="flex flex-col gap-1 text-center md:text-left">
+                <Text variant="caption" className="text-white">
+                  All products are intended for laboratory research use only.
+                </Text>
+                <Text variant="caption" className="text-white/60">
+                  © {currentYear} Laminin Peptide Lab. All rights reserved.
+                </Text>
+              </div>
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
                 <Link
                   to="/privacy"
-                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                 >
-                  Privacy Policy
+                  Privacy policy
                 </Link>
                 <Link
                   to="/disclaimer"
-                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                 >
                   Disclaimer
                 </Link>
                 <Link
                   to="/guarantee"
-                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                 >
-                  Purity Guarantee
+                  Purity guarantee
                 </Link>
                 <Link
                   to="/shipping"
-                  className="inline-flex min-h-10 items-center text-xs text-white transition-colors hover:text-accent touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                 >
                   Shipping terms
                 </Link>
                 <Link
                   to="/admin/login"
-                  className="inline-flex min-h-11 items-center text-xs text-white/45 transition-colors hover:text-accent touch-manipulation"
+                  className="inline-flex min-h-11 items-center rounded-sm text-xs text-white/45 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                 >
                   Staff sign-in
                 </Link>

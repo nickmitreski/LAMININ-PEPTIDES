@@ -8,7 +8,7 @@ export default function CTASection() {
     <Section background="accent" spacing="lg">
       <div className="text-center">
         <Heading level={2} className="text-carbon-900 mb-4">
-          Ready to Start Your Research?
+          Ready to start your research?
         </Heading>
         <Text
           variant="body"
@@ -16,17 +16,21 @@ export default function CTASection() {
           className="mb-10 max-w-3xl mx-auto text-carbon-900"
         >
           Explore our complete catalogue of laboratory-grade peptides backed
-          by third-party verification and comprehensive analysis
+          by third-party verification and comprehensive analysis.
         </Text>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link to="/library">
             <Button variant="white" size="lg" className="min-w-[200px] uppercase">
-              Browse Compounds
+              Browse compounds
             </Button>
           </Link>
           <Link to="/contact">
-            <Button variant="white" size="lg" className="min-w-[200px] uppercase">
-              Get in Touch
+            <Button
+              variant="outline"
+              size="lg"
+              className="min-w-[200px] uppercase border-carbon-900 text-carbon-900 hover:bg-carbon-900 hover:text-white"
+            >
+              Get in touch
             </Button>
           </Link>
         </div>

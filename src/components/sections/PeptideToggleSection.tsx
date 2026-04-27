@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Section from '../layout/Section';
 import Card from '../ui/Card';
-import { Heading, Text } from '../ui/Typography';
+import { Heading, Label, Text } from '../ui/Typography';
 
 const AQUA_CTA =
   'btn flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-sm font-medium bg-accent text-carbon-900 border border-carbon-900/10 transition-all duration-200 hover:bg-accent-dark active:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-carbon-900';
@@ -51,6 +51,18 @@ const pillars: Pillar[] = [
 export default function PeptideToggleSection() {
   return (
     <Section background="neutral">
+      <div className="mx-auto mb-10 max-w-3xl text-center md:mb-14">
+        <Label className="mb-3 inline-block text-accent-dark">
+          Quality standards
+        </Label>
+        <Heading level={2} className="mb-4 text-carbon-900">
+          Verified, documented, guaranteed
+        </Heading>
+        <Text variant="lead" weight="light" className="text-carbon-700">
+          Every compound is supported by analytical testing, third-party
+          documentation, and our purity assurance guarantee.
+        </Text>
+      </div>
       <div className="grid grid-cols-1 items-stretch md:grid-cols-2 lg:grid-cols-3 gap-6">
         {pillars.map((item) => (
           <Card
@@ -69,6 +81,8 @@ export default function PeptideToggleSection() {
                 <img
                   src={item.imageSrc}
                   alt={item.imageAlt ?? ''}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain object-center"
                 />
               ) : null}
