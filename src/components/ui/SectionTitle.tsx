@@ -11,6 +11,11 @@ interface SectionTitleProps {
   titleClassName?: string;
   subtitleClassName?: string;
   /**
+   * Optional id applied to the heading element. Useful for `aria-labelledby`
+   * relationships on the surrounding `<section>`.
+   */
+  titleId?: string;
+  /**
    * Disable the reveal-on-scroll entrance animation. Defaults to enabled and
    * automatically respects `prefers-reduced-motion`.
    */
@@ -26,6 +31,7 @@ export default function SectionTitle({
   className = '',
   titleClassName = '',
   subtitleClassName = '',
+  titleId,
   disableReveal = false,
 }: SectionTitleProps) {
   const alignment = centered ? 'text-center items-center' : 'text-left items-start';
@@ -51,6 +57,7 @@ export default function SectionTitle({
       )}
       <Heading
         level={2}
+        id={titleId}
         className={[dark ? 'text-white' : '', titleClassName].filter(Boolean).join(' ')}
       >
         {title}

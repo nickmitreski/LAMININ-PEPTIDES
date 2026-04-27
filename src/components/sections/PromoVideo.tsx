@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Play, ShieldCheck, FlaskConical, FileCheck2 } from 'lucide-react';
+import { Play } from 'lucide-react';
 import Section from '../layout/Section';
-import { Heading, Label, Text } from '../ui/Typography';
 import useScrollReveal from '../../hooks/useScrollReveal';
 
 /**
@@ -15,24 +14,6 @@ const POSTER_SRC = '/images/products/glow-70mg.png';
  * placeholder converts into an HTML5 <video> player automatically.
  */
 const VIDEO_SRC: string | null = null;
-
-const highlights = [
-  {
-    icon: ShieldCheck,
-    title: '99%+ verified purity',
-    body: 'Every batch tested before it ships.',
-  },
-  {
-    icon: FlaskConical,
-    title: 'Independent analysis',
-    body: 'Mass spec + HPLC reports for every compound.',
-  },
-  {
-    icon: FileCheck2,
-    title: 'Open documentation',
-    body: 'Certificates of Analysis available on request.',
-  },
-];
 
 export default function PromoVideo() {
   const { ref: sectionRef, revealed } = useScrollReveal<HTMLDivElement>();
@@ -50,7 +31,6 @@ export default function PromoVideo() {
 
   const handlePlay = () => {
     if (!VIDEO_SRC || !videoRef.current) {
-      // No video wired yet — flag the intent visually but don't break.
       setIsPlaying(true);
       return;
     }
@@ -62,45 +42,17 @@ export default function PromoVideo() {
 
   return (
     <Section
-      background="dark"
+      background="neutral"
       spacing="lg"
       id="promo-video"
-      aria-labelledby="promo-video-heading"
-      className="relative overflow-hidden"
+      className="relative"
     >
-      {/* Ambient gradient blobs */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0"
-      >
-        <div className="absolute -top-32 -left-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 translate-x-1/4 translate-y-1/4 rounded-full bg-accent/10 blur-3xl" />
-      </div>
-
       <div
         ref={sectionRef}
         data-revealed={revealed}
-        className="reveal relative z-10 mx-auto max-w-3xl text-center"
+        className="reveal mx-auto max-w-5xl"
       >
-        <Label className="mb-4 inline-block text-accent">Watch the lab</Label>
-        <Heading
-          level={2}
-          id="promo-video-heading"
-          className="mb-5 text-white"
-        >
-          Inside the process behind every vial
-        </Heading>
-        <Text variant="lead" weight="light" className="text-white/70">
-          A short look at how Laminin Peptide Lab sources, tests, and documents
-          research-grade peptides — from synthesis to certificate of analysis.
-        </Text>
-      </div>
-
-      <div
-        data-revealed={revealed}
-        className="reveal reveal-delay-1 relative z-10 mx-auto mt-12 max-w-5xl"
-      >
-        <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-carbon-800 shadow-2xl ring-1 ring-white/5">
+        <div className="group relative overflow-hidden rounded-2xl border border-carbon-200 bg-carbon-900 shadow-xl">
           {/* Aspect ratio frame */}
           <div className="relative aspect-video w-full">
             {VIDEO_SRC ? (
@@ -156,29 +108,6 @@ export default function PromoVideo() {
                 </span>
               </button>
             )}
-          </div>
-
-          {/* Bottom highlight strip */}
-          <div className="grid grid-cols-1 divide-y divide-white/10 border-t border-white/10 bg-carbon-900/60 backdrop-blur-sm sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {highlights.map(({ icon: Icon, title, body }) => (
-              <div
-                key={title}
-                className="flex items-start gap-3 px-5 py-4 sm:py-5"
-              >
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent ring-1 ring-accent/30"
-                >
-                  <Icon className="h-4 w-4" strokeWidth={1.75} />
-                </span>
-                <div className="text-left">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-white">
-                    {title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-white/60">{body}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

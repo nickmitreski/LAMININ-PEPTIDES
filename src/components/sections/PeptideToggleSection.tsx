@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import Section from '../layout/Section';
+import SectionTitle from '../ui/SectionTitle';
 import Card from '../ui/Card';
-import { Heading, Label, Text } from '../ui/Typography';
+import { Heading, Text } from '../ui/Typography';
 import useScrollReveal from '../../hooks/useScrollReveal';
 
 const AQUA_CTA =
@@ -50,29 +51,16 @@ const pillars: Pillar[] = [
 ];
 
 export default function PeptideToggleSection() {
-  const { ref: headingRef, revealed: headingRevealed } =
-    useScrollReveal<HTMLDivElement>();
   const { ref: gridRef, revealed: gridRevealed } =
     useScrollReveal<HTMLDivElement>();
 
   return (
-    <Section background="neutral">
-      <div
-        ref={headingRef}
-        data-revealed={headingRevealed}
-        className="reveal mx-auto mb-10 max-w-3xl text-center md:mb-14"
-      >
-        <Label className="mb-3 inline-block text-accent-dark">
-          Quality standards
-        </Label>
-        <Heading level={2} className="mb-4 text-carbon-900">
-          Verified, documented, guaranteed
-        </Heading>
-        <Text variant="lead" weight="light" className="text-carbon-700">
-          Every compound is supported by analytical testing, third-party
-          documentation, and our purity assurance guarantee.
-        </Text>
-      </div>
+    <Section background="neutral" spacing="lg">
+      <SectionTitle
+        label="Quality standards"
+        title="Verified, documented, guaranteed"
+        subtitle="Every compound is supported by analytical testing, third-party documentation, and our purity assurance guarantee."
+      />
       <div
         ref={gridRef}
         className="grid grid-cols-1 items-stretch md:grid-cols-2 lg:grid-cols-3 gap-6"

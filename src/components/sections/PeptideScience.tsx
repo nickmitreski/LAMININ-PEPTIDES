@@ -6,6 +6,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import Section from '../layout/Section';
+import SectionTitle from '../ui/SectionTitle';
 import { Heading, Label, Text } from '../ui/Typography';
 import useScrollReveal from '../../hooks/useScrollReveal';
 
@@ -55,8 +56,6 @@ const sources = [
 ];
 
 export default function PeptideScience() {
-  const { ref: headingRef, revealed: headingRevealed } =
-    useScrollReveal<HTMLDivElement>();
   const { ref: gridRef, revealed: gridRevealed } =
     useScrollReveal<HTMLDivElement>();
 
@@ -67,29 +66,12 @@ export default function PeptideScience() {
       id="peptide-science"
       aria-labelledby="peptide-science-heading"
     >
-      <div
-        ref={headingRef}
-        data-revealed={headingRevealed}
-        className="reveal mx-auto max-w-3xl text-center"
-      >
-        <Label className="mb-4 inline-block text-accent-dark">
-          Peptide Science
-        </Label>
-        <Heading
-          level={2}
-          id="peptide-science-heading"
-          className="mb-5 text-carbon-900"
-        >
-          Grounded in peer-reviewed research
-        </Heading>
-        <Text variant="lead" weight="light" className="text-carbon-700">
-          Every compound listed on Laminin Peplab is referenced from established
-          peptide literature. Our research library indexes thousands of
-          published studies from the world's most credible biomedical sources,
-          so you can verify mechanisms, dosing, and outcomes before your work
-          begins.
-        </Text>
-      </div>
+      <SectionTitle
+        label="Peptide Science"
+        title="Grounded in peer-reviewed research"
+        subtitle="Every compound listed on Laminin Peplab is referenced from established peptide literature. Our research library indexes thousands of published studies from the world's most credible biomedical sources, so you can verify mechanisms, dosing, and outcomes before your work begins."
+        titleId="peptide-science-heading"
+      />
 
       <div
         ref={gridRef}

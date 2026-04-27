@@ -73,7 +73,7 @@ export default function ResearchCategories() {
         data-revealed={headingRevealed}
         className="reveal mx-auto mb-10 max-w-2xl text-center md:mb-14"
       >
-        <Label className="mb-3 inline-block text-carbon-900/80">
+        <Label inheritColor className="mb-3 inline-block text-carbon-900/80">
           Research focus areas
         </Label>
         <Heading level={2} className="mb-4 text-carbon-900">

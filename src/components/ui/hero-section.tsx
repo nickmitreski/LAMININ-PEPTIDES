@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, FileCheck2, MapPin } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 
@@ -21,12 +21,6 @@ export interface FinancialHeroProps {
   imageAlt2?: string;
   className?: string;
 }
-
-const HERO_TRUST_PILLS = [
-  { icon: ShieldCheck, label: '99%+ purity' },
-  { icon: FileCheck2, label: 'COA per batch' },
-  { icon: MapPin, label: 'Shipped from AU' },
-];
 
 function useHeroMotionVariants(reduce: boolean | null) {
   if (reduce) {
@@ -176,22 +170,6 @@ export function FinancialHero({
               </Link>
             ) : null}
           </motion.div>
-
-          <motion.ul
-            variants={v.item}
-            className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-carbon-900/75 lg:justify-start"
-            aria-label="Quality highlights"
-          >
-            {HERO_TRUST_PILLS.map(({ icon: Icon, label }) => (
-              <li
-                key={label}
-                className="inline-flex items-center gap-2 rounded-full border border-carbon-900/15 bg-white/45 px-3 py-1.5 backdrop-blur-sm"
-              >
-                <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                {label}
-              </li>
-            ))}
-          </motion.ul>
         </div>
 
         <motion.div
