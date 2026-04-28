@@ -12,7 +12,10 @@ import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import type { Peptide } from '../data/peptides';
 import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
 import { getVariants } from '../data/productPricing';
-import { coaPdfFilenameForPeptide, coaPdfPublicUrl } from '../data/coaPdfs';
+import {
+  coaDownloadButtonLabel,
+  getCoaDownload,
+} from '../data/coaPdfs';
 import { CheckCircle } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -159,7 +162,7 @@ export default function COA() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEntries.map(({ key, peptide, variantId, title }) => {
-            const pdfFile = coaPdfFilenameForPeptide(peptide.id, variantId);
+            const coa = getCoaDownload(peptide.id, variantId);
             return (
               <Card key={key} padding="lg">
                 <div className="flex items-start justify-between mb-4">
@@ -199,19 +202,19 @@ export default function COA() {
                   </div>
                 </div>
 
-                {pdfFile ? (
+                {coa ? (
                   <Button
                     variant="accent"
                     size="md"
                     className="w-full"
-                    href={coaPdfPublicUrl(pdfFile)}
-                    download={pdfFile}
+                    href={coa.url}
+                    download={coa.filename}
                   >
-                    Download COA (PDF)
+                    {coaDownloadButtonLabel(coa.kind)}
                   </Button>
                 ) : (
                   <Button variant="outline" size="md" className="w-full" disabled>
-                    COA PDF coming soon
+                    Certificate coming soon
                   </Button>
                 )}
               </Card>

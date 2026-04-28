@@ -5,7 +5,7 @@
 import { peptides } from '../data/peptides';
 import { PRODUCT_COPY, PRODUCT_HEADLINE } from '../data/productContent';
 import { PRODUCT_VARIANTS, getDisplayPriceForPeptide } from '../data/productPricing';
-import { coaPdfFilenameForPeptide } from '../data/coaPdfs';
+import { getCoaDownload } from '../data/coaPdfs';
 
 interface ValidationIssue {
   severity: 'error' | 'warning';
@@ -45,9 +45,12 @@ export function validateProductData(): ValidationIssue[] {
       });
     }
 
-    // Check COA availability
-    const coaFile = coaPdfFilenameForPeptide(peptide.id);
-    if (!coaFile) {
+    // Check COA availability (PDF or PNG fallback path)
+    const coaLinked =
+      peptide.id === 'retatrutide'
+        ? getCoaDownload('retatrutide', '10mg')
+        : getCoaDownload(peptide.id);
+    if (!coaLinked) {
       issues.push({
         severity: 'warning',
         peptideId: peptide.id,

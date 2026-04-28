@@ -1,8 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { appendImageCacheVersion } from '../lib/imageUrl';
 import { supabase } from '../lib/supabase';
 import {
   PRODUCT_MAPPINGS,
   type ProductMapping,
+  CFG_CODE_TO_PEPTIDE_ID,
 } from '../data/productMappings';
 
 export type OrderStatus =
@@ -551,4 +553,84 @@ export async function deleteProductImageRecord(
   }
 
   return data as { success: boolean; storage_path?: string; error?: string };
+}
+
+type EmbeddedProductImages = {
+  id?: string;
+  image_url: string;
+  is_primary: boolean | null;
+  display_order: number | null;
+  updated_at?: string | null;
+};
+
+type ProductMappingImagesRow = {
+  cfg_code: string;
+  product_images: EmbeddedProductImages[] | EmbeddedProductImages | null;
+};
+
+function cacheVersionToken(row: EmbeddedProductImages): string {
+  const u = row.updated_at;
+  if (u) {
+    const ms = Date.parse(u);
+    if (!Number.isNaN(ms)) return String(ms);
+  }
+  const id = row.id?.trim();
+  if (id) return id;
+  return '0';
+}
+
+function pickBestProductImage(
+  raw: EmbeddedProductImages[] | EmbeddedProductImages | null | undefined
+): { url: string; versionToken: string } | null {
+  if (!raw) return null;
+  const arr = Array.isArray(raw) ? raw : [raw];
+  if (!arr.length) return null;
+  const sorted = [...arr].sort((a, b) => {
+    const ap = a.is_primary === true ? 1 : 0;
+    const bp = b.is_primary === true ? 1 : 0;
+    if (bp !== ap) return bp - ap;
+    return (a.display_order ?? 0) - (b.display_order ?? 0);
+  });
+  const chosen = sorted[0];
+  const url = chosen?.image_url?.trim();
+  if (!url) return null;
+  return {
+    url,
+    versionToken: cacheVersionToken(chosen),
+  };
+}
+
+/**
+ * Loads primary / first product image URLs keyed by storefront `peptide.id`.
+ * Used to override static `/images/products/` filenames after admin uploads in Product Editor.
+ */
+export async function fetchShopPrimaryImageOverrides(): Promise<
+  Record<string, string>
+> {
+  if (!supabase) return {};
+
+  const { data, error } = await supabase
+    .from('product_mappings')
+    .select(
+      'cfg_code, product_images ( id, image_url, is_primary, display_order, updated_at )'
+    )
+    .eq('is_active', true);
+
+  if (error) {
+    console.warn('[supabase] fetchShopPrimaryImageOverrides', error);
+    return {};
+  }
+
+  const out: Record<string, string> = {};
+  for (const row of (data ?? []) as ProductMappingImagesRow[]) {
+    const picked = pickBestProductImage(row.product_images);
+    if (!picked) continue;
+    const peptideId = CFG_CODE_TO_PEPTIDE_ID[row.cfg_code];
+    if (!peptideId) continue;
+    out[peptideId] = appendImageCacheVersion(
+      picked.url,
+      picked.versionToken
+    );
+  }
+  return out;
 }

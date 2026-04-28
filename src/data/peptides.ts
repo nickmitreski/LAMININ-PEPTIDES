@@ -244,7 +244,8 @@ export const peptides: Peptide[] = [
     category: 'Cognitive',
     libraryFilters: ['Cognitive'],
     purity: '99%+',
-    coaVerified: true,
+    /** No public COA file in repo yet; set true + map in coaPdfs when PDF/PNG is added. */
+    coaVerified: false,
     image: productImageFile(cfgProductFiles.cerebrolysin),
   },
   {

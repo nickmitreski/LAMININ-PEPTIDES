@@ -9,9 +9,12 @@ import {
 } from '../../data/featuredProducts';
 import { getProductSlug } from '../../data/productContent';
 import useScrollReveal from '../../hooks/useScrollReveal';
+import { useShopImages } from '../../context/ShopImagesContext';
+import ShopProductImage from '../ui/ShopProductImage';
 
 export default function FeaturedProducts() {
   const { ref, revealed } = useScrollReveal<HTMLDivElement>();
+  const { resolveDisplayImage } = useShopImages();
 
   return (
     <Section background="white" spacing="xl">
@@ -32,12 +35,15 @@ export default function FeaturedProducts() {
             className={`reveal reveal-delay-${Math.min(idx, 4)} group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1`}
           >
             <div className="mb-3 aspect-square overflow-hidden rounded-lg bg-neutral-50 sm:mb-4">
-              <img
-                src={product.image}
+              <ShopProductImage
+                src={resolveDisplayImage(
+                  product.peptideId,
+                  undefined,
+                  product.image
+                )}
                 alt={product.name}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
+                className="relative block h-full w-full"
+                imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
               />
             </div>
             <Label

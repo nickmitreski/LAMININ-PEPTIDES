@@ -3,6 +3,8 @@
  * For better LCP on slow networks, add optional `.webp` alongside PNG and use `<picture>` + `srcset`
  * (no WebP is bundled here so filenames stay predictable for static hosting).
  */
+import ShopProductImage from '../ui/ShopProductImage';
+
 interface ProductHeroVisualProps {
   imageSrc: string;
   productName: string;
@@ -24,13 +26,13 @@ export default function ProductHeroVisual({
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60 blur-3xl"
         />
-        <img
+        <ShopProductImage
           src={imageSrc}
           alt={`${productName} — laboratory vial`}
+          className="relative block w-full"
+          imgClassName="h-auto w-full max-h-[min(28rem,58vh)] object-contain object-center drop-shadow-[0_24px_40px_rgba(15,15,15,0.08)] transition-transform duration-500 ease-out motion-safe:hover:-translate-y-1 motion-reduce:transition-none"
           loading="eager"
-          decoding="async"
           fetchPriority="high"
-          className="h-auto w-full max-h-[min(28rem,58vh)] object-contain object-center drop-shadow-[0_24px_40px_rgba(15,15,15,0.08)] transition-transform duration-500 ease-out motion-safe:hover:-translate-y-1 motion-reduce:transition-none"
         />
       </div>
     </div>

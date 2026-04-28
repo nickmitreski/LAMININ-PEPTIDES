@@ -17,7 +17,8 @@
     "functions:deploy": "supabase functions deploy secure-checkout-init --no-verify-jwt",
     "e2e:smoke": "./scripts/e2e-smoke.sh",
     "smoke:secure-checkout": "./scripts/smoke-secure-checkout.sh",
-    "verify:coa": "node scripts/verify-coa-pdfs.mjs"
+    "verify:coa": "tsx scripts/verify-coa-assets.ts",
+    "verify:shop-images": "tsx scripts/verify-shop-images.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

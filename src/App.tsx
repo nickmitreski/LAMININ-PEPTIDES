@@ -14,6 +14,7 @@ import ProtectedRoute from './components/admin/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import EntryGate from './components/entry/EntryGate';
 import ChatLauncher from './components/chat/ChatLauncher';
+import { ShopImagesProvider } from './context/ShopImagesContext';
 
 const Home = lazy(() => import('./pages/Home'));
 const Library = lazy(() => import('./pages/Library'));
@@ -115,37 +116,55 @@ function App() {
                 <Route
                   path="/*"
                   element={
-                    <>
-                      <Header />
-                      <main id="main-content" tabIndex={-1} className="focus:outline-none">
-                        <Routes>
-                          <Route path="/" element={<Home />} />
-                          <Route path="/library" element={<Library />} />
-                          <Route path="/research" element={<ResearchLibrary />} />
-                          <Route path="/products/:slug" element={<ProductPage />} />
-                          <Route path="/faq" element={<FAQ />} />
-                          <Route path="/collection" element={<Navigate to="/faq" replace />} />
-                          <Route path="/coa" element={<COA />} />
-                          <Route path="/guarantee" element={<Guarantee />} />
-                          <Route path="/contact" element={<Contact />} />
-                          <Route path="/cart" element={<Cart />} />
-                          <Route path="/checkout" element={<Checkout />} />
-                          {/* CoreForge payment link page - temporarily disabled */}
-                          {/* <Route path="/pay" element={<Pay />} /> */}
-                        <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                        <Route path="/oops" element={<ErrorPage />} />
-                        <Route path="/privacy" element={<Privacy />} />
-                          <Route
-                            path="/terms-and-conditions"
-                            element={<Navigate to="/disclaimer" replace />}
-                          />
-                          <Route path="/disclaimer" element={<Disclaimer />} />
-                          <Route path="/shipping" element={<Shipping />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </main>
-                      <Footer />
-                    </>
+                    <ShopImagesProvider>
+                      <>
+                        <Header />
+                        <main
+                          id="main-content"
+                          tabIndex={-1}
+                          className="focus:outline-none"
+                        >
+                          <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/library" element={<Library />} />
+                            <Route
+                              path="/research"
+                              element={<ResearchLibrary />}
+                            />
+                            <Route
+                              path="/products/:slug"
+                              element={<ProductPage />}
+                            />
+                            <Route path="/faq" element={<FAQ />} />
+                            <Route
+                              path="/collection"
+                              element={<Navigate to="/faq" replace />}
+                            />
+                            <Route path="/coa" element={<COA />} />
+                            <Route path="/guarantee" element={<Guarantee />} />
+                            <Route path="/contact" element={<Contact />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            {/* CoreForge payment link page - temporarily disabled */}
+                            {/* <Route path="/pay" element={<Pay />} /> */}
+                            <Route
+                              path="/order-confirmation"
+                              element={<OrderConfirmation />}
+                            />
+                            <Route path="/oops" element={<ErrorPage />} />
+                            <Route path="/privacy" element={<Privacy />} />
+                            <Route
+                              path="/terms-and-conditions"
+                              element={<Navigate to="/disclaimer" replace />}
+                            />
+                            <Route path="/disclaimer" element={<Disclaimer />} />
+                            <Route path="/shipping" element={<Shipping />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </main>
+                        <Footer />
+                      </>
+                    </ShopImagesProvider>
                   }
                 />
               </Routes>

@@ -183,6 +183,15 @@ export const PEPTIDE_ID_TO_CFG: Record<string, string> = {
   klow: 'CFG-035',
 };
 
+/** Inverse map: CFG code → storefront `peptide.id` for shop image overrides. */
+export const CFG_CODE_TO_PEPTIDE_ID: Record<string, string> = (() => {
+  const rev: Record<string, string> = {};
+  for (const [peptideId, cfg] of Object.entries(PEPTIDE_ID_TO_CFG)) {
+    rev[cfg] = peptideId;
+  }
+  return rev;
+})();
+
 export function getCfgCodeForPeptideId(peptideId: string): string | null {
   return PEPTIDE_ID_TO_CFG[peptideId] ?? null;
 }

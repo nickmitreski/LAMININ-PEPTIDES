@@ -13,17 +13,16 @@ import ProductStickyAddToCart from '../components/products/ProductStickyAddToCar
 import SuggestedPeptides from '../components/products/SuggestedPeptides';
 import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
-import {
-  allPeptides,
-  getPeptideDisplayImage,
-  isLiquidAncillaryPeptide,
-} from '../data/peptides';
+import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
 import {
   getPeptideIdFromSlug,
   getProductCopy,
   getProductHeadline,
 } from '../data/productContent';
-import { coaPdfFilenameForPeptide, coaPdfPublicUrl } from '../data/coaPdfs';
+import {
+  coaDownloadButtonLabel,
+  getCoaDownload,
+} from '../data/coaPdfs';
 import {
   getDisplayPriceForPeptide,
   getDisplayPriceForVariant,
@@ -35,12 +34,14 @@ import { useToast } from '../context/ToastContext';
 import { ProductStructuredData } from '../components/seo/StructuredData';
 import { formatPrice } from '../lib/formatCurrency';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useShopImages } from '../context/ShopImagesContext';
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
+  const { resolveDisplayImage } = useShopImages();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
@@ -95,7 +96,7 @@ export default function ProductPage() {
     ? getDisplayPriceForVariant(peptide.id, effectiveVariantId)
     : getDisplayPriceForPeptide(peptide.id);
 
-  const coaFile = coaPdfFilenameForPeptide(
+  const coaDownload = getCoaDownload(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined
   );
@@ -105,7 +106,7 @@ export default function ProductPage() {
     peptide.id,
     variants?.length ? effectiveVariantId : undefined
   );
-  const displayImage = getPeptideDisplayImage(
+  const displayImage = resolveDisplayImage(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined,
     peptide.image
@@ -338,20 +339,20 @@ export default function ProductPage() {
                             View all COAs
                           </Button>
                         </Link>
-                        {coaFile && (
+                        {coaDownload && (
                           <Button
                             variant="accent"
                             size="md"
-                            href={coaPdfPublicUrl(coaFile)}
-                            download={coaFile}
+                            href={coaDownload.url}
+                            download={coaDownload.filename}
                           >
-                            Download COA (PDF)
+                            {coaDownloadButtonLabel(coaDownload.kind)}
                           </Button>
                         )}
                       </div>
-                      {!coaFile && (
+                      {!coaDownload && (
                         <Text variant="small" muted>
-                          A downloadable PDF for this line is not yet linked;
+                          A downloadable certificate for this line is not yet linked;
                           check the COA directory or contact us for the batch you
                           hold.
                         </Text>
