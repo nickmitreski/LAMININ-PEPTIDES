@@ -45,6 +45,12 @@ CREATE INDEX IF NOT EXISTS idx_discount_redemptions_order
 ALTER TABLE public.discount_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.discount_redemptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read active discount codes" ON public.discount_codes;
+DROP POLICY IF EXISTS "Admin full access to discount codes" ON public.discount_codes;
+DROP POLICY IF EXISTS "Anyone can insert discount redemptions" ON public.discount_redemptions;
+DROP POLICY IF EXISTS "Anyone can read discount redemptions" ON public.discount_redemptions;
+DROP POLICY IF EXISTS "Admin full access to discount redemptions" ON public.discount_redemptions;
+
 -- Public: anyone can validate a code (read active codes)
 CREATE POLICY "Anyone can read active discount codes"
   ON public.discount_codes FOR SELECT
@@ -80,6 +86,7 @@ CREATE OR REPLACE FUNCTION public.validate_discount_code(p_code TEXT, p_subtotal
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   v_row public.discount_codes%ROWTYPE;
@@ -146,6 +153,7 @@ CREATE OR REPLACE FUNCTION public.redeem_discount_code(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   v_row public.discount_codes%ROWTYPE;

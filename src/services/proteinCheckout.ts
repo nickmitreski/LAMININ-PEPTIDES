@@ -14,10 +14,9 @@ const LS_ORDER_KEY = 'laminin-checkout-orders';
 const LS_LAST_KEY = 'laminin-last-peptide-order-id';
 
 export function checkoutLog(message: string, data?: unknown): void {
+  if (import.meta.env.MODE === 'test' || !import.meta.env.DEV) return;
   const line = `[protein-checkout] ${message}`;
-  if (import.meta.env.DEV) {
-    console.log(line, data ?? '');
-  }
+  console.log(line, data ?? '');
 }
 
 export function generatePeptideOrderId(): string {

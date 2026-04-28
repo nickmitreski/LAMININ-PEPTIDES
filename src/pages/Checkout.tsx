@@ -221,14 +221,22 @@ export default function Checkout() {
         throw new Error(result.error || 'Failed to create order');
       }
 
-      // Redeem discount code if one was applied
+      // Redeem discount code if one was applied (must succeed or we surface it — count stays in sync)
       if (appliedDiscount?.valid && appliedDiscount.discount_code_id) {
-        redeemDiscountCode({
+        const redeemResult = await redeemDiscountCode({
           discountCodeId: appliedDiscount.discount_code_id,
           orderReference: orderRef,
           customerEmail: formData.email.trim() || undefined,
           discountAmount,
-        }).catch((err) => console.error('Discount redemption failed:', err));
+        });
+        if (!redeemResult.success) {
+          console.error('Discount redemption failed:', redeemResult.error);
+          showToast(
+            `Order created, but we could not register your discount (${redeemResult.error || 'unknown'}). Note your order reference ${orderRef} — contact us if needed.`,
+            'error',
+            10000
+          );
+        }
       }
 
       // Mark that customer will view payment instructions

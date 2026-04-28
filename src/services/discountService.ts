@@ -81,7 +81,14 @@ export async function redeemDiscountCode(params: {
     return { success: false, error: 'Could not redeem discount' };
   }
 
-  return data as { success: boolean; error?: string };
+  const result = data as { success?: boolean; error?: string };
+  if (result && typeof result.success === 'boolean') {
+    return {
+      success: result.success,
+      error: result.success ? undefined : result.error || 'Redemption declined',
+    };
+  }
+  return { success: false, error: 'Invalid response from redeem' };
 }
 
 // ---- Admin functions ----

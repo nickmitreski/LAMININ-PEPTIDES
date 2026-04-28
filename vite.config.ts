@@ -6,7 +6,9 @@ import react from '@vitejs/plugin-react';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  /** Vitest uses mode `test`. Suppress info/warn (e.g. esbuild vs oxc notices from `@vitejs/plugin-react`). */
+  logLevel: mode === 'test' ? 'error' : undefined,
   test: {
     environment: 'happy-dom',
     globals: false,
@@ -42,4 +44,4 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 300,
   },
-});
+}));
