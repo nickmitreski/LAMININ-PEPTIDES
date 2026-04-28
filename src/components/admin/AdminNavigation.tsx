@@ -6,6 +6,7 @@ import {
   CreditCard,
   Users,
   Mail,
+  Tag,
   LogOut,
 } from 'lucide-react';
 import Button from '../ui/Button';
@@ -45,6 +46,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Payments',
     icon: CreditCard,
     description: 'Track payments',
+  },
+  {
+    path: '/admin/discounts',
+    label: 'Discounts',
+    icon: Tag,
+    description: 'Manage discount codes',
   },
   {
     path: '/admin/customers',

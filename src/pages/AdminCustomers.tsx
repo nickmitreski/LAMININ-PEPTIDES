@@ -10,12 +10,19 @@ import {
   ShoppingBag,
   Trash2,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Calendar,
+  X,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllCustomers,
+  getAllOrders,
   deleteCustomerAndOrders,
+  type OrderReferenceRow,
 } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
@@ -43,6 +50,15 @@ interface Customer {
   created_at: string;
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  paid: 'bg-green-100 text-green-800',
+  processing: 'bg-blue-100 text-blue-800',
+  shipped: 'bg-purple-100 text-purple-800',
+  delivered: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800',
+};
+
 export default function AdminCustomers() {
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
@@ -52,6 +68,9 @@ export default function AdminCustomers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
+  const [customerOrders, setCustomerOrders] = useState<OrderReferenceRow[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
@@ -65,6 +84,32 @@ export default function AdminCustomers() {
       setLoading(false);
     }
   }, [showToast]);
+
+  const loadCustomerOrders = useCallback(async (email: string) => {
+    setOrdersLoading(true);
+    try {
+      const db = getAdminSupabase();
+      const allOrders = await getAllOrders(500, 0, db);
+      const filtered = allOrders.filter(
+        (o) => o.customer_email?.toLowerCase() === email.toLowerCase()
+      );
+      setCustomerOrders(filtered);
+    } catch {
+      showToast('Failed to load customer orders', 'error');
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [showToast]);
+
+  const toggleExpand = (email: string) => {
+    if (expandedCustomer === email) {
+      setExpandedCustomer(null);
+      setCustomerOrders([]);
+    } else {
+      setExpandedCustomer(email);
+      void loadCustomerOrders(email);
+    }
+  };
 
   useEffect(() => {
     void loadCustomers();
@@ -121,15 +166,25 @@ export default function AdminCustomers() {
 
       <Section spacing="lg">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
-            <Heading level={1} className="mb-2">
-              Customer management
+            <Heading level={1} className="mb-1">
+              Customers
             </Heading>
             <Text className="text-carbon-600">
-              Manage your customer database.
+              Customer database with order history. Click a row to expand.
             </Text>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void loadCustomers()}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
         {/* Stats */}
@@ -239,82 +294,118 @@ export default function AdminCustomers() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-carbon-200">
-                  {filteredCustomers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-carbon-50">
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-carbon-900">
-                            {customer.first_name} {customer.last_name}
-                          </span>
-                          <div className="flex items-center gap-1 text-sm text-carbon-600">
-                            <Mail className="w-3 h-3" />
-                            {customer.email}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {customer.phone && (
-                          <div className="flex items-center gap-1 text-sm text-carbon-600">
-                            <Phone className="w-3 h-3" />
-                            {customer.phone}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {customer.city && (
-                          <div className="flex items-center gap-1 text-sm text-carbon-600">
-                            <MapPin className="w-3 h-3" />
-                            {customer.city}
-                            {customer.state && `, ${customer.state}`}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-medium text-carbon-900">
-                          {customer.total_orders}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-medium text-carbon-900">
-                          {formatPrice(customer.total_spent)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {deleteConfirm === customer.email ? (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleDeleteCustomer(customer.email)}
-                              disabled={deleting}
-                              className="flex items-center gap-1"
-                            >
-                              <AlertTriangle className="w-3 h-3" />
-                              Confirm
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDeleteConfirm(null)}
-                              disabled={deleting}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeleteConfirm(customer.email)}
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  {filteredCustomers.map((customer) => {
+                    const isExpanded = expandedCustomer === customer.email;
+                    return (
+                      <tr key={customer.id} className="group">
+                        <td colSpan={6} className="p-0">
+                          {/* Main row */}
+                          <div
+                            className={`flex items-center cursor-pointer transition-colors px-6 py-4 ${isExpanded ? 'bg-accent-50' : 'hover:bg-carbon-50'}`}
+                            onClick={() => toggleExpand(customer.email)}
                           >
-                            <Trash2 className="w-3 h-3" />
-                            Delete
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                            <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-6 gap-3 items-center">
+                              <div className="sm:col-span-1">
+                                <span className="font-medium text-carbon-900">
+                                  {customer.first_name} {customer.last_name}
+                                </span>
+                                <div className="flex items-center gap-1 text-sm text-carbon-600">
+                                  <Mail className="w-3 h-3 flex-shrink-0" />
+                                  <span className="truncate">{customer.email}</span>
+                                </div>
+                              </div>
+                              <div className="sm:col-span-1">
+                                {customer.phone && (
+                                  <div className="flex items-center gap-1 text-sm text-carbon-600">
+                                    <Phone className="w-3 h-3" />
+                                    {customer.phone}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="sm:col-span-1">
+                                {customer.city && (
+                                  <div className="flex items-center gap-1 text-sm text-carbon-600">
+                                    <MapPin className="w-3 h-3" />
+                                    {customer.city}{customer.state && `, ${customer.state}`}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="sm:col-span-1">
+                                <span className="font-medium text-carbon-900">{customer.total_orders}</span>
+                                <span className="text-xs text-carbon-500 ml-1">orders</span>
+                              </div>
+                              <div className="sm:col-span-1">
+                                <span className="font-medium text-carbon-900">{formatPrice(customer.total_spent)}</span>
+                              </div>
+                              <div className="sm:col-span-1 flex items-center gap-2 justify-end">
+                                {deleteConfirm === customer.email ? (
+                                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="danger" size="sm" onClick={() => handleDeleteCustomer(customer.email)} disabled={deleting} className="flex items-center gap-1">
+                                      <AlertTriangle className="w-3 h-3" /> Confirm
+                                    </Button>
+                                    <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)} disabled={deleting}>Cancel</Button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(customer.email)} className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                                      <Trash2 className="w-3 h-3" /> Delete
+                                    </Button>
+                                  </div>
+                                )}
+                                {isExpanded ? <ChevronUp className="w-4 h-4 text-carbon-400" /> : <ChevronDown className="w-4 h-4 text-carbon-400" />}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Expanded order history */}
+                          {isExpanded && (
+                            <div className="border-t border-carbon-200 bg-grey/20 px-6 py-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <Text variant="small" weight="semibold" className="uppercase tracking-wider text-carbon-600">
+                                  Order history
+                                </Text>
+                                {customer.last_order_date && (
+                                  <Text variant="caption" muted className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Last order: {new Date(customer.last_order_date).toLocaleDateString('en-AU')}
+                                  </Text>
+                                )}
+                              </div>
+                              {ordersLoading ? (
+                                <div className="space-y-2">
+                                  {Array.from({ length: 2 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-10 w-full" />
+                                  ))}
+                                </div>
+                              ) : customerOrders.length === 0 ? (
+                                <Text variant="small" muted>No orders found for this customer.</Text>
+                              ) : (
+                                <div className="space-y-2">
+                                  {customerOrders.map((order) => (
+                                    <div
+                                      key={order.id}
+                                      className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-carbon-900/10 bg-white px-4 py-3"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <span className="font-mono text-sm font-medium text-carbon-900">{order.peptide_order_id}</span>
+                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] || 'bg-neutral-100 text-neutral-600'}`}>
+                                          {order.status}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-4 text-sm">
+                                        <span className="font-medium">{formatPrice(order.total_price ?? 0)}</span>
+                                        <span className="text-carbon-500">{new Date(order.created_at).toLocaleDateString('en-AU')}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -5,7 +5,7 @@ import {
   checkoutGstRate,
   expressShippingAud,
 } from '../lib/shippingPolicy';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Tag, X, Loader2 } from 'lucide-react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import CartSummary from '../components/cart/CartSummary';
@@ -23,6 +23,11 @@ import {
 import { sendOrderEmail } from '../services/emailService';
 import { formatPrice } from '../lib/formatCurrency';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import {
+  validateDiscountCode,
+  redeemDiscountCode,
+  type DiscountValidation,
+} from '../services/discountService';
 
 // Generate order reference: LM-[6 alphanumeric chars]
 function generateOrderReference(): string {
@@ -105,6 +110,12 @@ export default function Checkout() {
   const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
+  // Discount code state
+  const [discountInput, setDiscountInput] = useState('');
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<DiscountValidation | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -120,6 +131,36 @@ export default function Checkout() {
       });
     }
   };
+
+  const handleApplyDiscount = async () => {
+    const code = discountInput.trim();
+    if (!code) return;
+    setDiscountLoading(true);
+    setDiscountError('');
+    try {
+      const result = await validateDiscountCode(code, state.total);
+      if (result.valid) {
+        setAppliedDiscount(result);
+        setDiscountError('');
+        showToast(`Discount code "${result.code}" applied!`, 'success');
+      } else {
+        setDiscountError(result.error || 'Invalid code');
+        setAppliedDiscount(null);
+      }
+    } catch {
+      setDiscountError('Could not validate code');
+    } finally {
+      setDiscountLoading(false);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountInput('');
+    setDiscountError('');
+  };
+
+  const discountAmount = appliedDiscount?.discount_amount ?? 0;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -146,7 +187,7 @@ export default function Checkout() {
     try {
       const shipping = expressShippingAud(state.total);
       const tax = checkoutGstAmount(state.total, checkoutGstRate());
-      const grandTotal = state.total + shipping + tax;
+      const grandTotal = state.total + shipping + tax - discountAmount;
       const orderRef = generateOrderReference();
 
       // Create payment tracking record
@@ -178,6 +219,16 @@ export default function Checkout() {
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to create order');
+      }
+
+      // Redeem discount code if one was applied
+      if (appliedDiscount?.valid && appliedDiscount.discount_code_id) {
+        redeemDiscountCode({
+          discountCodeId: appliedDiscount.discount_code_id,
+          orderReference: orderRef,
+          customerEmail: formData.email.trim() || undefined,
+          discountAmount,
+        }).catch((err) => console.error('Discount redemption failed:', err));
       }
 
       // Mark that customer will view payment instructions
@@ -428,6 +479,70 @@ export default function Checkout() {
                     </p>
                   </div>
                 </Card>
+
+                {/* Discount Code */}
+                <Card padding="lg">
+                  <Heading level={5} className="mb-4">
+                    Discount code
+                  </Heading>
+                  {appliedDiscount?.valid ? (
+                    <div className="flex items-center justify-between rounded-sm border border-green-200 bg-green-50 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-green-700" />
+                        <span className="text-sm font-medium text-green-800">
+                          {appliedDiscount.code}
+                        </span>
+                        <span className="text-xs text-green-600">
+                          &minus;{formatPrice(discountAmount)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveDiscount}
+                        className="rounded p-1 text-green-600 transition-colors hover:bg-green-100 hover:text-green-800"
+                        aria-label="Remove discount code"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter code"
+                        value={discountInput}
+                        onChange={(e) => {
+                          setDiscountInput(e.target.value.toUpperCase());
+                          if (discountError) setDiscountError('');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void handleApplyDiscount();
+                          }
+                        }}
+                        disabled={isSubmitting || discountLoading}
+                        className="min-h-11 flex-1 rounded-sm border border-carbon-900/20 px-4 py-2.5 text-sm uppercase tracking-wider transition-colors placeholder:normal-case placeholder:tracking-normal focus:border-transparent focus:outline-none focus:ring-2 focus:ring-carbon-900 md:min-h-0"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="md"
+                        onClick={() => void handleApplyDiscount()}
+                        disabled={!discountInput.trim() || isSubmitting || discountLoading}
+                      >
+                        {discountLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          'Apply'
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                  {discountError && (
+                    <p className="mt-2 text-xs text-red-600">{discountError}</p>
+                  )}
+                </Card>
               </div>
 
               {/* Order Summary */}
@@ -470,6 +585,9 @@ export default function Checkout() {
                     subtotal={state.total}
                     shipping={shipping}
                     tax={tax}
+                    discount={discountAmount}
+                    discountCode={appliedDiscount?.code}
+                    onRemoveDiscount={appliedDiscount ? handleRemoveDiscount : undefined}
                     className="mb-6"
                   />
 

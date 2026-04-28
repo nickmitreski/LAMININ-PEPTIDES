@@ -10,7 +10,9 @@
  *   RESEND_TEST_RECIPIENT – Optional override inbox for staging/testing
  *   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN – optional; WhatsApp order alerts
  *   TWILIO_WHATSAPP_FROM – e.g. whatsapp:+61400000000 (Twilio WhatsApp sender)
+ *     Alternate secret name: TWILIO_FROM_NUMBER
  *   TWILIO_ORDER_NOTIFY_TO – e.g. whatsapp:+61400000001 (your phone for alerts)
+ *     Alternate secret name: ADMIN_WHATSAPP_NUMBER
  *   SUPABASE_URL         – Auto-provided
  *   SUPABASE_SERVICE_ROLE_KEY – Auto-provided
  *
@@ -164,6 +166,15 @@ Questions? Contact us at info@lamininpeplab.com.au`;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Twilio WhatsApp API expects whatsapp:+E164; accept bare +61… and legacy secret names. */
+function normalizeWhatsAppAddress(raw: string): string {
+  const s = raw.trim();
+  if (!s) return '';
+  if (s.toLowerCase().startsWith('whatsapp:')) return s;
+  if (s.startsWith('+')) return `whatsapp:${s}`;
+  return s;
+}
 
 async function sendTwilioWhatsAppOrderAlert(opts: {
   accountSid: string;
@@ -332,13 +343,21 @@ Deno.serve(async (req) => {
 
   const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
   const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-  const twilioFrom = Deno.env.get('TWILIO_WHATSAPP_FROM');
-  const twilioTo = Deno.env.get('TWILIO_ORDER_NOTIFY_TO');
+  const twilioFromRaw =
+    Deno.env.get('TWILIO_WHATSAPP_FROM')?.trim() ||
+    Deno.env.get('TWILIO_FROM_NUMBER')?.trim() ||
+    '';
+  const twilioToRaw =
+    Deno.env.get('TWILIO_ORDER_NOTIFY_TO')?.trim() ||
+    Deno.env.get('ADMIN_WHATSAPP_NUMBER')?.trim() ||
+    '';
+  const twilioFrom = normalizeWhatsAppAddress(twilioFromRaw);
+  const twilioTo = normalizeWhatsAppAddress(twilioToRaw);
   const twilioConfigured = !!(
     twilioSid?.trim() &&
     twilioToken?.trim() &&
-    twilioFrom?.trim() &&
-    twilioTo?.trim()
+    twilioFrom &&
+    twilioTo
   );
 
   let whatsappSent = false;
@@ -362,8 +381,8 @@ Deno.serve(async (req) => {
     const wa = await sendTwilioWhatsAppOrderAlert({
       accountSid: twilioSid,
       authToken: twilioToken,
-      from: twilioFrom.trim(),
-      to: twilioTo.trim(),
+      from: twilioFrom,
+      to: twilioTo,
       body: waBody,
     });
     whatsappSent = wa.ok;

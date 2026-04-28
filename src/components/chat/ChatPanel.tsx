@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { X, Minimize2, Send, Loader2, RotateCcw } from 'lucide-react';
 import Button from '../ui/Button';
 import { Text } from '../ui/Typography';
@@ -10,6 +11,7 @@ import {
   clearChatHistory,
   type ChatMessage,
 } from '../../services/chatService';
+import { suggestedPeptidesToLinks } from '../../lib/chatPeptideLinks';
 
 interface ChatPanelProps {
   onClose: () => void;
@@ -27,7 +29,6 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestedPeptides, setSuggestedPeptides] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const sessionId = useRef(getChatSessionId());
@@ -73,26 +74,26 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
-    setSuggestedPeptides([]);
 
     try {
       const result = await sendChatMessage(newMessages, sessionId.current);
 
       if (result.success && result.data) {
+        const chips = result.data.suggestedPeptides ?? [];
+        const suggestedLinks =
+          chips.length > 0 ? suggestedPeptidesToLinks(chips) : undefined;
+
         const assistantMessage: ChatMessage = {
           role: 'assistant',
           content: result.data.message,
           timestamp: Date.now(),
+          suggestedLinks:
+            suggestedLinks && suggestedLinks.length > 0 ? suggestedLinks : undefined,
         };
 
         const updatedMessages = [...newMessages, assistantMessage];
         setMessages(updatedMessages);
         saveChatHistory(updatedMessages);
-
-        // Set suggested peptides if any
-        if (result.data.suggestedPeptides && result.data.suggestedPeptides.length > 0) {
-          setSuggestedPeptides(result.data.suggestedPeptides);
-        }
       } else {
         const errorMessage: ChatMessage = {
           role: 'assistant',
@@ -131,7 +132,6 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
         timestamp: Date.now(),
       },
     ]);
-    setSuggestedPeptides([]);
   };
 
   return (
@@ -202,6 +202,33 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
               <Text variant="caption" className={msg.role === 'user' ? 'text-white' : 'text-carbon-900'}>
                 {msg.content}
               </Text>
+              {msg.role === 'assistant' &&
+                msg.suggestedLinks &&
+                msg.suggestedLinks.length > 0 && (
+                  <div
+                    role="group"
+                    aria-label="Related products"
+                    className="mt-2.5 flex flex-wrap gap-2 pt-2.5 border-t border-carbon-900/10"
+                  >
+                    {msg.suggestedLinks.map((link) => (
+                      <div key={link.href} className="flex flex-wrap items-center gap-1.5">
+                        <Link
+                          to={link.href}
+                          className="inline-flex items-center rounded-full bg-carbon-900 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-carbon-800 focus-visible:outline focus-visible:ring-2 focus-visible:ring-carbon-900"
+                        >
+                          {link.label}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleSend(`Tell me more about ${link.label}`)}
+                          className="text-[10px] font-medium text-carbon-900/60 underline-offset-2 hover:text-carbon-900 hover:underline"
+                        >
+                          Ask more
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
           </div>
         ))}
@@ -219,27 +246,6 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
 
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Suggested peptides chips */}
-      {suggestedPeptides.length > 0 && !isLoading && (
-        <div className="border-t border-carbon-900/10 px-4 py-3 bg-neutral-50">
-          <Text variant="caption" muted className="mb-2 block text-xs">
-            Explore these peptides:
-          </Text>
-          <div className="flex flex-wrap gap-2">
-            {suggestedPeptides.map((peptide, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSend(`Tell me more about ${peptide}`)}
-                className="px-3 py-1.5 bg-carbon-900 text-white text-xs font-medium rounded-full hover:bg-carbon-900/90 transition-colors touch-manipulation"
-              >
-                {peptide}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Suggested prompts (only show when no messages beyond welcome) */}
       {messages.length === 1 && !isLoading && (

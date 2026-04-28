@@ -82,6 +82,8 @@ When user shows interest in a goal or peptide, offer relevant chips:
 
 Return suggested peptides as: [CHIPS: peptide1, peptide2, peptide3]
 
+Use catalogue-style names matching the storefront where possible so quick links resolve (examples: “BPC-157”, “MOTS-c”, “Retatrutide”, “CJC-1295 + Ipamorelin”, “Selank”). Avoid vague chips like “blend” alone.
+
 ## KNOWLEDGE BASE
 `;
 

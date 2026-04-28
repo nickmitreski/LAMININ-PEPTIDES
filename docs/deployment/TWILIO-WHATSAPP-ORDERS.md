@@ -16,8 +16,8 @@ This is implemented inside the existing Supabase Edge Function **`send-order-ema
 |--------|---------|---------|
 | `TWILIO_ACCOUNT_SID` | `ACxxxxxxxx` | Twilio account SID |
 | `TWILIO_AUTH_TOKEN` | `xxxxxxxx` | Twilio auth token |
-| `TWILIO_WHATSAPP_FROM` | `whatsapp:+61412345678` | Your Twilio WhatsApp-enabled sender (must include `whatsapp:`) |
-| `TWILIO_ORDER_NOTIFY_TO` | `whatsapp:+61487654321` | **Your** phone number that should receive order alerts (must include `whatsapp:` and E.164 after it) |
+| `TWILIO_WHATSAPP_FROM` | `whatsapp:+61412345678` | Your Twilio WhatsApp-enabled sender (**alternate name:** `TWILIO_FROM_NUMBER`). Values starting with `+` get `whatsapp:` prepended automatically. |
+| `TWILIO_ORDER_NOTIFY_TO` | `whatsapp:+61487654321` | **Your** phone for order alerts (**alternate name:** `ADMIN_WHATSAPP_NUMBER`). Same `whatsapp:` / `+` behaviour as above. |
 
 Existing secrets (`RESEND_*`, `SUPABASE_*`) are unchanged.
 

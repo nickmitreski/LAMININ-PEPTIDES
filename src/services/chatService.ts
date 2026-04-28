@@ -1,9 +1,12 @@
 import { supabase } from '../lib/supabase';
+import type { ChatProductLink } from '../lib/chatPeptideLinks';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  /** Resolved product links shown under assistant replies (persisted with history). */
+  suggestedLinks?: ChatProductLink[];
 }
 
 export interface ChatResponse {
@@ -48,7 +51,7 @@ export async function sendChatMessage(
       success: true,
       data: {
         message: data.message,
-        suggestedPeptides: data.suggestedPeptides,
+        suggestedPeptides: data.suggestedPeptides as string[] | undefined,
         usage: data.usage,
       },
     };
