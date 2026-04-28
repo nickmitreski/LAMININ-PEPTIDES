@@ -2,8 +2,11 @@ import { supabase } from '../lib/supabase';
 
 interface SendOrderEmailParams {
   orderReference: string;
-  customerEmail: string;
+  /** Optional — edge function skips Resend when empty */
+  customerEmail?: string;
   customerName: string;
+  /** Shown in Twilio WhatsApp admin notification */
+  customerPhone?: string;
   totalAmount: number;
   currency?: string;
 }
@@ -32,8 +35,9 @@ export async function sendOrderEmail(params: SendOrderEmailParams): Promise<{
     const { data, error } = await supabase.functions.invoke('send-order-email', {
       body: {
         order_reference: params.orderReference,
-        customer_email: params.customerEmail,
+        customer_email: params.customerEmail ?? '',
         customer_name: params.customerName,
+        customer_phone: params.customerPhone ?? '',
         total_amount: params.totalAmount,
         currency: params.currency || 'AUD',
       },

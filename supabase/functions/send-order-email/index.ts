@@ -8,6 +8,9 @@
  *   RESEND_API_KEY       – Resend API key (re_xxxx)
  *   RESEND_FROM          – Verified sender email (e.g. orders@lamininpeptides.com)
  *   RESEND_TEST_RECIPIENT – Optional override inbox for staging/testing
+ *   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN – optional; WhatsApp order alerts
+ *   TWILIO_WHATSAPP_FROM – e.g. whatsapp:+61400000000 (Twilio WhatsApp sender)
+ *   TWILIO_ORDER_NOTIFY_TO – e.g. whatsapp:+61400000001 (your phone for alerts)
  *   SUPABASE_URL         – Auto-provided
  *   SUPABASE_SERVICE_ROLE_KEY – Auto-provided
  *
@@ -36,10 +39,13 @@ const BANK_NAME = 'MJCA Group';
 
 interface OrderEmailRequest {
   order_reference: string;
-  customer_email: string;
+  /** Optional — payment instructions email is skipped when missing or invalid */
+  customer_email?: string;
   customer_name: string;
   total_amount: number;
   currency?: string;
+  /** Customer phone (shown in admin WhatsApp alert) */
+  customer_phone?: string;
 }
 
 function formatMoney(amount: number, currency: string): string {
@@ -157,6 +163,47 @@ Orders are processed once payment has been received and confirmed. We will notif
 Questions? Contact us at info@lamininpeplab.com.au`;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function sendTwilioWhatsAppOrderAlert(opts: {
+  accountSid: string;
+  authToken: string;
+  from: string;
+  to: string;
+  body: string;
+}): Promise<{ ok: boolean; sid?: string; error?: string }> {
+  const url =
+    `https://api.twilio.com/2010-04-01/Accounts/${opts.accountSid}/Messages.json`;
+  const auth = btoa(`${opts.accountSid}:${opts.authToken}`);
+  const params = new URLSearchParams({
+    From: opts.from,
+    To: opts.to,
+    Body: opts.body,
+  });
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params.toString(),
+  });
+
+  const data = (await res.json().catch(() => null)) as {
+    sid?: string;
+    message?: string;
+    code?: number;
+  } | null;
+
+  if (!res.ok) {
+    const msg = data?.message || `Twilio HTTP ${res.status}`;
+    console.error('Twilio WhatsApp error:', msg, data);
+    return { ok: false, error: msg };
+  }
+  return { ok: true, sid: data?.sid };
+}
+
 Deno.serve(async (req) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
@@ -175,26 +222,44 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: false, error: 'Invalid JSON' }, 400);
   }
 
-  const { order_reference, customer_email, customer_name, total_amount, currency = 'AUD' } = body;
+  const {
+    order_reference,
+    customer_email,
+    customer_name,
+    customer_phone,
+    total_amount,
+    currency = 'AUD',
+  } = body;
 
-  if (!order_reference || !customer_email || !total_amount) {
-    return jsonResponse({ ok: false, error: 'Missing required fields: order_reference, customer_email, total_amount' }, 400);
+  if (
+    !order_reference ||
+    total_amount === undefined ||
+    total_amount === null ||
+    Number.isNaN(Number(total_amount))
+  ) {
+    return jsonResponse({ ok: false, error: 'Missing required fields: order_reference, total_amount' }, 400);
   }
 
-  // Check secrets
-  const resendKey = Deno.env.get('RESEND_API_KEY');
-  if (!resendKey) {
+  const trimmedEmail = typeof customer_email === 'string' ? customer_email.trim() : '';
+  const shouldSendEmail = EMAIL_RE.test(trimmedEmail);
+
+  if (shouldSendEmail && !Deno.env.get('RESEND_API_KEY')) {
     return jsonResponse({ ok: false, error: 'RESEND_API_KEY not configured' }, 500);
   }
 
+  const resendKey = Deno.env.get('RESEND_API_KEY');
   const fromEmail = Deno.env.get('RESEND_FROM') ?? 'onboarding@resend.dev';
   const testRecipientOverride = Deno.env.get('RESEND_TEST_RECIPIENT');
-  const routing = resolveEmailRouting(customer_email, testRecipientOverride);
+  const routing = shouldSendEmail
+    ? resolveEmailRouting(trimmedEmail, testRecipientOverride)
+    : {
+        deliveryEmail: '',
+        routedToTestInbox: false,
+      };
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  // Build email content
-  const amountFormatted = formatMoney(total_amount, currency);
+  const amountFormatted = formatMoney(Number(total_amount), currency);
   const templateVars = {
     customer_name: customer_name || 'Customer',
     order_reference,
@@ -208,43 +273,44 @@ Deno.serve(async (req) => {
   const htmlBody = buildEmailHtml(templateVars);
   const textBody = buildEmailText(templateVars);
 
-  // Send via Resend
   let resendId: string | null = null;
-  let emailStatus: 'sent' | 'failed' = 'failed';
+  let emailStatus: 'sent' | 'failed' | 'skipped' = shouldSendEmail ? 'failed' : 'skipped';
   let errorMessage: string | null = null;
 
-  try {
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [routing.deliveryEmail],
-        subject,
-        html: htmlBody,
-        text: textBody,
-      }),
-    });
+  if (shouldSendEmail && resendKey) {
+    try {
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [routing.deliveryEmail],
+          subject,
+          html: htmlBody,
+          text: textBody,
+        }),
+      });
 
-    const resendData = await resendRes.json().catch(() => null) as { id?: string; message?: string } | null;
+      const resendData =
+        await resendRes.json().catch(() => null) as { id?: string; message?: string } | null;
 
-    if (resendRes.ok && resendData?.id) {
-      resendId = resendData.id;
-      emailStatus = 'sent';
-    } else {
-      errorMessage = resendData?.message || `Resend returned ${resendRes.status}`;
-      console.error('Resend error:', errorMessage);
+      if (resendRes.ok && resendData?.id) {
+        resendId = resendData.id;
+        emailStatus = 'sent';
+      } else {
+        errorMessage = resendData?.message || `Resend returned ${resendRes.status}`;
+        console.error('Resend error:', errorMessage);
+      }
+    } catch (e) {
+      errorMessage = e instanceof Error ? e.message : 'Resend request failed';
+      console.error('Resend exception:', e);
     }
-  } catch (e) {
-    errorMessage = e instanceof Error ? e.message : 'Resend request failed';
-    console.error('Resend exception:', e);
   }
 
-  // Log to email_logs table
-  if (supabaseUrl && serviceKey) {
+  if (supabaseUrl && serviceKey && shouldSendEmail && routing.deliveryEmail) {
     try {
       const supabase = createClient(supabaseUrl, serviceKey);
       await supabase.rpc('log_email_sent', {
@@ -260,17 +326,68 @@ Deno.serve(async (req) => {
         p_error_message: errorMessage,
       });
     } catch (logErr) {
-      // Don't fail the request if logging fails — email was still sent
       console.error('Failed to log email:', logErr);
     }
   }
 
+  const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+  const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  const twilioFrom = Deno.env.get('TWILIO_WHATSAPP_FROM');
+  const twilioTo = Deno.env.get('TWILIO_ORDER_NOTIFY_TO');
+  const twilioConfigured = !!(
+    twilioSid?.trim() &&
+    twilioToken?.trim() &&
+    twilioFrom?.trim() &&
+    twilioTo?.trim()
+  );
+
+  let whatsappSent = false;
+  let whatsappError: string | null = null;
+  let whatsappSid: string | undefined;
+
+  const phoneLine =
+    typeof customer_phone === 'string' && customer_phone.trim()
+      ? customer_phone.trim()
+      : '—';
+
+  const waBody = [
+    `New order ${order_reference}`,
+    customer_name?.trim() || 'Customer',
+    `${amountFormatted} ${currency}`,
+    `Phone: ${phoneLine}`,
+    `Email: ${shouldSendEmail ? trimmedEmail : 'not provided'}`,
+  ].join('\n');
+
+  if (twilioConfigured && twilioSid && twilioToken && twilioFrom && twilioTo) {
+    const wa = await sendTwilioWhatsAppOrderAlert({
+      accountSid: twilioSid,
+      authToken: twilioToken,
+      from: twilioFrom.trim(),
+      to: twilioTo.trim(),
+      body: waBody,
+    });
+    whatsappSent = wa.ok;
+    whatsappError = wa.error ?? null;
+    whatsappSid = wa.sid;
+    if (!wa.ok) console.error('WhatsApp notify failed:', wa.error);
+  }
+
+  const emailOk = !shouldSendEmail || emailStatus === 'sent';
+  const whatsappOk = !twilioConfigured || whatsappSent;
+
+  const ok = emailOk && whatsappOk;
+
   return jsonResponse({
-    ok: emailStatus === 'sent',
+    ok,
     email_sent: emailStatus === 'sent',
+    email_skipped: emailStatus === 'skipped',
     resend_id: resendId,
-    delivered_to: routing.deliveryEmail,
-    routed_to_test_inbox: routing.routedToTestInbox,
+    delivered_to: shouldSendEmail ? routing.deliveryEmail : null,
+    routed_to_test_inbox: shouldSendEmail ? routing.routedToTestInbox : false,
     error: errorMessage,
+    whatsapp_sent: whatsappSent,
+    whatsapp_sid: whatsappSid ?? null,
+    whatsapp_error: whatsappError,
+    twilio_configured: twilioConfigured,
   });
 });

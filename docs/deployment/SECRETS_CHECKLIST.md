@@ -31,12 +31,24 @@ Configure these in: **Supabase Dashboard → Edge Functions → Secrets**
 ### **Optional Secrets**
 
 #### **Email Delivery (Resend)**
+
 - [ ] `RESEND_API_KEY` - Resend API key for email delivery
 - [ ] `RESEND_FROM` - From email address (e.g., `orders@yourdomain.com`)
   - **Status**: Not configured (SMS-only mode)
   - **Set these if you want email + SMS delivery**
 - [ ] `MOCK_EMAIL_DELIVERY` - Set to `true` to skip Resend even when `RESEND_API_KEY` is set (testing only)
   - **If `RESEND_API_KEY` is unset**, `secure-checkout-init` does not send email but still clears the “email pending” state so SMS-only checkout does not show a false “delivery pending” warning.
+
+#### **WhatsApp — new order ping (`send-order-email`)**
+
+Optional: notify **your** number when a storefront order is placed (`TWILIO_ORDER_NOTIFY_TO`). Uses the Messages API WhatsApp sender / recipient format (`whatsapp:+E164`).
+
+- [ ] `TWILIO_ACCOUNT_SID`
+- [ ] `TWILIO_AUTH_TOKEN`
+- [ ] `TWILIO_WHATSAPP_FROM` — Twilio WhatsApp-enabled sender (`whatsapp:+…`)
+- [ ] `TWILIO_ORDER_NOTIFY_TO` — Your phone for inbound alerts (`whatsapp:+…`)
+
+Details: **[TWILIO-WHATSAPP-ORDERS.md](./TWILIO-WHATSAPP-ORDERS.md)**.
 
 #### **Payment Link Integration**
 - [ ] `PAYMENT_LINK_CREATE_URL` - Partner payment link creation endpoint

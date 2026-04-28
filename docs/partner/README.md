@@ -14,6 +14,6 @@ Single entry point for **LAMININ / Lamin storefront** documentation that reflect
 | [TWO-BACKENDS-CHECKLIST.md](./TWO-BACKENDS-CHECKLIST.md) | **LAMIN vs partner:** secrets to set, what each side sends/receives, no Twilio path |
 | [VERCEL-DEPLOY.md](./VERCEL-DEPLOY.md) | **GitHub + Vercel:** env vars, Supabase Auth URLs, Edge Functions stay on Supabase |
 | [PARTNER-PRE-DEPLOY-GITHUB-BOLT.md](./PARTNER-PRE-DEPLOY-GITHUB-BOLT.md) | **Partner site:** before GitHub + Bolt — DB, Edge secrets, `FRONTEND_URL`, LAMIN `PAYMENT_LINK_*` |
-| [SQL — checkout_secure_sessions](../supabase/migrations/20260403120000_checkout_secure_sessions.sql) | Table for hashed codes + enriched line items |
+| [SQL — checkout_secure_sessions](../../supabase/migrations/20260403120000_checkout_secure_sessions.sql) | Table for hashed codes + enriched line items |
 
 Start with **SYSTEM-OVERVIEW**, then follow **SECURE-CHECKOUT-STEP-BY-STEP** when deploying Twilio/Resend and the Edge Function.

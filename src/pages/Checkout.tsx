@@ -183,23 +183,28 @@ export default function Checkout() {
       // Mark that customer will view payment instructions
       await markPaymentInstructionsViewed(orderRef);
 
-      // Send payment instruction email (non-blocking — don't fail checkout if email fails)
-      if (formData.email.trim()) {
-        sendOrderEmail({
-          orderReference: orderRef,
-          customerEmail: formData.email.trim(),
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          totalAmount: grandTotal,
-          currency: 'AUD',
-        }).catch((err) => console.error('Email send failed:', err));
-      }
+      // Payment instructions email + optional admin WhatsApp (via Edge Function — don't fail checkout)
+      sendOrderEmail({
+        orderReference: orderRef,
+        customerEmail: formData.email.trim() || undefined,
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        customerPhone: formData.phone.trim(),
+        totalAmount: grandTotal,
+        currency: 'AUD',
+      }).catch((err) => console.error('Post-checkout notifications failed:', err));
 
       // Show bank transfer modal
       setCurrentOrderReference(orderRef);
       setCurrentTotalAmount(grandTotal);
       setBankTransferModalOpen(true);
 
-      showToast('Order created! Check your email for payment instructions.', 'success', 6000);
+      showToast(
+        formData.email.trim()
+          ? 'Order created! Check your email for payment instructions.'
+          : 'Order created! Save your order reference and complete payment using the instructions below.',
+        'success',
+        6000
+      );
     } catch (err) {
       console.error('Checkout error:', err);
       showToast(

@@ -33,55 +33,19 @@ npm run preview
 
 ---
 
-## 📚 Documentation
+## Documentation
 
-Complete documentation system to help you understand and modify the project:
+Project notes, runbooks, and admin guides live under **[`docs/`](docs/README.md)** (`docs/README.md` is the index).
 
-### Core Documentation
-
-- **[PROJECT-ARCHITECTURE.md](DOCUMENTATION/PROJECT-ARCHITECTURE.md)**
-  - Complete system guide
-  - Directory structure
-  - Design system (colors, typography, spacing)
-  - Component hierarchy
-  - Build process
-
-- **[FILE-RELATIONSHIPS.md](DOCUMENTATION/FILE-RELATIONSHIPS.md)**
-  - Complete dependency map
-  - Import/export chains
-  - Impact analysis ("what breaks if I change X?")
-  - Safe-to-delete file list
-
-- **[COMPONENT-API.md](DOCUMENTATION/COMPONENT-API.md)**
-  - Detailed API for every component
-  - Props documentation
-  - Usage examples
-  - Best practices
-
-- **[DESIGN-GUIDELINES.md](DOCUMENTATION/DESIGN-GUIDELINES.md)**
-  - When to use which colors
-  - Typography rules
-  - Button usage
-  - Spacing guidelines
-  - Common mistakes to avoid
-
-- **[HOW-TO-GUIDES.md](DOCUMENTATION/HOW-TO-GUIDES.md)**
-  - Step-by-step instructions
-  - Common tasks (change text, add sections, etc.)
-  - Troubleshooting
-  - Deployment guide
-
-### Additional Documentation
-
-- **[COMPREHENSIVE-AUDIT.md](COMPREHENSIVE-AUDIT.md)**
-  - Complete project audit
-  - Issues identified
-  - Recommendations
-
-- **[FIX-PLAN.md](FIX-PLAN.md)**
-  - Detailed fix implementation plan
-  - Priority order
-  - Expected outcomes
+| Area | Path |
+|------|------|
+| Deployment & secrets | [`docs/deployment/`](docs/deployment/) |
+| Supabase | [`docs/supabase/`](docs/supabase/) |
+| Admin & product tools | [`docs/admin/`](docs/admin/) |
+| Partner / legacy integration | [`docs/partner/`](docs/partner/) |
+| Archive (session notes) | [`docs/archive/`](docs/archive/) |
+| Quality (COA PDF map) | [`docs/quality/COA-COVERAGE.md`](docs/quality/COA-COVERAGE.md) |
+| Order alerts (Twilio WhatsApp) | [`docs/deployment/TWILIO-WHATSAPP-ORDERS.md`](docs/deployment/TWILIO-WHATSAPP-ORDERS.md) |
 
 ---
 
@@ -134,7 +98,7 @@ All components built with:
 │   ├── App.tsx           # Main app with routing
 │   └── main.tsx          # Entry point
 │
-├── DOCUMENTATION/        # Complete documentation system
+├── docs/                 # Guides and runbooks (indexed in docs/README.md)
 │
 └── Configuration files
 ```

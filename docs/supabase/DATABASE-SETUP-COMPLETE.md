@@ -241,7 +241,7 @@ All setup documentation is available in:
 
 - **`SUPABASE-SETUP.md`** - Complete setup guide
 - **`DEPLOYMENT-CHECKLIST.md`** - Production deployment steps
-- **`SUPABASE-INTEGRATION-SUMMARY.md`** - Quick reference
+- **`SUPABASE-INTEGRATION.md`** - Quick reference
 
 ---
 

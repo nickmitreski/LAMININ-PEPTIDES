@@ -4,7 +4,7 @@
  *
  * Catalogue entries without a row here (and no Retatrutide variant PDF) show
  * “COA PDF coming soon” until a file is added and registered.
- * Missing today (examples): melanotan-1/2, ss-31, igf-1-lr3, cerebrolysin, foxo4-dri, glutathione.
+ * Not yet mapped (no PDF in this folder): melanotan-1, melanotan-2, ss-31, igf-1-lr3, cerebrolysin, foxo4-dri, glutathione. Run `npm run verify:coa` to confirm files on disk match this map.
  */
 /** Retatrutide variants share storefront peptide id `retatrutide` / partner **CFG-023**; COA PDF per strength. */
 const RETATRUTIDE_COA_BY_VARIANT: Record<string, string> = {
