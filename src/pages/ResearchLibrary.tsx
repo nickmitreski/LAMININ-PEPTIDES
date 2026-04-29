@@ -134,7 +134,7 @@ export default function ResearchLibrary() {
     <div className="min-h-screen bg-platinum">
       {/* Hero */}
       <Section background="white" spacing="sm">
-        <div className="mx-auto max-w-5xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm backdrop-blur-sm sm:px-10 sm:py-12">
+        <div className="mx-auto max-w-6xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm backdrop-blur-sm sm:px-10 sm:py-12">
           <PageTopBanner
             title="Peptide science"
             subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."

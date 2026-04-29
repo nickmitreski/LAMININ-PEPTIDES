@@ -13,6 +13,18 @@ interface State {
   error?: Error;
 }
 
+const CHUNK_RELOAD_GUARD_KEY = 'laminin_chunk_reload_attempted_v1';
+
+function isLikelyChunkLoadError(error: Error): boolean {
+  const text = `${error?.name ?? ''} ${error?.message ?? ''}`.toLowerCase();
+  return (
+    text.includes('loading chunk') ||
+    text.includes('failed to fetch dynamically imported module') ||
+    text.includes('importing a module script failed') ||
+    text.includes('chunkloaderror')
+  );
+}
+
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -25,6 +37,28 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+
+    // Post-deploy stale chunks can throw once on first navigation. Automatically
+    // reload exactly once to recover without user friction.
+    if (isLikelyChunkLoadError(error)) {
+      try {
+        const alreadyRetried = sessionStorage.getItem(CHUNK_RELOAD_GUARD_KEY) === '1';
+        if (!alreadyRetried) {
+          sessionStorage.setItem(CHUNK_RELOAD_GUARD_KEY, '1');
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // ignore storage access issues and show fallback
+      }
+    } else {
+      // Reset the one-time guard for non-chunk errors.
+      try {
+        sessionStorage.removeItem(CHUNK_RELOAD_GUARD_KEY);
+      } catch {
+        // ignore
+      }
+    }
   }
 
   render() {
