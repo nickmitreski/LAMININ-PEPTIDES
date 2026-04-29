@@ -270,11 +270,23 @@ Deno.serve(async (req) => {
     const mockSms = Deno.env.get('MOCK_SMS_DELIVERY') === 'true';
     const brand = Deno.env.get('CHECKOUT_DELIVERY_BRAND')?.trim() || 'Laminin';
     const smsBody = `Thank you for your order from ${brand}. Your order reference ID is ${ref}.`;
+    const callbackBase =
+      Deno.env.get('TWILIO_STATUS_CALLBACK_URL')?.trim() ||
+      `${supabaseUrl}/functions/v1/twilio-status-callback`;
+    const callbackToken = Deno.env.get('TWILIO_STATUS_CALLBACK_TOKEN')?.trim();
+    const statusCallbackUrl = callbackToken
+      ? `${callbackBase}${callbackBase.includes('?') ? '&' : '?'}token=${encodeURIComponent(
+          callbackToken
+        )}&tracking_id=${encodeURIComponent(trackingId)}`
+      : `${callbackBase}${callbackBase.includes('?') ? '&' : '?'}tracking_id=${encodeURIComponent(
+          trackingId
+        )}`;
 
     const smsResult = await sendTwilioSms({
       toE164: phone,
       body: smsBody,
       mock: mockSms,
+      statusCallbackUrl,
     });
 
     await writeSmsLog(supabaseUrl, serviceKey, {

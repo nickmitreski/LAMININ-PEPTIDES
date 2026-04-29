@@ -53,6 +53,7 @@ export async function sendTwilioSms(params: {
   toE164: string;
   body: string;
   mock: boolean;
+  statusCallbackUrl?: string;
 }): Promise<TwilioSmsResult> {
   if (params.mock) {
     const useWa = Deno.env.get('TWILIO_USE_WHATSAPP') === 'true';
@@ -100,6 +101,9 @@ export async function sendTwilioSms(params: {
     }
     form.set('To', toAddress);
     form.set('Body', params.body);
+    if (params.statusCallbackUrl?.trim()) {
+      form.set('StatusCallback', params.statusCallbackUrl.trim());
+    }
     const tr = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
       method: 'POST',
       headers: {
