@@ -77,11 +77,40 @@ const rows = (data ?? []) as Row[];
 let withUrl = 0;
 let mappedPeptide = 0;
 const samples: string[] = [];
+const missingImageCfgCodes: string[] = [];
+const brokenImageUrls: Array<{ cfg: string; url: string; reason: string }> = [];
+
+async function canLoadImage(url: string): Promise<{ ok: boolean; reason?: string }> {
+  // Prefer HEAD; if storage/proxy disallows it, fall back to GET.
+  try {
+    const headRes = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+    if (headRes.ok) return { ok: true };
+    if (headRes.status !== 405 && headRes.status !== 403) {
+      return { ok: false, reason: `HEAD ${headRes.status}` };
+    }
+  } catch {
+    // ignore and try GET fallback
+  }
+
+  try {
+    const getRes = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (getRes.ok) return { ok: true };
+    return { ok: false, reason: `GET ${getRes.status}` };
+  } catch (e) {
+    return {
+      ok: false,
+      reason: e instanceof Error ? e.message : 'network_error',
+    };
+  }
+}
 
 for (const row of rows) {
   const imgs = row.product_images;
   const arr = Array.isArray(imgs) ? imgs : imgs ? [imgs] : [];
-  if (!arr.length) continue;
+  if (!arr.length) {
+    missingImageCfgCodes.push(row.cfg_code);
+    continue;
+  }
   const sorted = [...arr].sort((a: { is_primary?: boolean; display_order?: number }, b) => {
     const ap = a.is_primary === true ? 1 : 0;
     const bp = b.is_primary === true ? 1 : 0;
@@ -92,6 +121,14 @@ for (const row of rows) {
   const imageUrl = typeof top?.image_url === 'string' ? top.image_url.trim() : '';
   if (!imageUrl) continue;
   withUrl++;
+  const load = await canLoadImage(imageUrl);
+  if (!load.ok) {
+    brokenImageUrls.push({
+      cfg: row.cfg_code,
+      url: imageUrl,
+      reason: load.reason ?? 'load_failed',
+    });
+  }
   const peptideId = CFG_CODE_TO_PEPTIDE_ID[row.cfg_code];
   if (peptideId) {
     mappedPeptide++;
@@ -107,6 +144,7 @@ console.log(`OK: anon client @ ${host}`);
 console.log(`    Active product_mappings rows returned: ${rows.length}`);
 console.log(`    Rows with at least one image URL: ${withUrl}`);
 console.log(`    Those with known cfg → peptide id map: ${mappedPeptide}`);
+console.log(`    Broken image URLs (HTTP/load check): ${brokenImageUrls.length}`);
 if (samples.length) {
   console.log('\nSample overrides (truncated URLs):');
   for (const s of samples) console.log(`  • ${s}`);
@@ -162,6 +200,19 @@ if (unmappedWithUrl.length) {
   console.warn(
     `\n⚠ Image URL present but cfg not in storefront map (wrong/missing peptide id): ${unmappedWithUrl.join(', ')}`
   );
+}
+
+if (missingImageCfgCodes.length) {
+  console.warn(
+    `\n⚠ Active mappings with no uploaded image: ${missingImageCfgCodes.join(', ')}`
+  );
+}
+
+if (brokenImageUrls.length) {
+  console.warn('\n⚠ Broken image URL(s):');
+  for (const b of brokenImageUrls.slice(0, 20)) {
+    console.warn(`  • ${b.cfg}: ${b.reason} -> ${b.url}`);
+  }
 }
 
 console.log(

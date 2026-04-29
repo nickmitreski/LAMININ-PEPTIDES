@@ -488,13 +488,31 @@ export async function getAllProductMappings(
   return data;
 }
 
+export type AdminProductWithImages = {
+  id: string;
+  cfg_code: string;
+  peptide_name: string;
+  protein_name: string;
+  description?: string | null;
+  price: number;
+  category?: string | null;
+  is_active: boolean;
+  stock_quantity?: number | null;
+  low_stock_threshold?: number | null;
+  track_inventory?: boolean | null;
+  compare_at_price?: number | null;
+  sale_label?: string | null;
+  sort_order?: number | null;
+  images?: Array<Record<string, unknown>> | null;
+};
+
 /** Admin: Get product with images */
 export async function getProductWithImages(
   productId: string,
   client: SupabaseClient | null = supabase
 ): Promise<{
   success: boolean;
-  product?: any;
+  product?: AdminProductWithImages;
   error?: string;
 }> {
   if (!client) return { success: false, error: 'No database client' };
@@ -508,7 +526,11 @@ export async function getProductWithImages(
     return { success: false, error: error.message };
   }
 
-  return data as { success: boolean; product?: any; error?: string };
+  return data as {
+    success: boolean;
+    product?: AdminProductWithImages;
+    error?: string;
+  };
 }
 
 /** Admin: Update product */

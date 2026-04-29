@@ -179,6 +179,7 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useShopImages(): ShopImagesContextValue {
   const ctx = useContext(ShopImagesContext);
   if (!ctx) {

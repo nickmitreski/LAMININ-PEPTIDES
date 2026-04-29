@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   X,
   Upload,
@@ -89,12 +89,7 @@ export default function ProductEditor({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Load product data
-  useEffect(() => {
-    loadProduct();
-  }, [productId]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -102,7 +97,23 @@ export default function ProductEditor({
       const result = await getProductWithImages(productId, getAdminSupabase());
 
       if (result.success && result.product) {
-        const prod = result.product;
+        const prod: Product = {
+          id: result.product.id,
+          cfg_code: result.product.cfg_code,
+          peptide_name: result.product.peptide_name,
+          protein_name: result.product.protein_name,
+          description: result.product.description ?? undefined,
+          price: result.product.price,
+          category: result.product.category ?? undefined,
+          is_active: result.product.is_active,
+          stock_quantity: result.product.stock_quantity ?? undefined,
+          low_stock_threshold: result.product.low_stock_threshold ?? undefined,
+          track_inventory: result.product.track_inventory ?? undefined,
+          compare_at_price: result.product.compare_at_price ?? undefined,
+          sale_label: result.product.sale_label ?? undefined,
+          sort_order: result.product.sort_order ?? undefined,
+          images: (result.product.images as ProductImage[] | null) ?? undefined,
+        };
         setProduct(prod);
         setPeptideName(prod.peptide_name || '');
         setProteinName(prod.protein_name || '');
@@ -125,7 +136,12 @@ export default function ProductEditor({
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
+
+  // Load product data
+  useEffect(() => {
+    loadProduct();
+  }, [loadProduct]);
 
   const handleSave = async () => {
     setSaving(true);
