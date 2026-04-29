@@ -41,7 +41,7 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
-  const { resolveDisplayImage } = useShopImages();
+  const { resolveDisplayImage, resolveSaleInfo, isProductActive } = useShopImages();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
@@ -68,14 +68,18 @@ export default function ProductPage() {
     copy?.metaDescription
   );
 
-  if (!slug || !peptide || !copy) {
+  const productActive = peptide ? isProductActive(peptide.id) : true;
+
+  if (!slug || !peptide || !copy || !productActive) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 py-24">
         <Heading level={4} className="mb-4">
-          Product not found
+          {!productActive ? 'Product unavailable' : 'Product not found'}
         </Heading>
         <Text variant="small" muted className="mb-6 text-center max-w-md">
-          This compound page does not exist or the link may be incorrect.
+          {!productActive
+            ? 'This product is currently unavailable. Please browse our catalogue for alternatives.'
+            : 'This compound page does not exist or the link may be incorrect.'}
         </Text>
         <Link to="/library">
           <Button variant="primary" size="md">
@@ -86,6 +90,7 @@ export default function ProductPage() {
     );
   }
 
+  const saleInfo = resolveSaleInfo(peptide.id);
   const variants = getVariants(peptide.id);
   const effectiveVariantId = variants?.length
     ? (selectedVariantId ?? variants[0].id)
@@ -222,14 +227,33 @@ export default function ProductPage() {
 
               <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-6 sm:gap-y-2">
                 {priceLine ? (
-                  <Text
-                    as="span"
-                    variant="lead"
-                    weight="medium"
-                    className="text-carbon-900"
-                  >
-                    {priceLine}
-                  </Text>
+                  saleInfo ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg text-carbon-400 line-through">
+                        ${saleInfo.compareAtPrice.toFixed(2)}
+                      </span>
+                      <Text
+                        as="span"
+                        variant="lead"
+                        weight="medium"
+                        className="text-2xl font-bold text-red-600"
+                      >
+                        {priceLine}
+                      </Text>
+                      <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-bold uppercase text-white">
+                        {saleInfo.saleLabel || 'SALE'}
+                      </span>
+                    </div>
+                  ) : (
+                    <Text
+                      as="span"
+                      variant="lead"
+                      weight="medium"
+                      className="text-carbon-900"
+                    >
+                      {priceLine}
+                    </Text>
+                  )
                 ) : (
                   <Text variant="small" muted>
                     Contact for current pricing

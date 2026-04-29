@@ -1,5 +1,5 @@
-import { X, Mail, Phone, MapPin, Package } from 'lucide-react';
-import type { OrderReferenceRow } from '../../services/supabaseService';
+import { X, Mail, Phone, MapPin, Package, DollarSign, CreditCard } from 'lucide-react';
+import type { OrderReferenceRow, PaymentTrackingRow } from '../../services/supabaseService';
 import { Heading, Text } from '../ui/Typography';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
@@ -7,10 +7,12 @@ import { formatPrice } from '../../lib/formatCurrency';
 
 interface OrderDetailsModalProps {
   order: OrderReferenceRow;
+  paymentTracking?: PaymentTrackingRow | null;
+  onPaymentAction?: (action: 'mark_paid' | 'archive', trackingId: string) => void;
   onClose: () => void;
 }
 
-export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
+export default function OrderDetailsModal({ order, paymentTracking, onPaymentAction, onClose }: OrderDetailsModalProps) {
   const peptideItems = Array.isArray(order.peptide_items)
     ? order.peptide_items
     : [];
@@ -155,7 +157,7 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
             </Heading>
             <div className="space-y-3">
               {peptideItems.length > 0 ? (
-                peptideItems.map((item: any, idx: number) => (
+                peptideItems.map((item: Record<string, unknown>, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between rounded-sm border border-carbon-900/10 p-3"
@@ -186,6 +188,27 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
             </div>
           </Card>
 
+          {/* Discount Section */}
+          {order.discount_code && (
+            <Card padding="lg" className="bg-green-50 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Text variant="small" weight="medium" className="text-green-800">
+                    Discount applied
+                  </Text>
+                  <Text variant="caption" className="mt-1 font-mono text-green-700">
+                    {order.discount_code}
+                  </Text>
+                </div>
+                {order.discount_amount != null && order.discount_amount > 0 && (
+                  <Text variant="small" weight="semibold" className="text-green-800">
+                    -{formatPrice(order.discount_amount)}
+                  </Text>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Notes Section */}
           {order.notes && (
             <Card padding="lg" className="bg-grey/20">
@@ -196,6 +219,61 @@ export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalP
                 {order.notes}
               </Text>
             </Card>
+          )}
+
+          {/* Payment Tracking Section */}
+          {paymentTracking && (
+            <div className="mt-6 rounded-lg border border-carbon-900/10 bg-grey/20 p-4">
+              <h4 className="mb-3 text-sm font-semibold text-carbon-900 flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Payment Tracking
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-carbon-600">Status</span>
+                  <span className="font-medium">
+                    {paymentTracking.payment_status === 'payment_received' ? (
+                      <span className="text-green-700">Paid</span>
+                    ) : paymentTracking.payment_status === 'viewed_instructions' ? (
+                      <span className="text-blue-700">Viewed instructions</span>
+                    ) : (
+                      <span className="text-amber-700">Pending</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-carbon-600">Amount</span>
+                  <span className="font-medium">${paymentTracking.total_amount.toFixed(2)} {paymentTracking.currency}</span>
+                </div>
+                {paymentTracking.payment_viewed_at && (
+                  <div className="flex justify-between">
+                    <span className="text-carbon-600">Instructions viewed</span>
+                    <span>{new Date(paymentTracking.payment_viewed_at).toLocaleString()}</span>
+                  </div>
+                )}
+                {paymentTracking.payment_completed_at && (
+                  <div className="flex justify-between">
+                    <span className="text-carbon-600">Payment received</span>
+                    <span>{new Date(paymentTracking.payment_completed_at).toLocaleString()}</span>
+                  </div>
+                )}
+                {paymentTracking.admin_notes && (
+                  <div className="mt-2 rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-900">
+                    <strong>Notes:</strong> {paymentTracking.admin_notes}
+                  </div>
+                )}
+                {paymentTracking.payment_status !== 'payment_received' && onPaymentAction && (
+                  <button
+                    type="button"
+                    onClick={() => onPaymentAction('mark_paid', paymentTracking.id)}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-sm bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+                  >
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Mark as Paid
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </div>
 

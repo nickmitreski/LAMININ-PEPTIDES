@@ -33,6 +33,8 @@ export interface OrderReferenceRow {
   total_price: number | null;
   peptide_items: unknown;
   protein_items: unknown;
+  discount_code: string | null;
+  discount_amount: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -401,6 +403,12 @@ export async function getAllProductMappings(
     protein_name: string;
     price: number;
     is_active: boolean;
+    compare_at_price: number | null;
+    sale_label: string | null;
+    sort_order: number;
+    description: string | null;
+    category: string | null;
+    stock_quantity: number;
     created_at: string;
     updated_at: string;
   }>
@@ -456,6 +464,11 @@ export async function updateProduct(
     stock_quantity?: number;
     low_stock_threshold?: number;
     track_inventory?: boolean;
+    compare_at_price?: number | null;
+    sale_label?: string | null;
+    sort_order?: number;
+    clear_compare_at_price?: boolean;
+    clear_sale_label?: boolean;
   },
   client: SupabaseClient | null = supabase
 ): Promise<{ success: boolean; error?: string }> {
@@ -472,6 +485,11 @@ export async function updateProduct(
     p_stock_quantity: updates.stock_quantity !== undefined ? updates.stock_quantity : null,
     p_low_stock_threshold: updates.low_stock_threshold || null,
     p_track_inventory: updates.track_inventory !== undefined ? updates.track_inventory : null,
+    p_compare_at_price: updates.compare_at_price ?? null,
+    p_sale_label: updates.sale_label ?? null,
+    p_sort_order: updates.sort_order ?? null,
+    p_clear_compare_at_price: updates.clear_compare_at_price ?? false,
+    p_clear_sale_label: updates.clear_sale_label ?? false,
   });
 
   if (error) {
@@ -631,6 +649,226 @@ export async function fetchShopPrimaryImageOverrides(): Promise<
       picked.url,
       picked.versionToken
     );
+  }
+  return out;
+}
+
+// =====================================================================
+// Payment Tracking (for merged Orders+Payments view)
+// =====================================================================
+
+export interface PaymentTrackingRow {
+  id: string;
+  order_reference: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_address: Record<string, string> | null;
+  cart_items: Array<{ id: string; name: string; price: number; quantity: number; image?: string }>;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total_amount: number;
+  currency: string;
+  payment_status: string;
+  payment_viewed_at: string | null;
+  payment_completed_at: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Fetch all payment tracking rows, keyed by order_reference */
+export async function getPaymentTrackingMap(
+  client: SupabaseClient | null
+): Promise<Map<string, PaymentTrackingRow>> {
+  const map = new Map<string, PaymentTrackingRow>();
+  if (!client) return map;
+
+  const { data, error } = await client
+    .from('payment_tracking')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    console.error('[supabase] getPaymentTrackingMap', error);
+    return map;
+  }
+
+  for (const row of data as PaymentTrackingRow[]) {
+    map.set(row.order_reference, row);
+  }
+  return map;
+}
+
+/** Admin: mark a payment as received */
+export async function markPaymentReceived(
+  trackingId: string,
+  adminEmail: string,
+  notes: string | null,
+  client: SupabaseClient | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+
+  const { error } = await client.rpc('mark_payment_received', {
+    p_tracking_id: trackingId,
+    p_admin_email: adminEmail,
+    p_notes: notes,
+  });
+
+  if (error) {
+    console.error('[supabase] markPaymentReceived', error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+/** Admin: archive a completed payment */
+export async function archivePayment(
+  trackingId: string,
+  adminEmail: string,
+  client: SupabaseClient | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+
+  const { error } = await client.rpc('archive_payment', {
+    p_tracking_id: trackingId,
+    p_admin_email: adminEmail,
+  });
+
+  if (error) {
+    console.error('[supabase] archivePayment', error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+// =====================================================================
+// Product Create / Delete
+// =====================================================================
+
+export async function createProduct(
+  data: {
+    cfg_code: string;
+    peptide_name: string;
+    protein_name?: string;
+    price?: number;
+    description?: string;
+    category?: string;
+    is_active?: boolean;
+    stock_quantity?: number;
+    compare_at_price?: number | null;
+    sale_label?: string | null;
+    sort_order?: number;
+  },
+  client: SupabaseClient | null
+): Promise<{ success: boolean; product_id?: string; cfg_code?: string; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+
+  const { data: result, error } = await client.rpc('create_product', {
+    p_cfg_code: data.cfg_code,
+    p_peptide_name: data.peptide_name,
+    p_protein_name: data.protein_name ?? '',
+    p_price: data.price ?? 0,
+    p_description: data.description ?? '',
+    p_category: data.category ?? '',
+    p_is_active: data.is_active ?? true,
+    p_stock_quantity: data.stock_quantity ?? 0,
+    p_compare_at_price: data.compare_at_price ?? null,
+    p_sale_label: data.sale_label ?? null,
+    p_sort_order: data.sort_order ?? 0,
+  });
+
+  if (error) {
+    console.error('[supabase] createProduct', error);
+    return { success: false, error: error.message };
+  }
+
+  const r = result as { success: boolean; product_id?: string; cfg_code?: string; error?: string };
+  return r;
+}
+
+export async function deleteProduct(
+  productId: string,
+  client: SupabaseClient | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+
+  const { data: result, error } = await client.rpc('delete_product', {
+    p_product_id: productId,
+  });
+
+  if (error) {
+    console.error('[supabase] deleteProduct', error);
+    return { success: false, error: error.message };
+  }
+
+  const r = result as { success: boolean; error?: string };
+  return r;
+}
+
+export async function suggestNextCfgCode(
+  client: SupabaseClient | null
+): Promise<string> {
+  if (!client) return 'CFG-001';
+
+  const { data, error } = await client.rpc('suggest_next_cfg_code');
+  if (error || !data) return 'CFG-001';
+  return data as string;
+}
+
+/** Storefront: fetch sale info keyed by CFG code */
+export async function fetchProductSaleInfo(): Promise<
+  Record<string, { compareAtPrice: number; saleLabel: string | null }>
+> {
+  if (!supabase) return {};
+
+  const { data, error } = await supabase
+    .from('product_mappings')
+    .select('cfg_code, price, compare_at_price, sale_label')
+    .eq('is_active', true)
+    .not('compare_at_price', 'is', null);
+
+  if (error || !data) return {};
+
+  const out: Record<string, { compareAtPrice: number; saleLabel: string | null }> = {};
+  for (const row of data) {
+    if (row.compare_at_price && row.compare_at_price > row.price) {
+      out[row.cfg_code] = {
+        compareAtPrice: Number(row.compare_at_price),
+        saleLabel: row.sale_label,
+      };
+    }
+  }
+  return out;
+}
+
+/** Storefront: fetch live product catalog (active status + prices) keyed by CFG code */
+export async function fetchLiveProductCatalog(): Promise<
+  Record<
+    string,
+    { price: number; isActive: boolean; name: string; stockQuantity: number }
+  >
+> {
+  if (!supabase) return {};
+
+  const { data, error } = await supabase
+    .from('product_mappings')
+    .select('cfg_code, peptide_name, price, is_active, stock_quantity');
+
+  if (error || !data) return {};
+
+  const out: Record<
+    string,
+    { price: number; isActive: boolean; name: string; stockQuantity: number }
+  > = {};
+  for (const row of data) {
+    out[row.cfg_code] = {
+      price: Number(row.price),
+      isActive: row.is_active,
+      name: row.peptide_name,
+      stockQuantity: row.stock_quantity ?? 0,
+    };
   }
   return out;
 }

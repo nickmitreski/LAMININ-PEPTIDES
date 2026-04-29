@@ -14,7 +14,7 @@ import ShopProductImage from '../ui/ShopProductImage';
 
 export default function FeaturedProducts() {
   const { ref, revealed } = useScrollReveal<HTMLDivElement>();
-  const { resolveDisplayImage } = useShopImages();
+  const { resolveDisplayImage, resolveSaleInfo } = useShopImages();
 
   return (
     <Section background="white" spacing="xl">
@@ -27,37 +27,53 @@ export default function FeaturedProducts() {
         ref={ref}
         className="mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6"
       >
-        {featuredProducts.map((product, idx) => (
-          <Link
-            key={product.peptideId}
-            to={`/products/${getProductSlug(product.peptideId)}`}
-            data-revealed={revealed}
-            className={`reveal reveal-delay-${Math.min(idx, 4)} group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1`}
-          >
-            <div className="mb-3 aspect-square overflow-hidden rounded-lg bg-neutral-50 sm:mb-4">
-              <ShopProductImage
-                src={resolveDisplayImage(
-                  product.peptideId,
-                  undefined,
-                  product.image
-                )}
-                alt={product.name}
-                className="relative block h-full w-full"
-                imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
-              />
-            </div>
-            <Label
-              inheritColor
-              className="mb-1 line-clamp-2 text-[0.65rem] leading-tight text-carbon-900 sm:text-xs"
+        {featuredProducts.map((product, idx) => {
+          const saleInfo = resolveSaleInfo(product.peptideId);
+          const priceLabel = getDisplayPriceForPeptide(product.peptideId);
+          return (
+            <Link
+              key={product.peptideId}
+              to={`/products/${getProductSlug(product.peptideId)}`}
+              data-revealed={revealed}
+              className={`reveal reveal-delay-${Math.min(idx, 4)} group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1`}
             >
-              {product.name}
-            </Label>
-            <Text variant="caption" muted>
-              {getDisplayPriceForPeptide(product.peptideId) ??
-                'Contact for pricing'}
-            </Text>
-          </Link>
-        ))}
+              <div className="relative mb-3 aspect-square overflow-hidden rounded-lg bg-neutral-50 sm:mb-4">
+                {saleInfo && (
+                  <span className="absolute left-2 top-2 z-10 rounded bg-red-600 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+                    {saleInfo.saleLabel || 'SALE'}
+                  </span>
+                )}
+                <ShopProductImage
+                  src={resolveDisplayImage(
+                    product.peptideId,
+                    undefined,
+                    product.image
+                  )}
+                  alt={product.name}
+                  className="relative block h-full w-full"
+                  imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
+                />
+              </div>
+              <Label
+                inheritColor
+                className="mb-1 line-clamp-2 text-[0.65rem] leading-tight text-carbon-900 sm:text-xs"
+              >
+                {product.name}
+              </Label>
+              <Text variant="caption" muted>
+                {saleInfo ? (
+                  <>
+                    <span className="text-carbon-400 line-through">${saleInfo.compareAtPrice.toFixed(0)}</span>
+                    {' '}
+                    <span className="font-semibold text-red-600">{priceLabel}</span>
+                  </>
+                ) : (
+                  priceLabel ?? 'Contact for pricing'
+                )}
+              </Text>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="flex justify-center">

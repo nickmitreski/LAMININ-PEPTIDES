@@ -5,7 +5,7 @@ import Container from '../components/layout/Container';
 import Button from '../components/ui/Button';
 import Skeleton from '../components/ui/Skeleton';
 import { Heading, Text } from '../components/ui/Typography';
-import { supabase } from '../lib/supabase';
+import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import { formatPrice } from '../lib/formatCurrency';
@@ -37,7 +37,7 @@ type AdjustmentMode = 'add' | 'subtract' | 'set';
 
 export default function AdminInventory() {
   const navigate = useNavigate();
-  const { logout } = useAdminAuth();
+  const { logout, user: adminUser } = useAdminAuth();
 
   const handleLogout = () => {
     logout();
@@ -65,13 +65,14 @@ export default function AdminInventory() {
   const loadProducts = async () => {
     setLoading(true);
 
-    if (!supabase) {
+    const db = getAdminSupabase();
+    if (!db) {
       console.error('Supabase not configured');
       setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('product_mappings')
       .select('id, cfg_code, peptide_name, protein_name, price, stock_quantity, track_inventory, low_stock_threshold')
       .eq('is_active', true)
@@ -94,11 +95,12 @@ export default function AdminInventory() {
 
   // Load transaction history for selected product
   const loadHistory = async (cfgCode: string) => {
-    if (!supabase) return;
+    const db = getAdminSupabase();
+    if (!db) return;
 
     setLoadingHistory(true);
 
-    const { data, error } = await supabase.rpc('get_inventory_history', {
+    const { data, error } = await db.rpc('get_inventory_history', {
       p_cfg_code: cfgCode,
       p_limit: 50
     });
@@ -116,6 +118,15 @@ export default function AdminInventory() {
     loadProducts();
   }, []);
 
+  // Auto-refresh on tab focus (catches stock changes from Products page)
+  useEffect(() => {
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') void loadProducts();
+    };
+    document.addEventListener('visibilitychange', onFocus);
+    return () => document.removeEventListener('visibilitychange', onFocus);
+  }, []);
+
   useEffect(() => {
     if (selectedProduct) {
       loadHistory(selectedProduct.cfg_code);
@@ -126,7 +137,8 @@ export default function AdminInventory() {
 
   // Handle inventory adjustment
   const handleAdjustment = async () => {
-    if (!selectedProduct || !supabase) return;
+    const db = getAdminSupabase();
+    if (!selectedProduct || !db) return;
 
     const qty = parseInt(adjustmentQuantity, 10);
     if (isNaN(qty) || qty <= 0) {
@@ -154,12 +166,12 @@ export default function AdminInventory() {
 
     setSaving(true);
 
-    const { error } = await supabase.rpc('adjust_inventory', {
+    const { error } = await db.rpc('adjust_inventory', {
       p_cfg_code: selectedProduct.cfg_code,
       p_quantity_change: quantityChange,
       p_transaction_type: transactionType,
       p_notes: adjustmentNotes.trim() || null,
-      p_admin_email: 'admin@lamininpeplab.com.au'
+      p_admin_email: adminUser?.email ?? 'admin'
     });
 
     if (error) {
@@ -172,7 +184,7 @@ export default function AdminInventory() {
       // Find and update selected product
       const updatedProduct = products.find(p => p.cfg_code === selectedProduct.cfg_code);
       if (updatedProduct) {
-        const { data: refreshedData } = await supabase
+        const { data: refreshedData } = await db
           .from('product_mappings')
           .select('id, cfg_code, peptide_name, protein_name, price, stock_quantity, track_inventory, low_stock_threshold')
           .eq('cfg_code', selectedProduct.cfg_code)

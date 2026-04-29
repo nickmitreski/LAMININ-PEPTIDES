@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
@@ -125,8 +125,9 @@ export default function AdminEmails() {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      if (!supabase) return;
-      const { data, error } = await supabase
+      const supabaseAdmin = getAdminSupabase();
+      if (!supabaseAdmin) return;
+      const { data, error } = await supabaseAdmin
         .from('email_logs')
         .select('*')
         .order('created_at', { ascending: false })
@@ -144,8 +145,9 @@ export default function AdminEmails() {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      if (!supabase) return;
-      const { data, error } = await supabase
+      const supabaseAdmin = getAdminSupabase();
+      if (!supabaseAdmin) return;
+      const { data, error } = await supabaseAdmin
         .from('email_templates')
         .select('*')
         .order('name', { ascending: true });
@@ -177,10 +179,11 @@ export default function AdminEmails() {
   };
 
   const saveTemplate = async () => {
-    if (!editingTemplate || !supabase) return;
+    const supabaseAdmin = getAdminSupabase();
+    if (!editingTemplate || !supabaseAdmin) return;
     try {
       setSavingTemplate(true);
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('email_templates')
         .update({
           name: templateDraft.name,
@@ -203,10 +206,11 @@ export default function AdminEmails() {
   };
 
   const createTemplate = async () => {
-    if (!supabase) return;
+    const supabaseAdmin = getAdminSupabase();
+    if (!supabaseAdmin) return;
     try {
       setSavingTemplate(true);
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('email_templates')
         .insert({
           name: 'New Template',

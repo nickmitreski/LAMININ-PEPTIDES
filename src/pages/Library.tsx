@@ -16,6 +16,7 @@ import {
   filterPeptidesByName,
 } from '../data/peptides';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useShopImages } from '../context/ShopImagesContext';
 
 export default function Library() {
   useDocumentTitle(
@@ -74,8 +75,10 @@ export default function Library() {
     }
   };
 
+  const { isProductActive } = useShopImages();
   const categoryPeptides = getPeptidesByCategory(activeCategory);
-  const filteredPeptides = filterPeptidesByName(searchTerm, categoryPeptides);
+  const activePeptides = categoryPeptides.filter((p) => isProductActive(p.id));
+  const filteredPeptides = filterPeptidesByName(searchTerm, activePeptides);
 
   return (
     <div className="min-h-screen">

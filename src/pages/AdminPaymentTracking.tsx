@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
@@ -45,6 +45,7 @@ export default function AdminPaymentTracking() {
   const fetchPayments = async () => {
     try {
       setLoading(true);
+      const supabase = getAdminSupabase();
       if (!supabase) {
         console.error('Supabase client not initialized');
         return;
@@ -71,6 +72,7 @@ export default function AdminPaymentTracking() {
   const markAsPaid = async (id: string) => {
     try {
       setProcessingId(id);
+      const supabase = getAdminSupabase();
       if (!supabase) {
         alert('Supabase client not initialized');
         return;
@@ -98,6 +100,7 @@ export default function AdminPaymentTracking() {
 
     try {
       setProcessingId(id);
+      const supabase = getAdminSupabase();
       if (!supabase) {
         alert('Supabase client not initialized');
         return;
@@ -124,6 +127,7 @@ export default function AdminPaymentTracking() {
 
     try {
       setProcessingId(id);
+      const supabase = getAdminSupabase();
       if (!supabase) {
         alert('Supabase client not initialized');
         return;

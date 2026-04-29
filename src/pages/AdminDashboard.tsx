@@ -18,17 +18,21 @@ import {
   ArrowDown,
   Download,
   Check,
+  DollarSign,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllOrders,
   getOrderCounts,
+  getPaymentTrackingMap,
+  markPaymentReceived,
   updateOrderStatus,
   deleteOrder,
   type OrderCounts,
   type OrderReferenceRow,
   type OrderStatus,
+  type PaymentTrackingRow,
 } from '../services/supabaseService';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
@@ -150,7 +154,7 @@ function exportOrdersCsv(orders: OrderReferenceRow[]) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAdminAuth();
+  const { logout, user: adminUser } = useAdminAuth();
   const { showToast } = useToast();
   const [orders, setOrders] = useState<OrderReferenceRow[]>([]);
   const [counts, setCounts] = useState<OrderCounts>(EMPTY_COUNTS);
@@ -166,6 +170,7 @@ export default function AdminDashboard() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [paymentMap, setPaymentMap] = useState<Map<string, PaymentTrackingRow>>(new Map());
   const isMountedRef = useRef(true);
 
   const loadOrders = useCallback(
@@ -177,13 +182,15 @@ export default function AdminDashboard() {
       }
       try {
         const db = getAdminSupabase();
-        const [data, freshCounts] = await Promise.all([
+        const [data, freshCounts, payments] = await Promise.all([
           getAllOrders(ORDERS_PAGE_SIZE, 0, db),
           getOrderCounts(db),
+          getPaymentTrackingMap(db),
         ]);
         if (!isMountedRef.current) return;
         setOrders(data);
         setCounts(freshCounts);
+        setPaymentMap(payments);
       } catch {
         if (isMountedRef.current && !silent) {
           showToast('Failed to load orders', 'error');
@@ -641,6 +648,11 @@ export default function AdminDashboard() {
                       <SortHeader label="Status" sortKeyValue="status" />
                     </th>
                     <th className="px-6 py-3 text-left">
+                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-600">
+                        Payment
+                      </span>
+                    </th>
+                    <th className="px-6 py-3 text-left">
                       <SortHeader label="Total" sortKeyValue="total" />
                     </th>
                     <th className="px-6 py-3 text-left">
@@ -720,6 +732,28 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4">
                           <StatusBadge status={order.status} />
                         </td>
+                        <td className="px-6 py-4">
+                          {(() => {
+                            const pt = paymentMap.get(order.peptide_order_id);
+                            if (!pt) return <Text variant="caption" muted>—</Text>;
+                            const s = pt.payment_status;
+                            if (s === 'payment_received') return (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                                <DollarSign className="h-3 w-3" /> Paid
+                              </span>
+                            );
+                            if (s === 'viewed_instructions') return (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+                                <Eye className="h-3 w-3" /> Viewed
+                              </span>
+                            );
+                            return (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                <Clock className="h-3 w-3" /> Pending
+                              </span>
+                            );
+                          })()}
+                        </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           <Text variant="small" weight="medium">
                             {formatPrice(order.total_price ?? 0)}
@@ -783,6 +817,14 @@ export default function AdminDashboard() {
       {selectedOrder && (
         <OrderDetailsModal
           order={selectedOrder}
+          paymentTracking={paymentMap.get(selectedOrder.peptide_order_id) ?? null}
+          onPaymentAction={async (action, trackingId) => {
+            if (action === 'mark_paid') {
+              await markPaymentReceived(trackingId, adminUser?.email ?? 'admin', null, getAdminSupabase());
+              await loadOrders({ silent: true });
+              showToast('Payment marked as received', 'success');
+            }
+          }}
           onClose={() => setSelectedOrder(null)}
         />
       )}

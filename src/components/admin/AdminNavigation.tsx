@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
-  CreditCard,
   Users,
   Mail,
   Tag,
@@ -40,12 +39,6 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Products',
     icon: LayoutDashboard,
     description: 'Manage products',
-  },
-  {
-    path: '/admin/payments',
-    label: 'Payments',
-    icon: CreditCard,
-    description: 'Track payments',
   },
   {
     path: '/admin/discounts',

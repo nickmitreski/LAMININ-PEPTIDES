@@ -36,7 +36,6 @@ const AdminInventory = lazy(() => import('./pages/AdminInventory'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
-const AdminPaymentTracking = lazy(() => import('./pages/AdminPaymentTracking'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminDiscounts = lazy(() => import('./pages/AdminDiscounts'));
 const AdminEmails = lazy(() => import('./pages/AdminEmails'));
@@ -71,14 +70,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/admin/payments"
-                  element={
-                    <ProtectedRoute>
-                      <AdminPaymentTracking />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/admin/payments" element={<Navigate to="/admin/dashboard" replace />} />
                 <Route
                   path="/admin/inventory"
                   element={

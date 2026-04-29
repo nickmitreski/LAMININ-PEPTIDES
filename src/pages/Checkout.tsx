@@ -29,12 +29,14 @@ import {
   type DiscountValidation,
 } from '../services/discountService';
 
-// Generate order reference: LM-[6 alphanumeric chars]
+// Generate order reference: LM-[6 alphanumeric chars] using crypto RNG
 function generateOrderReference(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
+  const randomBytes = new Uint8Array(6);
+  crypto.getRandomValues(randomBytes);
   let code = '';
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(randomBytes[i] % chars.length);
   }
   return `LM-${code}`;
 }
@@ -193,7 +195,7 @@ export default function Checkout() {
       // Create payment tracking record
       const result = await createPaymentTracking({
         orderReference: orderRef,
-        customerEmail: formData.email.trim() || 'noemail@provided.com',
+        customerEmail: formData.email.trim() || '',
         customerName: `${formData.firstName} ${formData.lastName}`,
         customerPhone: formData.phone.trim(),
         customerAddress: {

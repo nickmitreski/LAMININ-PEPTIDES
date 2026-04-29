@@ -8,11 +8,13 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { getAdminSupabase } from '../../lib/supabaseAdminClient';
 import {
   getProductWithImages,
   updateProduct,
+  deleteProduct,
   saveProductImage,
   setPrimaryProductImage,
   deleteProductImageRecord,
@@ -47,6 +49,9 @@ interface Product {
   stock_quantity?: number;
   low_stock_threshold?: number;
   track_inventory?: boolean;
+  compare_at_price?: number | null;
+  sale_label?: string | null;
+  sort_order?: number;
   images?: ProductImage[];
 }
 
@@ -78,6 +83,11 @@ export default function ProductEditor({
   const [stockQuantity, setStockQuantity] = useState('');
   const [lowStockThreshold, setLowStockThreshold] = useState('');
   const [trackInventory, setTrackInventory] = useState(true);
+  const [compareAtPrice, setCompareAtPrice] = useState('');
+  const [saleLabel, setSaleLabel] = useState('');
+  const [sortOrder, setSortOrder] = useState('0');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Load product data
   useEffect(() => {
@@ -103,6 +113,9 @@ export default function ProductEditor({
         setStockQuantity(prod.stock_quantity?.toString() || '');
         setLowStockThreshold(prod.low_stock_threshold?.toString() || '10');
         setTrackInventory(prod.track_inventory ?? true);
+        setCompareAtPrice(prod.compare_at_price?.toString() || '');
+        setSaleLabel(prod.sale_label || '');
+        setSortOrder(prod.sort_order?.toString() || '0');
       } else {
         setError(result.error || 'Failed to load product');
       }
@@ -120,6 +133,28 @@ export default function ProductEditor({
     setSuccess(null);
 
     try {
+      const db = getAdminSupabase();
+      const newStock = stockQuantity ? parseInt(stockQuantity) : undefined;
+      const currentStock = product?.stock_quantity ?? 0;
+      const stockChanged = newStock !== undefined && newStock !== currentStock;
+
+      // If stock changed, use adjust_inventory RPC for audit trail
+      if (stockChanged && product?.cfg_code) {
+        const delta = newStock - currentStock;
+        const { error: invError } = await db.rpc('adjust_inventory', {
+          p_cfg_code: product.cfg_code,
+          p_quantity_change: delta,
+          p_transaction_type: 'adjustment',
+          p_notes: `Stock set to ${newStock} via Product Editor`,
+          p_admin_email: null,
+        });
+        if (invError) {
+          setError(`Inventory adjustment failed: ${invError.message}`);
+          setSaving(false);
+          return;
+        }
+      }
+
       const result = await updateProduct(
         productId,
         {
@@ -129,13 +164,18 @@ export default function ProductEditor({
           price: parseFloat(price),
           category: category || undefined,
           is_active: isActive,
-          stock_quantity: stockQuantity ? parseInt(stockQuantity) : undefined,
+          // stock_quantity is now handled by adjust_inventory above
           low_stock_threshold: lowStockThreshold
             ? parseInt(lowStockThreshold)
             : undefined,
           track_inventory: trackInventory,
+          compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
+          sale_label: saleLabel || null,
+          sort_order: sortOrder ? parseInt(sortOrder) : 0,
+          clear_compare_at_price: !compareAtPrice,
+          clear_sale_label: !saleLabel,
         },
-        getAdminSupabase()
+        db
       );
 
       if (result.success) {
@@ -191,8 +231,8 @@ export default function ProductEditor({
       await loadProduct();
       setSuccess('Images uploaded successfully!');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload image');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
       console.error(err);
     } finally {
       setUploading(false);
@@ -260,9 +300,22 @@ export default function ProductEditor({
         <div className="flex items-center justify-between p-6 border-b border-carbon-200">
           <div>
             <Heading level={2}>Edit product</Heading>
-            <Text className="text-carbon-600 mt-1">
-              {product?.cfg_code} - {product?.peptide_name}
-            </Text>
+            <div className="flex items-center gap-3 mt-1">
+              <Text className="text-carbon-600">
+                {product?.cfg_code} - {product?.peptide_name}
+              </Text>
+              {product?.peptide_name && (
+                <a
+                  href={`/products/${product.peptide_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-accent-600 hover:text-accent-800 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Preview on site
+                </a>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -375,7 +428,7 @@ export default function ProductEditor({
             </div>
           </div>
 
-          {/* Pricing */}
+          {/* Pricing & Sale */}
           <div>
             <Heading level={3} className="mb-4">
               Pricing
@@ -398,6 +451,51 @@ export default function ProductEditor({
                     placeholder="99.00"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Compare-at Price (original before sale)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-carbon-600">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={compareAtPrice}
+                    onChange={(e) => setCompareAtPrice(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    placeholder="Leave empty if not on sale"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Sale Label
+                </label>
+                <input
+                  type="text"
+                  value={saleLabel}
+                  onChange={(e) => setSaleLabel(e.target.value)}
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
+                  placeholder="e.g. SALE, 20% OFF"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Sort Order
+                </label>
+                <input
+                  type="number"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
+                  placeholder="0"
+                />
               </div>
             </div>
           </div>
@@ -536,6 +634,75 @@ export default function ProductEditor({
                 <Text className="text-sm text-carbon-400">
                   Upload images to display them here
                 </Text>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className="px-6 pb-6">
+          <div className="border border-red-200 rounded-sm p-4 bg-red-50/50">
+            <Heading level={3} className="text-red-800 mb-2 text-sm">
+              Danger zone
+            </Heading>
+            {!confirmDelete ? (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 rounded-sm border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete this product
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Text variant="small" className="text-red-700">
+                  Are you sure? This cannot be undone.
+                </Text>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      const result = await deleteProduct(productId, getAdminSupabase());
+                      if (result.success) {
+                        onSave();
+                        onClose();
+                      } else {
+                        setError(result.error || 'Failed to delete product');
+                        setConfirmDelete(false);
+                      }
+                    } catch {
+                      setError('An error occurred while deleting');
+                      setConfirmDelete(false);
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                  disabled={deleting}
+                  className="inline-flex items-center gap-2 rounded-sm bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-60"
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Confirm delete
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                  className="text-sm text-carbon-600 hover:text-carbon-900 transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             )}
           </div>

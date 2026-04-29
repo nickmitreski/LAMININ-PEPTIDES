@@ -13,29 +13,16 @@ function isTruthyAdminFlag(value: unknown): boolean {
 
 /**
  * Admin access after a successful Supabase Auth sign-in.
- * Configure one of:
- * 1) Supabase Dashboard → Authentication → Users → user → set App Metadata: `{ "admin": true }`
- *    (or run `supabase/admin_auth_setup.sql` in the SQL Editor for that email), or
- * 2) `VITE_ADMIN_EMAIL_ALLOWLIST` in `.env.local` (comma-separated emails).
  *
- * Warning: allowlist values ship in the client bundle — anyone can read them. Use only for
- * dev/staging or transitional rollout; production gate should rely on Supabase `app_metadata.admin`
- * plus RLS policies that never trust the client alone.
+ * Set the admin flag in Supabase Dashboard → Authentication → Users → user →
+ * App Metadata: `{ "admin": true }` (or run `supabase/admin_auth_setup.sql`).
+ *
+ * The database enforces admin access via `jwt_is_admin()` RLS policies, so
+ * this client-side check is a UX gate only.
  */
 export function isSupabaseAdminUser(user: User | null | undefined): boolean {
   if (!user?.email) return false;
 
   const meta = user.app_metadata as Record<string, unknown> | undefined;
-  if (isTruthyAdminFlag(meta?.admin)) return true;
-
-  const allow = import.meta.env.VITE_ADMIN_EMAIL_ALLOWLIST as string | undefined;
-  if (allow?.trim()) {
-    const emails = allow
-      .split(',')
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
-    return emails.includes(user.email.toLowerCase());
-  }
-
-  return false;
+  return isTruthyAdminFlag(meta?.admin);
 }

@@ -25,12 +25,13 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
   const variants = getVariants(peptide.id);
   const hasVariants = !!variants?.length;
 
-  const { resolveDisplayImage } = useShopImages();
+  const { resolveDisplayImage, resolveSaleInfo } = useShopImages();
   const cardImage = resolveDisplayImage(
     peptide.id,
     hasVariants ? variants?.[0]?.id : undefined,
     peptide.image
   );
+  const saleInfo = resolveSaleInfo(peptide.id);
 
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
@@ -72,6 +73,11 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
             className="relative block h-full w-full"
             imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
           />
+          {saleInfo && (
+            <span className="absolute left-2 top-2 z-10 rounded bg-red-600 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+              {saleInfo.saleLabel || 'SALE'}
+            </span>
+          )}
           <span
             className="pointer-events-none absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-carbon-900 shadow-sm sm:bottom-3 sm:right-3"
             aria-hidden
@@ -90,7 +96,16 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
       <Text variant="caption" muted className="mb-2 line-clamp-2 text-[0.65rem] leading-snug sm:mb-3 sm:text-xs">
         {peptide.category}
         {peptide.coaVerified ? ' · COA verified' : ''} · {peptide.purity} purity
-        {priceLabel ? ` · ${priceLabel}` : ''}
+        {saleInfo ? (
+          <>
+            {' · '}
+            <span className="text-carbon-400 line-through">${saleInfo.compareAtPrice.toFixed(0)}</span>
+            {' '}
+            <span className="font-semibold text-red-600">{priceLabel}</span>
+          </>
+        ) : (
+          priceLabel ? ` · ${priceLabel}` : ''
+        )}
       </Text>
 
       <div className="mt-auto flex flex-col gap-2">
