@@ -226,20 +226,25 @@ export default function Checkout() {
         throw new Error(result.error || 'Failed to create order');
       }
 
-      // Create/update customer record (non-blocking — don't fail checkout)
+      // Create/update customer record (non-blocking — don't fail checkout).
+      // PostgrestBuilder is a PromiseLike (no .catch), so use .then with the result envelope.
       if (supabase && formData.email.trim()) {
-        supabase.rpc('upsert_checkout_customer', {
-          p_email: formData.email.trim(),
-          p_first_name: formData.firstName.trim(),
-          p_last_name: formData.lastName.trim(),
-          p_phone: formData.phone.trim(),
-          p_address: formData.address,
-          p_city: formData.city,
-          p_state: formData.state,
-          p_postcode: formData.postcode,
-          p_country: formData.country,
-          p_order_total: grandTotal,
-        }).catch((err: unknown) => console.error('Customer upsert failed:', err));
+        void supabase
+          .rpc('upsert_checkout_customer', {
+            p_email: formData.email.trim(),
+            p_first_name: formData.firstName.trim(),
+            p_last_name: formData.lastName.trim(),
+            p_phone: formData.phone.trim(),
+            p_address: formData.address,
+            p_city: formData.city,
+            p_state: formData.state,
+            p_postcode: formData.postcode,
+            p_country: formData.country,
+            p_order_total: grandTotal,
+          })
+          .then(({ error }) => {
+            if (error) console.error('Customer upsert failed:', error);
+          });
       }
 
       // Redeem discount code if one was applied (must succeed or we surface it — count stays in sync)
