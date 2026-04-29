@@ -58,6 +58,14 @@ async function writeSmsLog(
   if (!supabaseUrl || !serviceKey) return;
   try {
     const sb = createClient(supabaseUrl, serviceKey);
+    // Keep DB status values conservative in case sms_logs.status has a CHECK constraint.
+    // Detailed lifecycle stays in metadata.phase + metadata.raw_status.
+    const dbStatus =
+      payload.status === 'sent'
+        ? 'sent'
+        : payload.status === 'failed'
+        ? 'failed'
+        : 'pending';
     const { error } = await sb.from('sms_logs').insert({
       // recipient_phone + message_body are NOT NULL on the existing table.
       // For pre-send phases (attempt, auth_fail, bad_request, etc.) we don't yet
@@ -66,19 +74,20 @@ async function writeSmsLog(
       recipient_name: null,
       message_body: payload.body ?? '-',
       message_type: 'payment_received',
-      status: payload.status,
+      status: dbStatus,
       provider: 'twilio',
       provider_message_id: payload.twilioSid ?? null,
       error_message: payload.detail ?? null,
       metadata: {
         phase: payload.phase,
+        raw_status: payload.status,
         mock: payload.mock ?? false,
         order_reference: payload.orderRef ?? null,
         tracking_id: payload.trackingId ?? null,
         admin_email: payload.adminEmail ?? null,
         ip: payload.ip ?? null,
       },
-      sent_at: payload.status === 'sent' ? new Date().toISOString() : null,
+      sent_at: dbStatus === 'sent' ? new Date().toISOString() : null,
     });
     if (error) {
       console.error('sms_logs insert failed', error.message, error.details);
