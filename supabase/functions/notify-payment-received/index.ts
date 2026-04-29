@@ -73,7 +73,8 @@ async function writeSmsLog(
       recipient_phone: payload.phone ?? '-',
       recipient_name: null,
       message_body: payload.body ?? '-',
-      message_type: 'payment_received',
+      // Keep message_type conservative for schemas with enum/check constraints.
+      message_type: 'sms',
       status: dbStatus,
       provider: 'twilio',
       provider_message_id: payload.twilioSid ?? null,
