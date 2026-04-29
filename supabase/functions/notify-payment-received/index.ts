@@ -122,9 +122,21 @@ Deno.serve(async (req) => {
       mock: mockSms,
     });
 
+    // Log to sms_logs table for debugging
+    await supabase.from('sms_logs').insert({
+      recipient_phone: phone,
+      recipient_name: null,
+      message_body: smsBody,
+      message_type: 'payment_received',
+      status: smsResult.ok ? 'sent' : 'failed',
+      provider: 'twilio',
+      provider_message_id: smsResult.twilio_sid ?? null,
+      error_message: smsResult.ok ? null : (smsResult.error ?? 'unknown'),
+      metadata: { mock: mockSms, order_reference: ref },
+      sent_at: smsResult.ok ? new Date().toISOString() : null,
+    }).then(() => {}).catch((e) => console.error('sms_logs insert failed', e));
+
     if (!smsResult.ok) {
-      // Use HTTP 200 so supabase-js returns `data` and the admin UI can show Twilio's message.
-      // A non-2xx here becomes FunctionsHttpError with almost no useful detail in the browser.
       console.error('notify-payment-received Twilio error', smsResult.error);
       return jsonResponse({
         ok: false,
