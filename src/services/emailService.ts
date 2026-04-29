@@ -19,6 +19,26 @@ interface SendContactMessageParams {
 }
 
 /**
+ * Try to read the JSON body of a non-2xx Edge Function response so we can
+ * surface the real `detail` / `error` instead of just `FunctionsHttpError`.
+ * `supabase-js` exposes the response on `error.context` as a `Response` clone.
+ */
+async function extractEdgeFunctionDetail(error: unknown): Promise<string | null> {
+  const ctx = (error as { context?: Response | { json?: () => Promise<unknown> } } | null)?.context;
+  if (!ctx) return null;
+  try {
+    const maybeResponse = ctx as Response;
+    if (typeof maybeResponse.json === 'function') {
+      const body = (await maybeResponse.json()) as { detail?: string; error?: string } | null;
+      return body?.detail || body?.error || null;
+    }
+  } catch {
+    /* swallow — we'll fall back to the generic message */
+  }
+  return null;
+}
+
+/**
  * Send payment instruction email via the send-order-email edge function.
  * Non-blocking — checkout succeeds even if the email fails.
  */
@@ -44,8 +64,9 @@ export async function sendOrderEmail(params: SendOrderEmailParams): Promise<{
     });
 
     if (error) {
-      console.error('Edge function error:', error);
-      return { success: false, error: error.message };
+      const detail = await extractEdgeFunctionDetail(error);
+      console.error('Edge function error (send-order-email):', error.message, { detail });
+      return { success: false, error: detail || error.message };
     }
 
     return {
@@ -86,8 +107,9 @@ export async function sendContactMessage(params: SendContactMessageParams): Prom
     });
 
     if (error) {
-      console.error('Contact edge function error:', error);
-      return { success: false, error: error.message || 'Could not send your message.' };
+      const detail = await extractEdgeFunctionDetail(error);
+      console.error('Contact edge function error:', error.message, { detail });
+      return { success: false, error: detail || error.message || 'Could not send your message.' };
     }
 
     return {

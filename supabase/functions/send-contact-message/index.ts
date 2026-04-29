@@ -13,6 +13,8 @@
  * Deploy: npx supabase functions deploy send-contact-message --no-verify-jwt
  */
 
+import { createRateLimiter, getClientIp } from '../_shared/rateLimit.ts';
+
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -24,6 +26,13 @@ function jsonResponse(body: unknown, status = 200): Response {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
+
+// Per-IP throttle: 5 contact submissions per 10 min. Stops form-spam from
+// burning the Resend quota and blasting the support inbox.
+const contactLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  maxRequests: 5,
+});
 
 interface ContactRequest {
   name: string;
@@ -189,6 +198,14 @@ Deno.serve(async (req) => {
 
   if (req.method !== 'POST') {
     return jsonResponse({ ok: false, error: 'Method not allowed' }, 405);
+  }
+
+  const clientIp = getClientIp(req);
+  if (!contactLimiter.check(clientIp)) {
+    return jsonResponse(
+      { ok: false, error: 'Too many submissions. Please try again in a few minutes.' },
+      429
+    );
   }
 
   let body: ContactRequest;

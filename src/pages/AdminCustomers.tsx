@@ -14,7 +14,6 @@ import {
   ChevronUp,
   RefreshCw,
   Calendar,
-  X,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';

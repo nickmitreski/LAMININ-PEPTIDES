@@ -3,8 +3,20 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { createRateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+
+// Per-IP throttle so a stolen anon key can't burn the OpenAI quota in a loop.
+// Tuned for a real chatbot user: a burst of a few questions, then a pause.
+const chatLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 20,
+});
+
+// Optional message-length cap to bound prompt cost per request.
+const MAX_USER_MESSAGE_CHARS = 4000;
+const MAX_MESSAGES_PER_REQUEST = 30;
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -93,6 +105,25 @@ serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Throttle per IP to protect the OpenAI quota from abuse via the anon key.
+  const clientIp = getClientIp(req);
+  if (!chatLimiter.check(clientIp)) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please slow down.' }),
+      {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
   try {
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY not configured');
@@ -102,6 +133,22 @@ serve(async (req: Request) => {
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new Error('Invalid request: messages array required');
+    }
+
+    if (messages.length > MAX_MESSAGES_PER_REQUEST) {
+      return new Response(
+        JSON.stringify({ error: 'Conversation too long. Please start a new chat.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    for (const m of messages) {
+      if (typeof m?.content !== 'string' || m.content.length > MAX_USER_MESSAGE_CHARS) {
+        return new Response(
+          JSON.stringify({ error: 'Message too long.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Load knowledge base (cached in edge function instance)

@@ -134,6 +134,10 @@ export default function ProductEditor({
 
     try {
       const db = getAdminSupabase();
+      if (!db) {
+        setError('Admin client not available. Please re-authenticate.');
+        return;
+      }
       const newStock = stockQuantity ? parseInt(stockQuantity) : undefined;
       const currentStock = product?.stock_quantity ?? 0;
       const stockChanged = newStock !== undefined && newStock !== currentStock;

@@ -8,10 +8,15 @@ type ShopProductImageProps = {
   loading?: 'lazy' | 'eager';
   decoding?: 'async' | 'auto' | 'sync';
   fetchPriority?: 'high' | 'low' | 'auto';
+  /** Shown if `src` fails to load (broken upload, expired storage URL, etc.). */
+  fallbackSrc?: string;
 };
+
+const DEFAULT_FALLBACK = '/images/products/purity.png';
 
 /**
  * Tiny pulse placeholder until the image fires onLoad (helps storage / slow networks).
+ * If the source 404s or fails, swaps to a fallback so the user never sees a broken icon.
  * Resets when `src` changes.
  */
 export default function ShopProductImage({
@@ -22,12 +27,30 @@ export default function ShopProductImage({
   loading = 'lazy',
   decoding = 'async',
   fetchPriority,
+  fallbackSrc = DEFAULT_FALLBACK,
 }: ShopProductImageProps) {
   const [ready, setReady] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [didFallback, setDidFallback] = useState(false);
 
   useEffect(() => {
     setReady(false);
+    setCurrentSrc(src);
+    setDidFallback(false);
   }, [src]);
+
+  const handleError = () => {
+    if (!didFallback && currentSrc !== fallbackSrc) {
+      console.warn('[ShopProductImage] image failed, falling back', {
+        attempted: currentSrc,
+        fallback: fallbackSrc,
+      });
+      setDidFallback(true);
+      setCurrentSrc(fallbackSrc);
+      return;
+    }
+    setReady(true);
+  };
 
   return (
     <span className={className}>
@@ -40,13 +63,13 @@ export default function ShopProductImage({
         }
       />
       <img
-        src={src}
+        src={currentSrc}
         alt={alt}
         loading={loading}
         decoding={decoding}
         fetchPriority={fetchPriority}
         onLoad={() => setReady(true)}
-        onError={() => setReady(true)}
+        onError={handleError}
         className={`${ready ? 'opacity-100' : 'opacity-0'} motion-safe:transition-opacity motion-safe:duration-200 ${imgClassName}`}
       />
     </span>

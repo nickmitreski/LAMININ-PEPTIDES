@@ -120,6 +120,20 @@ export function getPeptideDisplayImage(
   return fallbackImage;
 }
 
+/**
+ * Returns true if this `(peptideId, variantId)` pair has dedicated per-variant artwork
+ * that should take precedence over a generic admin-uploaded primary image.
+ */
+export function hasVariantSpecificImage(
+  peptideId: string,
+  variantId: string | undefined
+): boolean {
+  if (peptideId === 'retatrutide' && variantId) {
+    return Boolean(RETATRUTIDE_VARIANT_IMAGE_FILES[variantId]);
+  }
+  return false;
+}
+
 export const peptides: Peptide[] = [
   {
     id: 'cjc-1295-no-dac',

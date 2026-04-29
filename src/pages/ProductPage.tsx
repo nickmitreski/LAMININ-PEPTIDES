@@ -13,7 +13,7 @@ import ProductStickyAddToCart from '../components/products/ProductStickyAddToCar
 import SuggestedPeptides from '../components/products/SuggestedPeptides';
 import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
-import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
+import { isLiquidAncillaryPeptide } from '../data/peptides';
 import {
   getPeptideIdFromSlug,
   getProductCopy,
@@ -167,7 +167,7 @@ export default function ProductPage() {
     <div className="min-h-screen bg-platinum pb-32 md:pb-20">
       <ProductStructuredData
         name={headline}
-        description={copy.paragraphs[0] || ''}
+        description={copy?.paragraphs?.[0] || ''}
         image={displayImage}
         price={price !== null ? price : undefined}
         purity={peptide.purity}
@@ -315,8 +315,8 @@ export default function ProductPage() {
                   id: 'overview',
                   title: 'OVERVIEW',
                   content:
-                    copy.paragraphs.length > 0 ? (
-                      <ProductOverviewBody paragraphs={copy.paragraphs} />
+                    (copy?.paragraphs?.length ?? 0) > 0 ? (
+                      <ProductOverviewBody paragraphs={copy!.paragraphs} />
                     ) : (
                       <Text variant="body" className="text-neutral-600">
                         Product description coming soon.
@@ -444,7 +444,7 @@ export default function ProductPage() {
         open={descriptionModalOpen}
         onClose={() => setDescriptionModalOpen(false)}
         productTitle={peptide.name}
-        paragraphs={copy.paragraphs}
+        paragraphs={copy?.paragraphs ?? []}
       />
 
       <ProductStickyAddToCart

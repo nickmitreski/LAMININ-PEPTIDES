@@ -12,7 +12,6 @@ import { Heading, Text } from '../components/ui/Typography';
 import {
   peptideCategories,
   libraryTabItems,
-  getPeptidesByCategory,
   filterPeptidesByName,
 } from '../data/peptides';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';

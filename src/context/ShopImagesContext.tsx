@@ -7,7 +7,13 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { getPeptideDisplayImage, type Peptide, type LibraryTheme, allPeptides } from '../data/peptides';
+import {
+  getPeptideDisplayImage,
+  hasVariantSpecificImage,
+  type Peptide,
+  type LibraryTheme,
+  allPeptides,
+} from '../data/peptides';
 import {
   fetchShopPrimaryImageOverrides,
   fetchProductSaleInfo,
@@ -114,6 +120,12 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       variantId: string | undefined,
       staticFallbackUrl: string
     ) => {
+      // Per-variant artwork (e.g. Retatrutide 10/20/30 mg) wins over a generic
+      // admin-uploaded "primary" image keyed only by peptideId — otherwise a single
+      // upload would replace every strength's hero with the same picture.
+      if (hasVariantSpecificImage(peptideId, variantId)) {
+        return getPeptideDisplayImage(peptideId, variantId, staticFallbackUrl);
+      }
       const o = overrideByPeptideId[peptideId];
       if (o) return o;
       return getPeptideDisplayImage(peptideId, variantId, staticFallbackUrl);

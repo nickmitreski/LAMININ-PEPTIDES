@@ -695,7 +695,15 @@ export async function fetchShopPrimaryImageOverrides(): Promise<
     .eq('is_active', true);
 
   if (error) {
-    console.warn('[supabase] fetchShopPrimaryImageOverrides', error);
+    // Use console.error so this is visible in production monitoring instead of
+    // being silently swallowed — broken anon RLS here means every product
+    // falls back to its static /images/products/ asset with no other signal.
+    console.error('[supabase] fetchShopPrimaryImageOverrides failed', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
     return {};
   }
 

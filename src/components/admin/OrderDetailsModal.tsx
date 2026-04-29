@@ -157,17 +157,25 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
             </Heading>
             <div className="space-y-3">
               {peptideItems.length > 0 ? (
-                peptideItems.map((item: Record<string, unknown>, idx: number) => (
+                peptideItems.map((rawItem: Record<string, unknown>, idx: number) => {
+                  const item = rawItem as {
+                    peptide_display_name?: string;
+                    cfg_code?: string;
+                    quantity?: number | string;
+                    line_total?: number;
+                    unit_price?: number;
+                  };
+                  return (
                   <div
                     key={idx}
                     className="flex items-center justify-between rounded-sm border border-carbon-900/10 p-3"
                   >
                     <div className="flex-1">
                       <Text variant="small" weight="medium" className="mb-1">
-                        {item.peptide_display_name || item.cfg_code}
+                        {item.peptide_display_name || item.cfg_code || '—'}
                       </Text>
                       <Text variant="caption" muted>
-                        Code: {item.cfg_code} • Qty: {item.quantity}
+                        Code: {item.cfg_code ?? '—'} • Qty: {item.quantity ?? 0}
                       </Text>
                     </div>
                     <div className="text-right">
@@ -179,7 +187,8 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                       </Text>
                     </div>
                   </div>
-                ))
+                  );
+                })
               ) : (
                 <Text variant="small" muted>
                   No items in this order

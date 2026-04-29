@@ -15,7 +15,6 @@ import {
   X,
   Percent,
   DollarSign,
-  Calendar,
   Users,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
