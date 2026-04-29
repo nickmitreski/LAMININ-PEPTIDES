@@ -75,8 +75,12 @@ export default function Library() {
     }
   };
 
-  const { isProductActive } = useShopImages();
-  const categoryPeptides = getPeptidesByCategory(activeCategory);
+  const { isProductActive, allProducts } = useShopImages();
+
+  // Use merged catalog (static + DB-only products), filtered by category and active status
+  const categoryPeptides = activeCategory === 'All'
+    ? [...allProducts].sort((a, b) => a.name.localeCompare(b.name))
+    : allProducts.filter((p) => p.libraryFilters.includes(activeCategory as import('../data/peptides').LibraryTheme));
   const activePeptides = categoryPeptides.filter((p) => isProductActive(p.id));
   const filteredPeptides = filterPeptidesByName(searchTerm, activePeptides);
 

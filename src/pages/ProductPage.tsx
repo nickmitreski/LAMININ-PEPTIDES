@@ -41,16 +41,20 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
-  const { resolveDisplayImage, resolveSaleInfo, isProductActive } = useShopImages();
+  const { resolveDisplayImage, resolveSaleInfo, isProductActive, allProducts, getDbPrice } = useShopImages();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
   const inPageCtaRef = useRef<HTMLDivElement | null>(null);
 
-  const peptideId = slug ? getPeptideIdFromSlug(slug) : undefined;
+  // Look up peptide by slug: first try static content slugs, then try as a peptide ID
+  // (DB-only products use their cfg code lowercase as the ID, e.g. "cfg-036")
+  const peptideId = slug
+    ? (getPeptideIdFromSlug(slug) ?? allProducts.find((p) => p.id === slug)?.id)
+    : undefined;
   const peptide = peptideId
-    ? allPeptides.find((p) => p.id === peptideId)
+    ? allProducts.find((p) => p.id === peptideId)
     : undefined;
   const copy = peptideId ? getProductCopy(peptideId) : undefined;
 
@@ -64,13 +68,13 @@ export default function ProductPage() {
   }, [peptideId]);
 
   useDocumentTitle(
-    copy?.metaTitle ?? 'Research Compound',
+    copy?.metaTitle ?? peptide?.name ?? 'Research Compound',
     copy?.metaDescription
   );
 
   const productActive = peptide ? isProductActive(peptide.id) : true;
 
-  if (!slug || !peptide || !copy || !productActive) {
+  if (!slug || !peptide || !productActive) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 py-24">
         <Heading level={4} className="mb-4">
@@ -97,9 +101,12 @@ export default function ProductPage() {
     : undefined;
   const selectedVariant = variants?.find((v) => v.id === effectiveVariantId);
 
-  const priceLine = variants?.length && effectiveVariantId
+  const staticPriceLine = variants?.length && effectiveVariantId
     ? getDisplayPriceForVariant(peptide.id, effectiveVariantId)
     : getDisplayPriceForPeptide(peptide.id);
+  // Fall back to DB price for products created via admin (not in static pricing files)
+  const dbPrice = getDbPrice(peptide.id);
+  const priceLine = staticPriceLine ?? (dbPrice ? `$${dbPrice.toFixed(2)}` : null);
 
   const coaDownload = getCoaDownload(
     peptide.id,
@@ -110,7 +117,7 @@ export default function ProductPage() {
   const price = getNumericPriceForVariantOrPeptide(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined
-  );
+  ) ?? dbPrice;
   const displayImage = resolveDisplayImage(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined,

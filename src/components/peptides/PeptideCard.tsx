@@ -20,18 +20,23 @@ interface PeptideCardProps {
 
 export default function PeptideCard({ peptide }: PeptideCardProps) {
   const title = peptide.name.toUpperCase();
-  const productPath = `/products/${getProductSlug(peptide.id)}`;
-  const priceLabel = getDisplayPriceForPeptide(peptide.id);
+  // DB-only products use their id as the slug (e.g. "cfg-036")
+  const productPath = `/products/${getProductSlug(peptide.id) ?? peptide.id}`;
   const variants = getVariants(peptide.id);
   const hasVariants = !!variants?.length;
 
-  const { resolveDisplayImage, resolveSaleInfo } = useShopImages();
+  const { resolveDisplayImage, resolveSaleInfo, getDbPrice } = useShopImages();
   const cardImage = resolveDisplayImage(
     peptide.id,
     hasVariants ? variants?.[0]?.id : undefined,
     peptide.image
   );
   const saleInfo = resolveSaleInfo(peptide.id);
+
+  // Price: static first, fall back to DB price for admin-created products
+  const staticPriceLabel = getDisplayPriceForPeptide(peptide.id);
+  const dbPrice = getDbPrice(peptide.id);
+  const priceLabel = staticPriceLabel ?? (dbPrice ? `$${dbPrice.toFixed(2)}` : null);
 
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
@@ -47,7 +52,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
       return;
     }
 
-    const price = getNumericPriceForVariantOrPeptide(peptide.id);
+    const price = getNumericPriceForVariantOrPeptide(peptide.id) ?? dbPrice;
     if (price === null) {
       navigate(productPath);
       return;

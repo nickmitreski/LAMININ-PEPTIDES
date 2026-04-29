@@ -7,13 +7,13 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { getPeptideDisplayImage } from '../data/peptides';
+import { getPeptideDisplayImage, type Peptide, type LibraryTheme, allPeptides } from '../data/peptides';
 import {
   fetchShopPrimaryImageOverrides,
   fetchProductSaleInfo,
   fetchLiveProductCatalog,
 } from '../services/supabaseService';
-import { CFG_CODE_TO_PEPTIDE_ID } from '../data/productMappings';
+import { CFG_CODE_TO_PEPTIDE_ID, PEPTIDE_ID_TO_CFG } from '../data/productMappings';
 
 type SaleInfo = { compareAtPrice: number; saleLabel: string | null };
 type LiveProductInfo = { price: number; isActive: boolean; name: string; stockQuantity: number };
@@ -32,6 +32,8 @@ type ShopImagesContextValue = {
   isProductActive: (peptideId: string) => boolean;
   /** Get live DB price for a product, or null if not available. */
   getDbPrice: (peptideId: string) => number | null;
+  /** All products: static catalog merged with DB-only products created via admin. */
+  allProducts: Peptide[];
 };
 
 const ShopImagesContext = createContext<ShopImagesContextValue | null>(null);
@@ -43,6 +45,7 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   >({});
   const [saleInfoMap, setSaleInfoMap] = useState<Record<string, SaleInfo>>({});
   const [liveProductMap, setLiveProductMap] = useState<Record<string, LiveProductInfo>>({});
+  const [dbOnlyProducts, setDbOnlyProducts] = useState<Peptide[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,11 +70,34 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
 
           // Map CFG-code-keyed live product data to peptide IDs
           const mappedLive: Record<string, LiveProductInfo> = {};
+          const staticPeptideIds = new Set(allPeptides.map((p) => p.id));
+          const knownCfgCodes = new Set(Object.values(PEPTIDE_ID_TO_CFG));
+          const newDbProducts: Peptide[] = [];
+
           for (const [cfgCode, info] of Object.entries(catalogByCfg)) {
             const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
-            if (pid) mappedLive[pid] = info;
+            if (pid) {
+              mappedLive[pid] = info;
+            } else if (!knownCfgCodes.has(cfgCode) && info.isActive) {
+              // DB-only product — not in static catalog. Create a Peptide entry.
+              const syntheticId = cfgCode.toLowerCase();
+              if (!staticPeptideIds.has(syntheticId)) {
+                const primaryImage = imageMap[syntheticId] ?? '/images/products/purity.png';
+                newDbProducts.push({
+                  id: syntheticId,
+                  name: info.name,
+                  category: 'Healing' as LibraryTheme,
+                  libraryFilters: ['Healing'] as LibraryTheme[],
+                  purity: '99%+',
+                  coaVerified: false,
+                  image: primaryImage,
+                });
+                mappedLive[syntheticId] = info;
+              }
+            }
           }
           setLiveProductMap(mappedLive);
+          setDbOnlyProducts(newDbProducts);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -117,6 +143,11 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
     [liveProductMap]
   );
 
+  const mergedAllProducts = useMemo(
+    () => [...allPeptides, ...dbOnlyProducts],
+    [dbOnlyProducts]
+  );
+
   const value = useMemo(
     (): ShopImagesContextValue => ({
       loading,
@@ -124,8 +155,9 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       resolveSaleInfo,
       isProductActive,
       getDbPrice,
+      allProducts: mergedAllProducts,
     }),
-    [loading, resolveDisplayImage, resolveSaleInfo, isProductActive, getDbPrice]
+    [loading, resolveDisplayImage, resolveSaleInfo, isProductActive, getDbPrice, mergedAllProducts]
   );
 
   return (
