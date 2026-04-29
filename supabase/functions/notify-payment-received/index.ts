@@ -41,92 +41,113 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: false, error: 'Method not allowed' }, 405);
   }
 
-  const clientIp = getClientIp(req);
-  if (!webhookRateLimiter.check(clientIp)) {
-    return jsonResponse({ ok: false, error: 'Rate limit exceeded. Try again shortly.' }, 429);
-  }
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim();
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')?.trim();
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim();
-  if (!supabaseUrl || !anonKey || !serviceKey) {
-    return jsonResponse({ ok: false, error: 'Server misconfigured' }, 500);
-  }
-
-  const authHeader = req.headers.get('Authorization')?.trim() ?? '';
-  const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
-  if (!jwt) {
-    return jsonResponse({ ok: false, error: 'Unauthorized' }, 401);
-  }
-
-  const authClient = createClient(supabaseUrl, anonKey);
-  const { data: userData, error: userErr } = await authClient.auth.getUser(jwt);
-  if (userErr || !userData.user?.email || !isTruthyAdminFlag(userData.user.app_metadata as Record<string, unknown>)) {
-    return jsonResponse({ ok: false, error: 'Forbidden' }, 403);
-  }
-
-  let body: Record<string, unknown>;
   try {
-    body = (await req.json()) as Record<string, unknown>;
-  } catch {
-    return jsonResponse({ ok: false, error: 'Invalid JSON' }, 400);
-  }
+    const clientIp = getClientIp(req);
+    if (!webhookRateLimiter.check(clientIp)) {
+      return jsonResponse({ ok: false, error: 'Rate limit exceeded. Try again shortly.' }, 429);
+    }
 
-  const trackingId = (body.tracking_id as string | undefined)?.trim();
-  if (!trackingId) {
-    return jsonResponse({ ok: false, error: 'Missing tracking_id' }, 400);
-  }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim();
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')?.trim();
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim();
+    if (!supabaseUrl || !anonKey || !serviceKey) {
+      console.error('notify-payment-received: missing SUPABASE_URL, SUPABASE_ANON_KEY, or service role');
+      return jsonResponse({ ok: false, error: 'Server misconfigured' }, 500);
+    }
 
-  const supabase = createClient(supabaseUrl, serviceKey);
-  const { data: row, error: fetchErr } = await supabase
-    .from('payment_tracking')
-    .select('id, order_reference, customer_phone, payment_status')
-    .eq('id', trackingId)
-    .maybeSingle();
+    const authHeader = req.headers.get('Authorization')?.trim() ?? '';
+    const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    if (!jwt) {
+      return jsonResponse({ ok: false, error: 'Unauthorized' }, 401);
+    }
 
-  if (fetchErr || !row) {
-    console.error(fetchErr);
-    return jsonResponse({ ok: false, error: 'Payment record not found' }, 404);
-  }
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: userData, error: userErr } = await authClient.auth.getUser(jwt);
+    if (
+      userErr ||
+      !userData.user?.email ||
+      !isTruthyAdminFlag(userData.user.app_metadata as Record<string, unknown>)
+    ) {
+      return jsonResponse({ ok: false, error: 'Forbidden' }, 403);
+    }
 
-  if (row.payment_status !== 'payment_received') {
-    return jsonResponse(
-      { ok: false, error: 'Payment is not marked as received yet' },
-      400
-    );
-  }
+    let body: Record<string, unknown>;
+    try {
+      body = (await req.json()) as Record<string, unknown>;
+    } catch {
+      return jsonResponse({ ok: false, error: 'Invalid JSON' }, 400);
+    }
 
-  const phone = (row.customer_phone as string | null)?.trim();
-  if (!phone) {
+    const trackingId = (body.tracking_id as string | undefined)?.trim();
+    if (!trackingId) {
+      return jsonResponse({ ok: false, error: 'Missing tracking_id' }, 400);
+    }
+
+    const supabase = createClient(supabaseUrl, serviceKey);
+    const { data: row, error: fetchErr } = await supabase
+      .from('payment_tracking')
+      .select('id, order_reference, customer_phone, payment_status')
+      .eq('id', trackingId)
+      .maybeSingle();
+
+    if (fetchErr || !row) {
+      console.error('notify-payment-received fetch', fetchErr);
+      return jsonResponse({ ok: false, error: 'Payment record not found' }, 404);
+    }
+
+    if (row.payment_status !== 'payment_received') {
+      return jsonResponse(
+        { ok: false, error: 'Payment is not marked as received yet' },
+        400
+      );
+    }
+
+    const phone = (row.customer_phone as string | null)?.trim();
+    if (!phone) {
+      return jsonResponse({
+        ok: true,
+        skipped: true,
+        reason: 'no_phone',
+      });
+    }
+
+    const mockSms = Deno.env.get('MOCK_SMS_DELIVERY') === 'true';
+    const brand = Deno.env.get('CHECKOUT_DELIVERY_BRAND')?.trim() || 'Laminin';
+    const ref = (row.order_reference as string | undefined)?.trim() || trackingId;
+    const smsBody = `Thank you for your order from ${brand}. Your order reference ID is ${ref}.`;
+
+    const smsResult = await sendTwilioSms({
+      toE164: phone,
+      body: smsBody,
+      mock: mockSms,
+    });
+
+    if (!smsResult.ok) {
+      // Use HTTP 200 so supabase-js returns `data` and the admin UI can show Twilio's message.
+      // A non-2xx here becomes FunctionsHttpError with almost no useful detail in the browser.
+      console.error('notify-payment-received Twilio error', smsResult.error);
+      return jsonResponse({
+        ok: false,
+        error: 'SMS failed',
+        detail: smsResult.error ?? 'unknown',
+      });
+    }
+
     return jsonResponse({
       ok: true,
-      skipped: true,
-      reason: 'no_phone',
+      sms_sent: !smsResult.mocked,
+      sms_mocked: smsResult.mocked,
+      twilio_sid: smsResult.twilio_sid ?? null,
     });
-  }
-
-  const mockSms = Deno.env.get('MOCK_SMS_DELIVERY') === 'true';
-  const brand = Deno.env.get('CHECKOUT_DELIVERY_BRAND')?.trim() || 'Laminin';
-  const ref = (row.order_reference as string | undefined)?.trim() || trackingId;
-  const smsBody = `Thank you for your order from ${brand}. Your order reference ID is ${ref}.`;
-
-  const smsResult = await sendTwilioSms({
-    toE164: phone,
-    body: smsBody,
-    mock: mockSms,
-  });
-
-  if (!smsResult.ok) {
+  } catch (e) {
+    console.error('notify-payment-received unhandled', e);
     return jsonResponse(
-      { ok: false, error: 'SMS failed', detail: smsResult.error ?? 'unknown' },
-      502
+      {
+        ok: false,
+        error: 'Internal error',
+        detail: e instanceof Error ? e.message : String(e),
+      },
+      500
     );
   }
-
-  return jsonResponse({
-    ok: true,
-    sms_sent: !smsResult.mocked,
-    sms_mocked: smsResult.mocked,
-    twilio_sid: smsResult.twilio_sid ?? null,
-  });
 });
