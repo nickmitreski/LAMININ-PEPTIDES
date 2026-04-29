@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import FaqAccordion from '../components/ui/FaqAccordion';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -16,18 +16,16 @@ export default function FAQ() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <SectionTitle
-          label="Support"
+        <PageTopBanner
           title="Frequently asked questions"
           subtitle="Laboratory use, certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our purity assurance guarantee."
-          titleClassName="!font-bold"
         />
 
-        <div className="max-w-3xl mx-auto">
+        <div className="mx-auto max-w-5xl">
           <FaqAccordion items={faqItems} />
         </div>
 
-        <Card padding="lg" className="mt-16 md:mt-20 bg-platinum max-w-3xl mx-auto">
+        <Card padding="lg" className="mx-auto mt-16 max-w-5xl bg-platinum md:mt-20">
           <Heading level={5} className="mb-3">
             Didn’t find what you need?
           </Heading>

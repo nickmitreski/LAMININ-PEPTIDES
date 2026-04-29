@@ -1,16 +1,27 @@
+import { useEffect, useState } from 'react';
 import { FinancialHero } from '@/components/ui/hero-section';
 
 export default function Hero() {
+  const fullTitle = 'Laboratory verified compounds';
+  const [typedTitle, setTypedTitle] = useState('');
+
+  useEffect(() => {
+    let index = 0;
+    const timer = window.setInterval(() => {
+      index += 1;
+      setTypedTitle(fullTitle.slice(0, index));
+      if (index >= fullTitle.length) {
+        window.clearInterval(timer);
+      }
+    }, 55);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
   return (
     <FinancialHero
-      title={
-        <>
-          Laboratory verified{' '}
-          <span className="underline decoration-2 decoration-accent-dark underline-offset-[0.25em]">
-            compounds
-          </span>
-        </>
-      }
+      title={typedTitle || 'Laboratory verified compounds'}
+      eyebrow=""
       description="High purity compounds supported by analytical testing and documented quality."
       primaryButtonText="Browse library"
       primaryButtonTo="/library"

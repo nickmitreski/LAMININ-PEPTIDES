@@ -23,6 +23,7 @@ const COA = lazy(() => import('./pages/COA'));
 const Contact = lazy(() => import('./pages/Contact'));
 const FAQ = lazy(() => import('./pages/FAQ'));
 const Guarantee = lazy(() => import('./pages/Guarantee'));
+const ReconstitutionCalculator = lazy(() => import('./pages/ReconstitutionCalculator'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
@@ -134,6 +135,10 @@ function App() {
                             />
                             <Route path="/coa" element={<COA />} />
                             <Route path="/guarantee" element={<Guarantee />} />
+                            <Route
+                              path="/reconstitution-calculator"
+                              element={<ReconstitutionCalculator />}
+                            />
                             <Route path="/contact" element={<Contact />} />
                             <Route path="/cart" element={<Cart />} />
                             <Route path="/checkout" element={<Checkout />} />

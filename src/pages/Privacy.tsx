@@ -15,7 +15,6 @@ export default function Privacy() {
         <SectionTitle
           label="Legal"
           title="Privacy policy"
-          subtitle="Last updated: March 29, 2026"
           titleClassName="!font-bold"
         />
 

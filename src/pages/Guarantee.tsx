@@ -1,5 +1,5 @@
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -13,28 +13,26 @@ export default function Guarantee() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <SectionTitle
-          label="Quality assurance"
+        <PageTopBanner
           title="Purity assurance guarantee"
-          subtitle="Last updated: March 29, 2026"
-          titleClassName="!font-bold"
+          subtitle="Our analytical standards, verification process, and refund policy for batch purity deviations."
         />
 
-        <div className="mx-auto max-w-3xl space-y-8">
-          <Text variant="body" className="text-neutral-600">
+        <div className="mx-auto max-w-5xl space-y-8">
+          <Text variant="body" className="text-carbon-900">
             Laminin Peptide Lab is committed to maintaining high analytical standards for all
             compounds supplied for laboratory research. Each batch undergoes analytical
             verification prior to release, and Certificates of Analysis are made available to
             support transparency regarding compound identity and purity.
           </Text>
-          <Text variant="body" className="text-neutral-600">
+          <Text variant="body" className="text-carbon-900">
             To reinforce our commitment to quality, Laminin Peptide Lab provides a Purity
             Assurance Guarantee for all compounds supplied.
           </Text>
 
           <div>
             <PolicySectionHeading>Analytical verification</PolicySectionHeading>
-            <div className="space-y-3 text-neutral-600">
+            <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 Compounds supplied by Laminin Peptide Lab are manufactured by partners operating
                 under recognised quality management systems, including GMP-aligned processes and
@@ -51,7 +49,7 @@ export default function Guarantee() {
 
           <div>
             <PolicySectionHeading>Purity standard</PolicySectionHeading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               Laminin Peptide Lab maintains a minimum purity standard of ≥99% for peptide
               compounds, verified through analytical testing prior to supply. This standard
               reflects our commitment to providing researchers with compounds that meet consistent
@@ -61,7 +59,7 @@ export default function Guarantee() {
 
           <div>
             <PolicySectionHeading>Our guarantee</PolicySectionHeading>
-            <div className="space-y-3 text-neutral-600">
+            <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 If independent analytical testing demonstrates that the purity of a compound
                 supplied by Laminin Peptide Lab does not meet the stated specification of ≥99%
@@ -78,7 +76,7 @@ export default function Guarantee() {
 
           <div>
             <PolicySectionHeading>Additional information</PolicySectionHeading>
-            <div className="space-y-3 text-neutral-600">
+            <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 The Purity Assurance Guarantee applies specifically to the analytical purity of the
                 compound supplied, as verified through recognised analytical testing methods.

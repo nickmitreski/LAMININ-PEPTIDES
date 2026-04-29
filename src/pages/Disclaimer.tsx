@@ -15,7 +15,6 @@ export default function Disclaimer() {
         <SectionTitle
           label="Legal"
           title="Disclaimer"
-          subtitle="Last updated: March 29, 2026"
           titleClassName="!font-bold"
         />
 

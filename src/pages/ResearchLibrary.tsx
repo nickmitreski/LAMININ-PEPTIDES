@@ -8,12 +8,11 @@ import {
   ExternalLink,
   FlaskConical,
   HeartPulse,
-  Microscope,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import Card from '../components/ui/Card';
 import { Heading, Label, Text } from '../components/ui/Typography';
 import { PEPTIDE_PROFILES, CATEGORY_FILTERS } from '../data/peptideData';
@@ -134,25 +133,12 @@ export default function ResearchLibrary() {
   return (
     <div className="min-h-screen bg-platinum">
       {/* Hero */}
-      <Section
-        background="white"
-        spacing="lg"
-        className="bg-gradient-to-b from-accent/30 via-accent/10 to-white"
-      >
+      <Section background="white" spacing="sm">
         <div className="mx-auto max-w-5xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm backdrop-blur-sm sm:px-10 sm:py-12">
-          <div className="mb-2 flex justify-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1 text-xs font-medium tracking-wider uppercase text-accent-dark ring-1 ring-accent-200">
-              <Microscope className="h-3.5 w-3.5" />
-              Research Library
-            </span>
-          </div>
-
-          <SectionTitle
+          <PageTopBanner
             title="Peptide science"
             subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."
-            titleClassName="!font-bold"
-            subtitleClassName="max-w-2xl"
-            className="mb-8 text-center"
+            className="mb-6"
           />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -200,7 +186,7 @@ export default function ResearchLibrary() {
       </Section>
 
       {/* Research Notice */}
-      <Section background="white" spacing="sm">
+      <Section background="white" spacing="sm" className="!pt-2">
         <div className="mx-auto max-w-6xl">
           <Card padding="md" className="border border-blue-200 bg-blue-50">
             <div className="flex items-start gap-3">
@@ -224,7 +210,7 @@ export default function ResearchLibrary() {
       </Section>
 
       {/* Category Filters */}
-      <Section background="white" spacing="sm">
+      <Section background="white" spacing="sm" className="!pt-2">
         <div className="mx-auto max-w-6xl">
           <div className="mb-6">
             <Heading level={4} className="mb-4 text-center">
@@ -278,7 +264,7 @@ export default function ResearchLibrary() {
       </Section>
 
       {/* Peptide Cards Grid */}
-      <Section background="white" spacing="lg">
+      <Section background="white" spacing="sm">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPeptides.map((peptide) => {

@@ -18,6 +18,7 @@ const VIDEO_SRC: string | null = null;
 export default function PromoVideo() {
   const { ref: sectionRef, revealed } = useScrollReveal<HTMLDivElement>();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Pause the player automatically when the section scrolls offscreen.
@@ -30,15 +31,15 @@ export default function PromoVideo() {
   }, [revealed, isPlaying]);
 
   const handlePlay = () => {
-    if (!VIDEO_SRC || !videoRef.current) {
-      setIsPlaying(true);
-      return;
-    }
+    setModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (!modalOpen || !VIDEO_SRC || !videoRef.current) return;
     videoRef.current.play().catch(() => {
       // Autoplay blocked or asset missing; surface controls instead.
     });
-    setIsPlaying(true);
-  };
+  }, [modalOpen]);
 
   return (
     <Section
@@ -46,12 +47,8 @@ export default function PromoVideo() {
       spacing="lg"
       id="promo-video"
       className="relative"
-    >
-      <div
-        ref={sectionRef}
-        data-revealed={revealed}
-        className="reveal mx-auto max-w-5xl"
       >
+        <div ref={sectionRef} data-revealed={revealed} className="reveal mx-auto max-w-3xl">
         <div className="group relative overflow-hidden rounded-2xl border border-carbon-200 bg-carbon-900 shadow-xl">
           {/* Aspect ratio frame */}
           <div className="relative aspect-video w-full">
@@ -110,6 +107,56 @@ export default function PromoVideo() {
             )}
           </div>
         </div>
+
+        {modalOpen && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Promotional video"
+            onClick={() => {
+              setModalOpen(false);
+              setIsPlaying(false);
+              videoRef.current?.pause();
+            }}
+          >
+            <div
+              className="w-full max-w-5xl overflow-hidden rounded-2xl border border-white/20 bg-carbon-900 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative aspect-video w-full">
+                {VIDEO_SRC ? (
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full object-cover"
+                    poster={POSTER_SRC}
+                    controls
+                    preload="metadata"
+                    playsInline
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                  >
+                    <source src={VIDEO_SRC} type="video/mp4" />
+                  </video>
+                ) : (
+                  <>
+                    <img
+                      src={POSTER_SRC}
+                      alt="Promo video placeholder"
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover opacity-55"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-carbon-900/80 via-carbon-900/40 to-accent/30" />
+                    <span className="absolute inset-x-4 bottom-4 rounded-sm border border-white/30 bg-black/45 px-4 py-2 text-center text-xs font-medium uppercase tracking-[0.16em] text-white backdrop-blur-sm sm:text-sm">
+                      Promo video placeholder
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Section>
   );

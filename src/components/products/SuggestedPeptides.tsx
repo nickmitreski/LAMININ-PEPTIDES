@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { allPeptides, type Peptide } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
-import { Text } from '../ui/Typography';
 
 interface SuggestedPeptidesProps {
   currentPeptide: Peptide;
@@ -14,7 +13,7 @@ interface SuggestedPeptidesProps {
  */
 export default function SuggestedPeptides({
   currentPeptide,
-  maxSuggestions = 3,
+  maxSuggestions = 4,
 }: SuggestedPeptidesProps) {
   // Find peptides that share at least one category with the current peptide
   const relatedPeptides = allPeptides
@@ -37,18 +36,24 @@ export default function SuggestedPeptides({
   }
 
   return (
-    <div className="mt-6 mb-2">
-      <Text variant="caption" weight="medium" className="mb-2.5 block text-neutral-600 uppercase tracking-[0.16em]">
-        Related compounds
-      </Text>
-      <div className="flex flex-wrap gap-2">
+    <div className="mt-5">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {relatedPeptides.map((peptide) => (
           <Link
             key={peptide.id}
             to={`/products/${getProductSlug(peptide.id)}`}
-            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-carbon-900 bg-neutral-100 border border-neutral-200 rounded-sm hover:bg-accent hover:border-accent transition-colors touch-manipulation"
+            className="group flex min-w-[132px] items-center gap-2 rounded-sm border border-carbon-900/15 bg-white px-2 py-2 transition-colors hover:border-accent hover:bg-accent/20"
           >
-            {peptide.name}
+            <img
+              src={peptide.image}
+              alt={peptide.name}
+              loading="lazy"
+              decoding="async"
+              className="h-10 w-10 rounded-sm object-cover"
+            />
+            <span className="line-clamp-2 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-carbon-900">
+              {peptide.name}
+            </span>
           </Link>
         ))}
       </div>

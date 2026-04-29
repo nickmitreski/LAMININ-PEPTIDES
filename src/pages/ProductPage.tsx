@@ -206,8 +206,6 @@ export default function ProductPage() {
                 {headline}
               </h1>
 
-              <SuggestedPeptides currentPeptide={peptide} />
-
               {variants && variants.length > 0 && (
                 <div className="mt-4 max-w-xs">
                   <Label
@@ -306,7 +304,13 @@ export default function ProductPage() {
             </div>
           </div>
 
-          <div className="mx-auto mt-12 w-full max-w-6xl border-t border-carbon-900/10 pt-10 md:mt-16 md:pt-12">
+          <div className="mx-auto mt-12 w-full max-w-6xl border-t border-carbon-900/10 pt-8 md:mt-16 md:pt-10">
+            <Text variant="caption" className="mb-2 block uppercase tracking-[0.16em] text-carbon-900/70">
+              Suggested compounds
+            </Text>
+            <SuggestedPeptides currentPeptide={peptide} />
+
+            <div className="mt-6 border-t border-carbon-900/10 pt-6 md:pt-8">
             <ProductPageAccordion
               openId={accordionOpenId}
               onOpenIdChange={setAccordionOpenId}
@@ -436,6 +440,7 @@ export default function ProductPage() {
                 },
               ]}
             />
+            </div>
           </div>
         </Section>
       </main>

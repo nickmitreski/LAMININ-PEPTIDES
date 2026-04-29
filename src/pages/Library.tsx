@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import ToggleTabs from '../components/ui/ToggleTabs';
 import PeptideCard from '../components/peptides/PeptideCard';
 import Button from '../components/ui/Button';
@@ -86,11 +86,9 @@ export default function Library() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <SectionTitle
-          label="Compound library"
+        <PageTopBanner
           title="Compound catalogue"
-          subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity"
-          titleClassName="!font-bold"
+          subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity."
         />
 
         <div className="mx-auto mb-8 max-w-xl md:mb-12">

@@ -38,6 +38,7 @@ export default function Header() {
     { path: '/coa', label: 'Certificate of analysis' },
     { path: '/research', label: 'Peptide science' },
     { path: '/guarantee', label: 'Purity guarantee' },
+    { path: '/reconstitution-calculator', label: 'Reconstitution calculator' },
     { path: '/faq', label: 'FAQ' },
     { path: '/shipping', label: 'Shipping' },
   ];
