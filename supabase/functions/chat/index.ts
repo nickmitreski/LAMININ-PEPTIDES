@@ -129,7 +129,7 @@ serve(async (req: Request) => {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    const { messages, sessionId }: ChatRequest = await req.json();
+    const { messages }: ChatRequest = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new Error('Invalid request: messages array required');
