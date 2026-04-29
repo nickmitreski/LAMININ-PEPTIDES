@@ -767,7 +767,13 @@ export async function markPaymentReceived(
   adminEmail: string,
   notes: string | null,
   client: SupabaseClient | null
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{
+  success: boolean;
+  error?: string;
+  notifySmsError?: string;
+  notifySmsSkipped?: boolean;
+  notifySmsSkipReason?: string;
+}> {
   if (!client) return { success: false, error: 'No client' };
 
   const { error } = await client.rpc('mark_payment_received', {
@@ -780,6 +786,41 @@ export async function markPaymentReceived(
     console.error('[supabase] markPaymentReceived', error);
     return { success: false, error: error.message };
   }
+
+  try {
+    const { data, error: fnError } = await client.functions.invoke('notify-payment-received', {
+      body: { tracking_id: trackingId },
+    });
+    if (fnError) {
+      console.error('[supabase] notify-payment-received', fnError);
+      return { success: true, notifySmsError: fnError.message };
+    }
+    const payload = data as {
+      ok?: boolean;
+      skipped?: boolean;
+      reason?: string;
+      error?: string;
+      detail?: string;
+    } | null;
+    if (payload?.skipped) {
+      return {
+        success: true,
+        notifySmsSkipped: true,
+        notifySmsSkipReason: payload.reason,
+      };
+    }
+    if (payload && payload.ok === false) {
+      const detail = [payload.error, payload.detail].filter(Boolean).join(': ');
+      return { success: true, notifySmsError: detail || 'notify-payment-received failed' };
+    }
+  } catch (e) {
+    console.error('[supabase] notify-payment-received', e);
+    return {
+      success: true,
+      notifySmsError: e instanceof Error ? e.message : 'notify-payment-received invoke failed',
+    };
+  }
+
   return { success: true };
 }
 

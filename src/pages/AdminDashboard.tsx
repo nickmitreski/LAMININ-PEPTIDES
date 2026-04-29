@@ -248,13 +248,34 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+  const handleStatusUpdate = async (order: OrderReferenceRow, newStatus: OrderStatus) => {
     try {
-      const success = await updateOrderStatus(
-        orderId,
-        newStatus,
-        getAdminSupabase()
-      );
+      const db = getAdminSupabase();
+      if (!db) {
+        showToast('Supabase not configured', 'error');
+        return;
+      }
+
+      // "Paid" must go through mark_payment_received + notify-payment-received (SMS).
+      // The row dropdown used to call updateOrderStatus only, which skipped SMS.
+      if (newStatus === 'payment_received') {
+        const m = await markPaymentReceived(order.id, adminUser?.email ?? 'admin', null, db);
+        if (!m.success) {
+          showToast(m.error ?? 'Failed to mark payment received', 'error');
+          return;
+        }
+        if (m.notifySmsError) {
+          showToast(`Payment saved. SMS not sent: ${m.notifySmsError}`, 'error');
+        } else if (m.notifySmsSkipped && m.notifySmsSkipReason === 'no_phone') {
+          showToast('Marked paid. No customer phone — SMS skipped.', 'success');
+        } else {
+          showToast('Order marked paid. Confirmation SMS sent.', 'success');
+        }
+        void loadOrders({ silent: true });
+        return;
+      }
+
+      const success = await updateOrderStatus(order.peptide_order_id, newStatus, db);
       if (success) {
         showToast(`Order status updated to ${newStatus}`, 'success');
         void loadOrders({ silent: true });
@@ -765,10 +786,7 @@ export default function AdminDashboard() {
                             <select
                               value={order.status}
                               onChange={(e) =>
-                                handleStatusUpdate(
-                                  order.peptide_order_id,
-                                  e.target.value as OrderStatus
-                                )
+                                handleStatusUpdate(order, e.target.value as OrderStatus)
                               }
                               className="rounded-sm border border-carbon-900/20 px-2 py-1 text-xs focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20"
                             >
@@ -822,9 +840,24 @@ export default function AdminDashboard() {
           }}
           onPaymentAction={async (action, trackingId) => {
             if (action === 'mark_paid') {
-              await markPaymentReceived(trackingId, adminUser?.email ?? 'admin', null, getAdminSupabase());
+              const m = await markPaymentReceived(
+                trackingId,
+                adminUser?.email ?? 'admin',
+                null,
+                getAdminSupabase()
+              );
               await loadOrders({ silent: true });
-              showToast('Payment marked as received', 'success');
+              if (!m.success) {
+                showToast(m.error ?? 'Could not mark payment', 'error');
+                return;
+              }
+              if (m.notifySmsError) {
+                showToast(`Payment saved. SMS not sent: ${m.notifySmsError}`, 'error');
+              } else if (m.notifySmsSkipped && m.notifySmsSkipReason === 'no_phone') {
+                showToast('Payment marked as received. No customer phone — SMS skipped.', 'success');
+              } else {
+                showToast('Payment marked as received. Confirmation SMS sent.', 'success');
+              }
             }
           }}
           onClose={() => setSelectedOrder(null)}

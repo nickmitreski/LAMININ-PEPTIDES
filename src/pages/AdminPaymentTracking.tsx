@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { markPaymentReceived } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
 import { Heading, Text } from '../components/ui/Typography';
@@ -31,7 +32,7 @@ interface PaymentTracking {
 
 export default function AdminPaymentTracking() {
   const navigate = useNavigate();
-  const { logout } = useAdminAuth();
+  const { logout, user: adminUser } = useAdminAuth();
   const [payments, setPayments] = useState<PaymentTracking[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -77,14 +78,16 @@ export default function AdminPaymentTracking() {
         alert('Supabase client not initialized');
         return;
       }
-      const { error } = await supabase.rpc('mark_payment_received', {
-        p_tracking_id: id,
-        p_admin_email: 'admin@laminin.com', // TODO: Get from auth context
-        p_notes: null,
-      });
-
-      if (error) throw error;
+      const m = await markPaymentReceived(id, adminUser?.email ?? 'admin', null, supabase);
+      if (!m.success) {
+        throw new Error(m.error ?? 'Unknown error');
+      }
       await fetchPayments();
+      if (m.notifySmsError) {
+        alert(`Payment marked as received. SMS was not sent: ${m.notifySmsError}`);
+      } else if (m.notifySmsSkipped && m.notifySmsSkipReason === 'no_phone') {
+        alert('Payment marked as received. No customer phone on file — SMS skipped.');
+      }
     } catch (err) {
       console.error('Error marking as paid:', err);
       alert('Failed to mark as paid: ' + (err instanceof Error ? err.message : 'Unknown error'));

@@ -137,7 +137,7 @@ export default function ProductPage() {
     const price = getNumericPriceForVariantOrPeptide(
       peptide.id,
       variants?.length ? effectiveVariantId : undefined
-    );
+    ) ?? dbPrice;
     if (price === null) return;
 
     const cartName = selectedVariant
