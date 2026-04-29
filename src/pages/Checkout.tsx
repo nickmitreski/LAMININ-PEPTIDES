@@ -16,6 +16,7 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { cartLineKey } from '../types/cart';
 import BankTransferModal from '../components/checkout/BankTransferModal';
+import { supabase } from '../lib/supabase';
 import {
   createPaymentTracking,
   markPaymentInstructionsViewed,
@@ -192,7 +193,7 @@ export default function Checkout() {
       const grandTotal = state.total + shipping + tax - discountAmount;
       const orderRef = generateOrderReference();
 
-      // Create payment tracking record
+      // Create payment tracking record (includes discount info)
       const result = await createPaymentTracking({
         orderReference: orderRef,
         customerEmail: formData.email.trim() || '',
@@ -217,10 +218,28 @@ export default function Checkout() {
         tax,
         totalAmount: grandTotal,
         currency: 'AUD',
+        discountCode: appliedDiscount?.valid ? appliedDiscount.code : null,
+        discountAmount: discountAmount > 0 ? discountAmount : 0,
       });
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to create order');
+      }
+
+      // Create/update customer record (non-blocking — don't fail checkout)
+      if (supabase && formData.email.trim()) {
+        supabase.rpc('upsert_checkout_customer', {
+          p_email: formData.email.trim(),
+          p_first_name: formData.firstName.trim(),
+          p_last_name: formData.lastName.trim(),
+          p_phone: formData.phone.trim(),
+          p_address: formData.address,
+          p_city: formData.city,
+          p_state: formData.state,
+          p_postcode: formData.postcode,
+          p_country: formData.country,
+          p_order_total: grandTotal,
+        }).catch((err: unknown) => console.error('Customer upsert failed:', err));
       }
 
       // Redeem discount code if one was applied (must succeed or we surface it — count stays in sync)

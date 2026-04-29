@@ -24,6 +24,8 @@ export interface BankTransferPaymentData {
   tax: number;
   totalAmount: number;
   currency?: string;
+  discountCode?: string | null;
+  discountAmount?: number;
 }
 
 /**
@@ -48,6 +50,8 @@ export async function createPaymentTracking(
       p_tax: data.tax,
       p_total_amount: data.totalAmount,
       p_currency: data.currency || 'AUD',
+      p_discount_code: data.discountCode ?? null,
+      p_discount_amount: data.discountAmount ?? 0,
     });
 
     if (error) {
