@@ -58,10 +58,13 @@ async function writeSmsLog(
   if (!supabaseUrl || !serviceKey) return;
   try {
     const sb = createClient(supabaseUrl, serviceKey);
-    await sb.from('sms_logs').insert({
-      recipient_phone: payload.phone ?? null,
+    const { error } = await sb.from('sms_logs').insert({
+      // recipient_phone + message_body are NOT NULL on the existing table.
+      // For pre-send phases (attempt, auth_fail, bad_request, etc.) we don't yet
+      // have a real phone/body, so use '-' as a safe placeholder.
+      recipient_phone: payload.phone ?? '-',
       recipient_name: null,
-      message_body: payload.body ?? null,
+      message_body: payload.body ?? '-',
       message_type: 'payment_received',
       status: payload.status,
       provider: 'twilio',
@@ -77,8 +80,11 @@ async function writeSmsLog(
       },
       sent_at: payload.status === 'sent' ? new Date().toISOString() : null,
     });
+    if (error) {
+      console.error('sms_logs insert failed', error.message, error.details);
+    }
   } catch (e) {
-    console.error('sms_logs insert failed', e);
+    console.error('sms_logs insert threw', e);
   }
 }
 
