@@ -9,14 +9,20 @@ import {
 
 export type OrderStatus =
   | 'pending'
-  | 'paid'
+  | 'viewed_instructions'
+  | 'payment_received'
   | 'processing'
   | 'shipped'
   | 'delivered'
   | 'cancelled';
 
+/**
+ * Canonical order row — sourced from `payment_tracking` table.
+ * Field names normalised to match the dashboard's expectations.
+ */
 export interface OrderReferenceRow {
   id: string;
+  /** Order reference string e.g. "LM-8Q7PBP" */
   peptide_order_id: string;
   protein_store_order_id: string | null;
   status: OrderStatus;
@@ -36,6 +42,15 @@ export interface OrderReferenceRow {
   discount_code: string | null;
   discount_amount: number | null;
   notes: string | null;
+  /** payment_tracking specific fields */
+  payment_status: string;
+  payment_viewed_at: string | null;
+  payment_completed_at: string | null;
+  cart_items: Array<{ id: string; name: string; price: number; quantity: number; image?: string }>;
+  subtotal: number | null;
+  shipping: number | null;
+  tax: number | null;
+  currency: string;
   created_at: string;
   updated_at: string;
 }
@@ -45,6 +60,44 @@ export interface CustomerInput {
   first_name: string;
   last_name: string;
   phone?: string;
+}
+
+/** Map a raw payment_tracking DB row to the normalised OrderReferenceRow shape. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function paymentRowToOrder(row: any): OrderReferenceRow {
+  const addr = row.customer_address as Record<string, string> | null;
+  return {
+    id: row.id,
+    peptide_order_id: row.order_reference,
+    protein_store_order_id: null,
+    status: row.payment_status as OrderStatus,
+    customer_email: row.customer_email,
+    customer_name: row.customer_name,
+    customer_first_name: null,
+    customer_last_name: null,
+    customer_phone: row.customer_phone,
+    customer_address: addr?.address ?? null,
+    customer_city: addr?.city ?? null,
+    customer_state: addr?.state ?? null,
+    customer_postcode: addr?.postcode ?? null,
+    customer_country: addr?.country ?? null,
+    total_price: row.total_amount,
+    peptide_items: row.cart_items,
+    protein_items: null,
+    discount_code: row.discount_code ?? null,
+    discount_amount: row.discount_amount ?? null,
+    notes: row.admin_notes,
+    payment_status: row.payment_status,
+    payment_viewed_at: row.payment_viewed_at,
+    payment_completed_at: row.payment_completed_at,
+    cart_items: row.cart_items ?? [],
+    subtotal: row.subtotal,
+    shipping: row.shipping,
+    tax: row.tax,
+    currency: row.currency ?? 'AUD',
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
 }
 
 function mappingsFromRows(
@@ -156,16 +209,25 @@ export async function getOrderStatus(
 }
 
 export async function updateOrderStatus(
-  peptideOrderId: string,
+  orderReference: string,
   status: OrderStatus,
   client: SupabaseClient | null = supabase
 ): Promise<boolean> {
   if (!client) return false;
 
+  const updates: Record<string, unknown> = {
+    payment_status: status,
+    updated_at: new Date().toISOString(),
+  };
+  // When marking as payment_received, also set the completion timestamp
+  if (status === 'payment_received') {
+    updates.payment_completed_at = new Date().toISOString();
+  }
+
   const { error } = await client
-    .from('order_references')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('peptide_order_id', peptideOrderId);
+    .from('payment_tracking')
+    .update(updates)
+    .eq('order_reference', orderReference);
 
   return !error;
 }
@@ -197,7 +259,7 @@ export async function createCustomer(
   return data.id as string;
 }
 
-/** Admin: Get all orders (paginated). Pass authenticated admin client so JWT is sent when RLS uses auth.uid(). */
+/** Admin: Get all orders from payment_tracking (paginated). */
 export async function getAllOrders(
   limit = 50,
   offset = 0,
@@ -206,7 +268,7 @@ export async function getAllOrders(
   if (!client) return [];
 
   const { data, error } = await client
-    .from('order_references')
+    .from('payment_tracking')
     .select('*')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -216,13 +278,14 @@ export async function getAllOrders(
     return [];
   }
 
-  return data as OrderReferenceRow[];
+  return (data as unknown[]).map(paymentRowToOrder);
 }
 
 export interface OrderCounts {
   total: number;
   pending: number;
-  paid: number;
+  viewed_instructions: number;
+  payment_received: number;
   processing: number;
   shipped: number;
   delivered: number;
@@ -231,7 +294,6 @@ export interface OrderCounts {
 
 /**
  * Admin: Get accurate order counts directly from the DB.
- * Avoids the inaccuracy of computing stats from a paginated slice in the UI.
  */
 export async function getOrderCounts(
   client: SupabaseClient | null = supabase
@@ -239,7 +301,8 @@ export async function getOrderCounts(
   const empty: OrderCounts = {
     total: 0,
     pending: 0,
-    paid: 0,
+    viewed_instructions: 0,
+    payment_received: 0,
     processing: 0,
     shipped: 0,
     delivered: 0,
@@ -250,7 +313,8 @@ export async function getOrderCounts(
 
   const statuses: OrderStatus[] = [
     'pending',
-    'paid',
+    'viewed_instructions',
+    'payment_received',
     'processing',
     'shipped',
     'delivered',
@@ -259,12 +323,12 @@ export async function getOrderCounts(
 
   try {
     const [totalRes, ...statusRes] = await Promise.all([
-      client.from('order_references').select('*', { count: 'exact', head: true }),
+      client.from('payment_tracking').select('*', { count: 'exact', head: true }),
       ...statuses.map((s) =>
         client
-          .from('order_references')
+          .from('payment_tracking')
           .select('*', { count: 'exact', head: true })
-          .eq('status', s)
+          .eq('payment_status', s)
       ),
     ]);
 
@@ -287,9 +351,9 @@ export async function getOrdersByStatus(
   if (!client) return [];
 
   const { data, error } = await client
-    .from('order_references')
+    .from('payment_tracking')
     .select('*')
-    .eq('status', status)
+    .eq('payment_status', status)
     .order('created_at', { ascending: false });
 
   if (error || !data) {
@@ -297,7 +361,7 @@ export async function getOrdersByStatus(
     return [];
   }
 
-  return data as OrderReferenceRow[];
+  return (data as unknown[]).map(paymentRowToOrder);
 }
 
 /** Admin: Get all customers */
@@ -365,31 +429,27 @@ export async function deleteCustomerAndOrders(
   };
 }
 
-/** Admin: Delete individual order */
+/** Admin: Delete individual order from payment_tracking */
 export async function deleteOrder(
   orderId: string,
   client: SupabaseClient | null = supabase
 ): Promise<{
   success: boolean;
   error?: string;
-  notes_deleted?: number;
 }> {
   if (!client) return { success: false, error: 'No database client' };
 
-  const { data, error } = await client.rpc('delete_order', {
-    p_order_id: orderId,
-  });
+  const { error } = await client
+    .from('payment_tracking')
+    .delete()
+    .eq('id', orderId);
 
   if (error) {
     console.error('[supabase] deleteOrder', error);
     return { success: false, error: error.message };
   }
 
-  return data as {
-    success: boolean;
-    error?: string;
-    notes_deleted?: number;
-  };
+  return { success: true };
 }
 
 /** Admin: Get all product mappings (including inactive) */

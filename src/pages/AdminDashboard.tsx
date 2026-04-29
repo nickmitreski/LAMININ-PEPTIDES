@@ -18,21 +18,18 @@ import {
   ArrowDown,
   Download,
   Check,
-  DollarSign,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllOrders,
   getOrderCounts,
-  getPaymentTrackingMap,
   markPaymentReceived,
   updateOrderStatus,
   deleteOrder,
   type OrderCounts,
   type OrderReferenceRow,
   type OrderStatus,
-  type PaymentTrackingRow,
 } from '../services/supabaseService';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
@@ -46,7 +43,8 @@ import { formatPrice } from '../lib/formatCurrency';
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string; icon: typeof Clock }[] = [
   { value: 'pending', label: 'Pending', icon: Clock },
-  { value: 'paid', label: 'Paid', icon: CheckCircle },
+  { value: 'viewed_instructions', label: 'Viewed', icon: Eye },
+  { value: 'payment_received', label: 'Paid', icon: CheckCircle },
   { value: 'processing', label: 'Processing', icon: Package },
   { value: 'shipped', label: 'Shipped', icon: Truck },
   { value: 'delivered', label: 'Delivered', icon: CheckCircle },
@@ -63,7 +61,8 @@ const AUTO_REFRESH_INTERVAL_MS = 60_000;
 const EMPTY_COUNTS: OrderCounts = {
   total: 0,
   pending: 0,
-  paid: 0,
+  viewed_instructions: 0,
+  payment_received: 0,
   processing: 0,
   shipped: 0,
   delivered: 0,
@@ -72,11 +71,23 @@ const EMPTY_COUNTS: OrderCounts = {
 
 const STATUS_BADGE_COLORS: Record<OrderStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  paid: 'bg-green-100 text-green-800 border-green-200',
-  processing: 'bg-blue-100 text-blue-800 border-blue-200',
+  viewed_instructions: 'bg-blue-100 text-blue-800 border-blue-200',
+  payment_received: 'bg-green-100 text-green-800 border-green-200',
+  processing: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   shipped: 'bg-purple-100 text-purple-800 border-purple-200',
   delivered: 'bg-green-100 text-green-800 border-green-200',
   cancelled: 'bg-red-100 text-red-800 border-red-200',
+};
+
+/** Human-readable labels for status values */
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: 'Pending',
+  viewed_instructions: 'Viewed',
+  payment_received: 'Paid',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
@@ -84,7 +95,7 @@ function StatusBadge({ status }: { status: OrderStatus }) {
     <span
       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${STATUS_BADGE_COLORS[status]}`}
     >
-      {status}
+      {STATUS_LABELS[status] ?? status}
     </span>
   );
 }
@@ -170,7 +181,7 @@ export default function AdminDashboard() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [paymentMap, setPaymentMap] = useState<Map<string, PaymentTrackingRow>>(new Map());
+  // Payment data is now embedded in order rows (from payment_tracking table)
   const isMountedRef = useRef(true);
 
   const loadOrders = useCallback(
@@ -182,15 +193,13 @@ export default function AdminDashboard() {
       }
       try {
         const db = getAdminSupabase();
-        const [data, freshCounts, payments] = await Promise.all([
+        const [data, freshCounts] = await Promise.all([
           getAllOrders(ORDERS_PAGE_SIZE, 0, db),
           getOrderCounts(db),
-          getPaymentTrackingMap(db),
         ]);
         if (!isMountedRef.current) return;
         setOrders(data);
         setCounts(freshCounts);
-        setPaymentMap(payments);
       } catch {
         if (isMountedRef.current && !silent) {
           showToast('Failed to load orders', 'error');
@@ -411,7 +420,8 @@ export default function AdminDashboard() {
   const TABS: { value: StatusFilter; label: string; count: number }[] = [
     { value: 'all', label: 'All', count: counts.total },
     { value: 'pending', label: 'Pending', count: counts.pending },
-    { value: 'paid', label: 'Paid', count: counts.paid },
+    { value: 'viewed_instructions', label: 'Viewed', count: counts.viewed_instructions },
+    { value: 'payment_received', label: 'Paid', count: counts.payment_received },
     { value: 'processing', label: 'Processing', count: counts.processing },
     { value: 'shipped', label: 'Shipped', count: counts.shipped },
     { value: 'delivered', label: 'Delivered', count: counts.delivered },
@@ -648,11 +658,6 @@ export default function AdminDashboard() {
                       <SortHeader label="Status" sortKeyValue="status" />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-600">
-                        Payment
-                      </span>
-                    </th>
-                    <th className="px-6 py-3 text-left">
                       <SortHeader label="Total" sortKeyValue="total" />
                     </th>
                     <th className="px-6 py-3 text-left">
@@ -732,28 +737,6 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4">
                           <StatusBadge status={order.status} />
                         </td>
-                        <td className="px-6 py-4">
-                          {(() => {
-                            const pt = paymentMap.get(order.peptide_order_id);
-                            if (!pt) return <Text variant="caption" muted>—</Text>;
-                            const s = pt.payment_status;
-                            if (s === 'payment_received') return (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                                <DollarSign className="h-3 w-3" /> Paid
-                              </span>
-                            );
-                            if (s === 'viewed_instructions') return (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                                <Eye className="h-3 w-3" /> Viewed
-                              </span>
-                            );
-                            return (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                <Clock className="h-3 w-3" /> Pending
-                              </span>
-                            );
-                          })()}
-                        </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           <Text variant="small" weight="medium">
                             {formatPrice(order.total_price ?? 0)}
@@ -817,7 +800,26 @@ export default function AdminDashboard() {
       {selectedOrder && (
         <OrderDetailsModal
           order={selectedOrder}
-          paymentTracking={paymentMap.get(selectedOrder.peptide_order_id) ?? null}
+          paymentTracking={{
+            id: selectedOrder.id,
+            order_reference: selectedOrder.peptide_order_id,
+            customer_email: selectedOrder.customer_email ?? '',
+            customer_name: selectedOrder.customer_name ?? '',
+            customer_phone: selectedOrder.customer_phone ?? '',
+            customer_address: null,
+            cart_items: selectedOrder.cart_items ?? [],
+            subtotal: selectedOrder.subtotal ?? 0,
+            shipping: selectedOrder.shipping ?? 0,
+            tax: selectedOrder.tax ?? 0,
+            total_amount: selectedOrder.total_price ?? 0,
+            currency: selectedOrder.currency ?? 'AUD',
+            payment_status: selectedOrder.payment_status ?? selectedOrder.status,
+            payment_viewed_at: selectedOrder.payment_viewed_at ?? null,
+            payment_completed_at: selectedOrder.payment_completed_at ?? null,
+            admin_notes: selectedOrder.notes,
+            created_at: selectedOrder.created_at,
+            updated_at: selectedOrder.updated_at,
+          }}
           onPaymentAction={async (action, trackingId) => {
             if (action === 'mark_paid') {
               await markPaymentReceived(trackingId, adminUser?.email ?? 'admin', null, getAdminSupabase());
