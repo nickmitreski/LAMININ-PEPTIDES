@@ -24,9 +24,9 @@ describe('checkoutGstRate / checkoutGstAmount', () => {
     vi.unstubAllEnvs();
   });
 
-  it('defaults to 10%', () => {
-    expect(checkoutGstRate()).toBe(0.1);
-    expect(checkoutGstAmount(100)).toBe(10);
+  it('defaults to 0% (prices are tax-inclusive)', () => {
+    expect(checkoutGstRate()).toBe(0);
+    expect(checkoutGstAmount(100)).toBe(0);
   });
 
   it('respects VITE_CHECKOUT_GST_RATE when valid', () => {
@@ -39,12 +39,12 @@ describe('checkoutGstRate / checkoutGstAmount', () => {
     expect(checkoutGstAmount(100)).toBe(15);
   });
 
-  it('ignores invalid env and falls back to 10%', () => {
+  it('ignores invalid env and falls back to 0%', () => {
     vi.stubEnv('VITE_CHECKOUT_GST_RATE', 'not-a-number');
-    expect(checkoutGstRate()).toBe(0.1);
+    expect(checkoutGstRate()).toBe(0);
     vi.stubEnv('VITE_CHECKOUT_GST_RATE', '2');
-    expect(checkoutGstRate()).toBe(0.1);
+    expect(checkoutGstRate()).toBe(0);
     vi.stubEnv('VITE_CHECKOUT_GST_RATE', '-0.1');
-    expect(checkoutGstRate()).toBe(0.1);
+    expect(checkoutGstRate()).toBe(0);
   });
 });

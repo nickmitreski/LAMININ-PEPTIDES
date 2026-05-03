@@ -5,7 +5,7 @@ import {
   checkoutGstRate,
   expressShippingAud,
 } from '../lib/shippingPolicy';
-import { ArrowLeft, Tag, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Tag, X, Loader2, Droplets, Plus } from 'lucide-react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import CartSummary from '../components/cart/CartSummary';
@@ -91,7 +91,7 @@ export default function Checkout() {
     'Checkout',
     'Securely complete your order. Bank transfer instructions are emailed immediately after order confirmation.'
   );
-  const { state, clearCart } = useCart();
+  const { state, clearCart, addItem } = useCart();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -614,6 +614,41 @@ export default function Checkout() {
                       </div>
                     ))}
                   </div>
+
+                  {/* BAC Water Recommendation */}
+                  {state.items.length > 0 && !state.items.some(item => item.peptideId === 'bacteriostatic-water') && (
+                    <div className="mb-4 rounded-lg border border-accent-200 bg-accent-50 p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 text-accent-700">
+                          <Droplets className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <Text variant="small" weight="medium" className="text-accent-900 mb-1">
+                            Reconstitution essential
+                          </Text>
+                          <Text variant="caption" className="text-accent-700 mb-2">
+                            Bacteriostatic water is required to reconstitute peptides before use. We recommend adding it to your order.
+                          </Text>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              addItem({
+                                peptideId: 'bacteriostatic-water',
+                                name: 'Bacteriostatic Water 3ml',
+                                price: 5,
+                                image: '/images/products/CFG-028_5 — Bacteriostatic water 3ml.png',
+                                purity: 'N/A',
+                              });
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-sm bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700 transition-colors"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Add Bacteriostatic Water — $5.00
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <CartSummary
                     subtotal={state.total}

@@ -1,5 +1,5 @@
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import { Heading, Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -12,11 +12,7 @@ export default function Disclaimer() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <SectionTitle
-          label="Legal"
-          title="Disclaimer"
-          titleClassName="!font-bold"
-        />
+        <PageTopBanner title="Disclaimer" subtitle="Terms of use and legal information." />
 
         <div className="mx-auto max-w-3xl space-y-6">
           <Text variant="body" className="text-neutral-600">

@@ -1,5 +1,5 @@
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import { Heading, Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -12,11 +12,7 @@ export default function Privacy() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <SectionTitle
-          label="Legal"
-          title="Privacy policy"
-          titleClassName="!font-bold"
-        />
+        <PageTopBanner title="Privacy policy" subtitle="How we handle your data and protect your privacy." />
 
         <div className="mx-auto max-w-3xl space-y-8">
           <Text variant="body" className="text-neutral-600">

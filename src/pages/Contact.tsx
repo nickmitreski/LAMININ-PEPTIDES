@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import Section from '../components/layout/Section';
-import SectionTitle from '../components/ui/SectionTitle';
+import PageTopBanner from '../components/ui/PageTopBanner';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Button from '../components/ui/Button';
@@ -74,12 +74,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <SectionTitle
-          label="Contact"
-          title="Get in touch"
-          subtitle="Have a question about our products or need assistance with an order? Our team is here to help."
-          titleClassName="!font-bold"
-        />
+        <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." />
 
         <div className="max-w-lg mx-auto">
           <Text variant="small" muted className="mb-6 block leading-relaxed">

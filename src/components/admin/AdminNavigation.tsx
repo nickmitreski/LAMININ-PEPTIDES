@@ -6,6 +6,7 @@ import {
   Users,
   Mail,
   Tag,
+  Wrench,
   LogOut,
 } from 'lucide-react';
 import Button from '../ui/Button';
@@ -57,6 +58,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Emails',
     icon: Mail,
     description: 'Email templates & history',
+  },
+  {
+    path: '/admin/tools',
+    label: 'Tools',
+    icon: Wrench,
+    description: 'Reconstitution calculator & tools',
   },
 ];
 

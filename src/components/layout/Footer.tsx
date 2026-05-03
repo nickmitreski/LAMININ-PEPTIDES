@@ -23,7 +23,6 @@ export default function Footer() {
       { label: 'Compound catalogue', path: '/library' },
       { label: 'Research library', path: '/research' },
       { label: 'Certificate of analysis', path: '/coa' },
-      { label: 'Reconstitution calculator', path: '/reconstitution-calculator' },
       { label: 'FAQ', path: '/faq' },
       { label: 'Shipping', path: '/shipping' },
       { label: 'Contact', path: '/contact' },

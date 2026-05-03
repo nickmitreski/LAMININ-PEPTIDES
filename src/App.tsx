@@ -28,7 +28,6 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
-// const Pay = lazy(() => import('./pages/Pay')); // CoreForge - temporarily disabled
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 const Shipping = lazy(() => import('./pages/Shipping'));
@@ -40,6 +39,7 @@ const AdminProducts = lazy(() => import('./pages/AdminProducts'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminDiscounts = lazy(() => import('./pages/AdminDiscounts'));
 const AdminEmails = lazy(() => import('./pages/AdminEmails'));
+const AdminTools = lazy(() => import('./pages/AdminTools'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 
 function App() {
@@ -104,6 +104,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/tools"
+                  element={
+                    <ProtectedRoute>
+                      <AdminTools />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Public Routes (with header/footer) */}
                 <Route
@@ -142,8 +150,6 @@ function App() {
                             <Route path="/contact" element={<Contact />} />
                             <Route path="/cart" element={<Cart />} />
                             <Route path="/checkout" element={<Checkout />} />
-                            {/* CoreForge payment link page - temporarily disabled */}
-                            {/* <Route path="/pay" element={<Pay />} /> */}
                             <Route
                               path="/order-confirmation"
                               element={<OrderConfirmation />}

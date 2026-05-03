@@ -1,4 +1,5 @@
-import { X, Mail, Phone, MapPin, Package, DollarSign, CreditCard } from 'lucide-react';
+import { useState } from 'react';
+import { X, Mail, Phone, MapPin, Package, DollarSign, CreditCard, Download, Beaker } from 'lucide-react';
 import type { OrderReferenceRow, PaymentTrackingRow } from '../../services/supabaseService';
 import { Heading, Text } from '../ui/Typography';
 import Button from '../ui/Button';
@@ -12,7 +13,66 @@ interface OrderDetailsModalProps {
   onClose: () => void;
 }
 
+/** Default reconstitution presets per peptide strength (mg) */
+function defaultReconstitution(name: string, strengthMg: number) {
+  // Skip ancillaries (BAC water, acetic acid)
+  const lower = name.toLowerCase();
+  if (lower.includes('water') || lower.includes('acetic') || lower.includes('glutathione') || lower.includes('nad')) {
+    return null;
+  }
+  // Standard: 1ml BAC water per 5mg peptide, round to nearest 0.5
+  const bacWaterMl = Math.max(0.5, Math.round((strengthMg / 5) * 2) / 2);
+  const concentrationMcg = (strengthMg * 1000) / bacWaterMl; // mcg per ml
+  return {
+    bacWaterMl,
+    concentrationMcg: Math.round(concentrationMcg),
+    strengthMg,
+  };
+}
+
+function parseStrengthMg(name: string): number {
+  const match = name.match(/(\d+(?:\.\d+)?)\s*mg\b/i);
+  return match ? parseFloat(match[1]) : 10;
+}
+
+function exportReconstitutionCsv(
+  orderRef: string,
+  customerName: string,
+  items: Array<{ name: string; qty: number; strengthMg: number; bacWaterMl: number; concentrationMcg: number }>
+) {
+  const headers = ['Product', 'Quantity', 'Strength (mg)', 'BAC Water (ml)', 'Concentration (mcg/ml)'];
+  const escape = (v: unknown) => {
+    const s = v == null ? '' : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = items.map((item) =>
+    [item.name, item.qty, item.strengthMg, item.bacWaterMl, item.concentrationMcg]
+      .map(escape)
+      .join(',')
+  );
+  const csv = [
+    `Reconstitution Guide — ${orderRef}`,
+    `Customer: ${customerName}`,
+    '',
+    headers.join(','),
+    ...rows,
+    '',
+    'Note: These are recommended starting values. Adjust based on research protocol requirements.',
+  ].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reconstitution-${orderRef}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export default function OrderDetailsModal({ order, paymentTracking, onPaymentAction, onClose }: OrderDetailsModalProps) {
+  const [showReconstitution, setShowReconstitution] = useState(false);
+
   const peptideItems = Array.isArray(order.peptide_items)
     ? order.peptide_items
     : [];
@@ -285,6 +345,103 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
             </div>
           )}
         </div>
+
+        {/* Reconstitution Guide Section */}
+        {peptideItems.length > 0 && (
+          <div className="px-6 pb-4">
+            <button
+              type="button"
+              onClick={() => setShowReconstitution(!showReconstitution)}
+              className="inline-flex items-center gap-2 rounded-sm border border-accent-200 bg-accent-50 px-4 py-2 text-sm font-medium text-accent-800 transition-colors hover:bg-accent-100 w-full justify-center"
+            >
+              <Beaker className="h-4 w-4" />
+              {showReconstitution ? 'Hide' : 'Show'} Reconstitution Guide
+            </button>
+
+            {showReconstitution && (() => {
+              const reconItems = peptideItems
+                .map((rawItem: Record<string, unknown>) => {
+                  const item = rawItem as {
+                    peptide_display_name?: string;
+                    name?: string;
+                    cfg_code?: string;
+                    quantity?: number | string;
+                  };
+                  const name = (item.peptide_display_name || item.name || item.cfg_code || 'Unknown') as string;
+                  const strengthMg = parseStrengthMg(name);
+                  const recon = defaultReconstitution(name, strengthMg);
+                  if (!recon) return null;
+                  return {
+                    name,
+                    qty: Number(item.quantity) || 1,
+                    strengthMg: recon.strengthMg,
+                    bacWaterMl: recon.bacWaterMl,
+                    concentrationMcg: recon.concentrationMcg,
+                  };
+                })
+                .filter(Boolean) as Array<{
+                  name: string;
+                  qty: number;
+                  strengthMg: number;
+                  bacWaterMl: number;
+                  concentrationMcg: number;
+                }>;
+
+              if (reconItems.length === 0) return null;
+
+              return (
+                <div className="mt-3 rounded-lg border border-accent-200 bg-white p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <Text variant="small" weight="medium" className="text-accent-900">
+                      Recommended reconstitution
+                    </Text>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        exportReconstitutionCsv(
+                          order.peptide_order_id,
+                          order.customer_name ?? 'Customer',
+                          reconItems
+                        )
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-sm bg-carbon-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-carbon-800"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Export CSV
+                    </button>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-carbon-200 text-left text-xs text-carbon-500">
+                          <th className="pb-2 pr-4">Product</th>
+                          <th className="pb-2 pr-4">Qty</th>
+                          <th className="pb-2 pr-4">Strength</th>
+                          <th className="pb-2 pr-4">BAC Water</th>
+                          <th className="pb-2">Concentration</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reconItems.map((item, idx) => (
+                          <tr key={idx} className="border-b border-carbon-100 last:border-0">
+                            <td className="py-2 pr-4 font-medium">{item.name}</td>
+                            <td className="py-2 pr-4">{item.qty}</td>
+                            <td className="py-2 pr-4">{item.strengthMg}mg</td>
+                            <td className="py-2 pr-4">{item.bacWaterMl}ml</td>
+                            <td className="py-2">{item.concentrationMcg} mcg/ml</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Text variant="caption" className="mt-3 text-carbon-500">
+                    These are recommended starting values. Adjust based on research protocol requirements.
+                  </Text>
+                </div>
+              );
+            })()}
+          </div>
+        )}
 
         <div className="sticky bottom-0 border-t border-carbon-900/10 bg-white px-6 py-4">
           <div className="flex justify-end">
