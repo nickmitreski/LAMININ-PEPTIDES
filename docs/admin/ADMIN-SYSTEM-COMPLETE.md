@@ -1,3 +1,5 @@
+> **Note:** This document is from an earlier version of the admin system. For current information, see [ADMIN-QUICK-REFERENCE.md](ADMIN-QUICK-REFERENCE.md).
+
 # ✅ ADMIN SYSTEM - SETUP COMPLETE
 
 **Date:** March 30, 2026

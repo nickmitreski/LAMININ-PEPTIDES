@@ -1,190 +1,77 @@
-# Supabase Secrets Configuration Checklist
+# Secrets and Environment Variables Checklist
 
-This document tracks which secrets are required, optional, and where they should be configured.
-
----
-
-## **Supabase Edge Functions Secrets**
-
-Configure these in: **Supabase Dashboard → Edge Functions → Secrets**
-
-### **Required Secrets**
-
-#### **Database Connection**
-- [x] `SUPABASE_URL` - Your Supabase project URL
-- [x] `SUPABASE_SERVICE_ROLE_KEY` - Service role key (bypasses RLS)
-
-#### **Twilio SMS**
-- [x] `TWILIO_ACCOUNT_SID` - Twilio account identifier
-- [x] `TWILIO_AUTH_TOKEN` - Twilio authentication token
-- [x] `TWILIO_FROM_NUMBER` - SMS from number (e.g., +61468034071)
-- [x] `ENABLE_CODE_DELIVERY` - Set to `true` to send real SMS
-
-#### **Security**
-- [ ] `CHECKOUT_INIT_HMAC_SECRET` - **CRITICAL**: Shared secret for checkout requests
-  - **Status**: ⚠️ NEEDS TO BE SET
-  - **Generate**: `openssl rand -base64 32`
-  - **Must match**: `VITE_CHECKOUT_INIT_SECRET` in `.env.local`
+All secrets and environment variables required for the Laminin platform.
 
 ---
 
-### **Optional Secrets**
+## Supabase Edge Function Secrets
 
-#### **Email Delivery (Resend)**
+Configure in: **Supabase Dashboard > Edge Functions > Secrets**
 
-- [ ] `RESEND_API_KEY` - Resend API key for email delivery
-- [ ] `RESEND_FROM` - From email address (e.g., `orders@yourdomain.com`)
-  - **Status**: Not configured (SMS-only mode)
-  - **Set these if you want email + SMS delivery**
-- [ ] `MOCK_EMAIL_DELIVERY` - Set to `true` to skip Resend even when `RESEND_API_KEY` is set (testing only)
-  - **If `RESEND_API_KEY` is unset**, `secure-checkout-init` does not send email but still clears the “email pending” state so SMS-only checkout does not show a false “delivery pending” warning.
+| Secret | Description | Example / Notes |
+|--------|-------------|-----------------|
+| `TWILIO_ACCOUNT_SID` | Twilio account identifier | Starts with `AC...` |
+| `TWILIO_AUTH_TOKEN` | Twilio authentication token | |
+| `TWILIO_MESSAGING_SERVICE_SID` | Twilio Messaging Service SID | Starts with `MG...` |
+| `RESEND_API_KEY` | Resend email API key | For transactional email delivery |
+| `RESEND_FROM` | Sender email address | e.g. `orders@yourdomain.com` |
+| `CHECKOUT_DELIVERY_BRAND` | Brand name used in SMS messages | Default: `Laminin` |
+| `MOCK_SMS_DELIVERY` | Log SMS instead of sending | Set to `true` for testing only |
+| `ENABLE_CODE_DELIVERY` | Enable checkout code delivery via SMS | Set to `true` to activate |
 
-#### **WhatsApp — new order ping (`send-order-email`)**
+### Setting secrets via CLI
 
-Optional: notify **your** number when a storefront order is placed (`TWILIO_ORDER_NOTIFY_TO`). Uses the Messages API WhatsApp sender / recipient format (`whatsapp:+E164`).
-
-- [ ] `TWILIO_ACCOUNT_SID`
-- [ ] `TWILIO_AUTH_TOKEN`
-- [ ] `TWILIO_WHATSAPP_FROM` — Twilio WhatsApp-enabled sender (`whatsapp:+…`)
-- [ ] `TWILIO_ORDER_NOTIFY_TO` — Your phone for inbound alerts (`whatsapp:+…`)
-
-Details: **[TWILIO-WHATSAPP-ORDERS.md](./TWILIO-WHATSAPP-ORDERS.md)**.
-
-#### **Payment Link Integration**
-- [ ] `PAYMENT_LINK_CREATE_URL` - Partner payment link creation endpoint
-- [ ] `PAYMENT_LINK_BEARER` - Bearer token for partner API
-- [ ] `PAYMENT_LINK_EMBED` - `true` = send `"embed": true` to CoreForge for `/embed/pay/...` URLs
-- [ ] `COREFORGE_SMS_PAYMENT_LINK_MODE` - `parent` (LAMIN `/pay?pid=`) or `direct` (full CoreForge URL in SMS/email)
-- [ ] `LAMIN_PUBLIC_SITE_URL` - Storefront origin, no trailing slash (required for `parent` mode)
-- [ ] `COREFORGE_PAYMENTS_DISCLOSURE_SMS` / `COREFORGE_PAYMENTS_DISCLOSURE_EMAIL` - Optional; default mentions CoreForge Payments
-- [ ] `PAYMENT_LINK_CURRENCY` - Currency code (default: AUD)
-- [ ] `PAYMENT_LINK_EXPIRATION_MINUTES` - Link expiration (default: 15)
-- [ ] `PAYMENT_LINK_SECRET_HEADER` - Optional extra auth header
-- [ ] `PAYMENT_LINK_METADATA_SOURCE` - Source identifier (default: lamin)
-- [ ] `PAYMENT_LINK_OMIT_URL_FROM_CLIENT` - Hide URL from browser (default: false)
-- [ ] `ALLOW_CODE_DELIVERY_WITHOUT_PAYMENT_LINK` - Allow SMS without link
-  - **Status**: ⚠️ SET TO `true` IF NOT USING PAYMENT LINKS
-
-#### **COREFORGE Async Flow**
-- [ ] `ASYNC_COREFORGE_PAYMENT_FLOW` - Enable async payment flow (default: false)
-- [ ] `COREFORGE_INGEST_URL` - COREFORGE ingest endpoint
-- [ ] `COREFORGE_INGEST_BEARER` - Bearer token for COREFORGE
-- [ ] `PARTNER_PAYMENT_READY_SECRET` - Webhook auth secret
-
-#### **Partner Notifications**
-- [ ] `PAYMENT_LINK_PARTNER_NOTIFY_URL` - Partner notification endpoint
-- [ ] `PAYMENT_LINK_PARTNER_NOTIFY_SECRET` - Partner notification auth
-- [ ] `PARTNER_PAYMENT_NOTIFY_URL` - Legacy partner notify endpoint
-- [ ] `PARTNER_PAYMENT_NOTIFY_SECRET` - Legacy partner auth
-
-#### **Checkout Branding**
-- [ ] `CHECKOUT_DELIVERY_BRAND` - Brand name in SMS/email (default: LAMININ)
-
-#### **Development/Testing**
-- [ ] `MOCK_SMS_DELIVERY` - Set to `true` to log SMS instead of sending
-  - **Status**: Not set (real SMS mode)
-- [ ] `RETURN_CHECKOUT_OTP_IN_RESPONSE` - Expose OTP in API response (dev only)
-
----
-
-### **Secrets to REMOVE** ❌
-
-These are present but not used by Edge Functions:
-
-- [ ] `SUPABASE_ANON_KEY` - Not needed (functions use service role)
-- [ ] `SUPABASE_DB_URL` - Not needed (using createClient with URL + service key)
-- [ ] `TWILIO_MESSAGING_SERVICE_SID` - ⚠️ Verify this is NOT set (conflicts with FROM number)
-- [ ] `TWILIO_USE_WHATSAPP` - Should be removed (you're using SMS now)
-
----
-
-## **Frontend Environment Variables**
-
-Configure these in: **`.env.local`** (gitignored)
-
-### **Required**
-- [x] `VITE_SUPABASE_URL` - Supabase project URL
-- [x] `VITE_SUPABASE_ANON_KEY` - Publishable/anon key
-- [x] `VITE_APP_URL` - Application URL (localhost or production)
-
-### **Optional**
-- [ ] `VITE_CHECKOUT_INIT_SECRET` - Must match `CHECKOUT_INIT_HMAC_SECRET` in Edge secrets
-- [ ] `VITE_CHECKOUT_SOFT_LAUNCH` - Enable soft launch mode
-- [ ] `VITE_DEV_MOCK_SECURE_CHECKOUT` - Mock checkout in dev
-- [ ] `VITE_CHECKOUT_DELIVERY_BRAND` - Brand name (default: LAMININ)
-- [ ] `VITE_CHECKOUT_DISPLAY_CURRENCY` - Display currency (default: AUD)
-- [ ] `VITE_CHECKOUT_GST_RATE` - GST rate (default: 0.1)
-- [ ] `VITE_OPEN_PAYMENT_URL_ON_THIS_SITE` - Open payment URL in storefront
-- [ ] `VITE_PROTEIN_STORE_URL` - Partner protein store URL
-- [ ] `VITE_PROTEIN_STORE_API_KEY` - Partner API key
-
----
-
-## **Vercel Environment Variables**
-
-If deploying frontend to Vercel, configure in: **Vercel Dashboard → Settings → Environment Variables**
-
-Copy all `VITE_*` variables from `.env.local` to Vercel for production builds.
-
----
-
-## **Quick Setup Commands**
-
-### Generate a secure random secret:
 ```bash
-openssl rand -base64 32
-```
+# Set a single secret
+npx supabase secrets set TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxx"
 
-### Set Edge Function secret via Supabase CLI:
-```bash
-npx supabase secrets set CHECKOUT_INIT_HMAC_SECRET="your_secret_here"
-```
-
-### View all Edge Function secrets:
-```bash
+# View all configured secrets
 npx supabase secrets list
 ```
 
-### Deploy Edge Functions:
-```bash
-npx supabase functions deploy secure-checkout-init --no-verify-jwt
-npx supabase functions deploy partner-payment-ready --no-verify-jwt
-```
+Or set them in: **Supabase Dashboard > Edge Functions > Secrets**
 
 ---
 
-## **Priority Actions**
+## Vite Environment Variables (.env.local)
 
-### 🔴 Critical (Do Before Testing)
-1. Set `CHECKOUT_INIT_HMAC_SECRET` in Edge Functions secrets
-2. Set matching `VITE_CHECKOUT_INIT_SECRET` in `.env.local`
-3. Verify `TWILIO_MESSAGING_SERVICE_SID` is NOT set
-4. Set `ALLOW_CODE_DELIVERY_WITHOUT_PAYMENT_LINK=true` if not using payment links
+Configure in: **`.env.local`** (gitignored) for local development, or **Vercel Dashboard > Settings > Environment Variables** for production.
 
-### 🟡 Important (Do This Week)
-1. Remove unused secrets: `SUPABASE_ANON_KEY`, `SUPABASE_DB_URL` from Edge Functions
-2. Document payment link configuration (if using)
-3. Set up Resend email delivery (if using)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_SUPABASE_URL` | Supabase project URL | `https://xxxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Supabase publishable/anon key | `eyJhbGciOi...` |
+| `VITE_APP_URL` | Application URL | `http://localhost:5173` (dev) or production URL |
 
-### 🟢 Nice to Have (Do This Month)
-1. Set `CHECKOUT_DELIVERY_BRAND` for custom branding
-2. Configure partner payment notifications
-3. Set up monitoring for rate limit hits
+All frontend environment variables must be prefixed with `VITE_` to be available in the Vite build.
 
 ---
 
-## **Verification Checklist**
+## No Longer Needed
 
-Before running Step 6 (SMS test):
+These variables have been removed and should NOT be set:
 
-- [ ] `ENABLE_CODE_DELIVERY=true` (confirmed ✅)
-- [ ] `TWILIO_FROM_NUMBER` set to +61468034071 (confirmed ✅)
-- [ ] `CHECKOUT_INIT_HMAC_SECRET` set in Edge Functions
-- [ ] `VITE_CHECKOUT_INIT_SECRET` matches in `.env.local`
-- [ ] `TWILIO_USE_WHATSAPP` removed/not set (confirmed ✅)
-- [ ] `MOCK_SMS_DELIVERY` removed/not set (confirmed ✅)
-- [ ] Payment link config complete OR `ALLOW_CODE_DELIVERY_WITHOUT_PAYMENT_LINK=true`
+| Variable | Reason |
+|----------|--------|
+| `VITE_ADMIN_EMAIL_ALLOWLIST` | Removed. Admin access is controlled exclusively via Supabase `app_metadata.admin = true`. |
+| `VITE_CHECKOUT_GST_RATE` | No longer used. Tax has been removed; defaults to 0. |
+| `CHECKOUT_INIT_HMAC_SECRET` | CoreForge integration removed. |
+| `VITE_CHECKOUT_INIT_SECRET` | CoreForge integration removed. |
+| `PAYMENT_LINK_CREATE_URL` | CoreForge integration removed. |
+| `PAYMENT_LINK_BEARER` | CoreForge integration removed. |
+| `PAYMENT_LINK_EMBED` | CoreForge integration removed. |
+| `COREFORGE_SMS_PAYMENT_LINK_MODE` | CoreForge integration removed. |
+| `COREFORGE_INGEST_URL` | CoreForge integration removed. |
+| `COREFORGE_INGEST_BEARER` | CoreForge integration removed. |
+| `ASYNC_COREFORGE_PAYMENT_FLOW` | CoreForge integration removed. |
+| `PARTNER_PAYMENT_READY_SECRET` | CoreForge integration removed. |
+| All other `COREFORGE_*` / `PAYMENT_LINK_*` / `PARTNER_*` secrets | CoreForge integration removed. |
+| `TWILIO_FROM_NUMBER` | Replaced by `TWILIO_MESSAGING_SERVICE_SID`. |
+| `TWILIO_USE_WHATSAPP` | WhatsApp flow removed. |
+| `ALLOW_CODE_DELIVERY_WITHOUT_PAYMENT_LINK` | CoreForge integration removed; no longer applicable. |
+
+If any of these are still set in your Edge Function Secrets, remove them to avoid confusion.
 
 ---
 
-**Last Updated**: 2026-04-07
+**Last Updated:** May 2026

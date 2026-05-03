@@ -1,6 +1,6 @@
 import Hero from '../components/sections/Hero';
 import TrustBar from '../components/sections/TrustBar';
-import PromoVideo from '../components/sections/PromoVideo';
+// import PromoVideo from '../components/sections/PromoVideo'; // Hidden until video is ready
 import FeaturedProducts from '../components/sections/FeaturedProducts';
 import PeptideToggleSection from '../components/sections/PeptideToggleSection';
 import PeptideScience from '../components/sections/PeptideScience';
@@ -25,7 +25,7 @@ export default function Home() {
       <WebsiteStructuredData />
       <Hero />
       <TrustBar />
-      <PromoVideo />
+      {/* <PromoVideo /> */}{/* Hidden until video asset is ready */}
       <FeaturedProducts />
       <PeptideToggleSection />
       <PeptideScience />

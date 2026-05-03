@@ -1,164 +1,106 @@
-# 🔐 Admin System - Quick Reference
+# Admin Dashboard - Quick Reference
 
-## 🚀 Access
+## Access
 
 **URL:** `/admin/login`
 
-**Auth:** Supabase **Authentication** (email/password). The user must be an admin:
+**Auth:** Supabase email/password login. The user must have `app_metadata.admin = true` set in Supabase Authentication. To grant admin access, go to **Supabase Dashboard > Authentication > Users**, select the user, and add `{ "admin": true }` to their **App metadata**.
 
-1. **Recommended:** In Supabase SQL Editor, run `supabase/admin_auth_setup.sql` (set the email first), **or** in Dashboard → Authentication → user → **App metadata** add `{ "admin": true }`.
-2. **Optional (dev):** `VITE_ADMIN_EMAIL_ALLOWLIST` in `.env.local` (comma-separated emails).
-
-Create the user under **Authentication → Users** (or sign-up flow), then sign in at `/admin/login`.
+All admin operations are gated by `jwt_is_admin()` on the backend.
 
 ---
 
-## 📊 Dashboard
+## Admin Pages
 
-### URL: `/admin/dashboard`
+### Orders (`/admin/dashboard`)
 
-**Features:**
-- View all orders
-- Update order status
-- Search by order ID, email, or name
-- Filter by status
-- Real-time statistics
+Unified order and payment tracking. Displays all orders from the `payment_tracking` table with search, filters, and real-time stats. Status lifecycle: **pending > viewed > paid > processing > shipped > delivered > cancelled**. Marking an order as "paid" triggers an SMS notification to the customer via Twilio. Each order's detail view includes a reconstitution guide showing mixing instructions for the ordered peptides.
 
-**Status Options:**
-- `pending` → Awaiting payment
-- `paid` → Payment received
-- `processing` → Being prepared
-- `shipped` → In transit
-- `delivered` → Completed
-- `cancelled` → Cancelled/Refunded
+### Products (`/admin/products`)
 
----
+Full product CRUD: add, edit, and delete products. Supports sale pricing via `compare_at_price` and `sale_label` fields. Includes search and bulk toggle for active/inactive status. Product images are stored in the Supabase Storage bucket `product-images`.
 
-## 📦 Products
+### Inventory (`/admin/inventory`)
 
-### URL: `/admin/products`
+Stock level management using the `adjust_inventory` RPC. All stock changes are recorded in an audit trail via the `inventory_transactions` table.
 
-**Features:**
-- View all 27 product mappings
-- See CFG codes, peptide names, protein names
-- Check active/inactive status
-- View pricing
+### Discounts (`/admin/discounts`)
 
-**Note:** Currently view-only. Edit in Supabase dashboard.
+Create, edit, and delete discount codes. Tracks redemption counts and history for each code.
+
+### Customers (`/admin/customers`)
+
+Auto-populated from checkout data. View customer details and their complete order history.
+
+### Emails (`/admin/emails`)
+
+View email delivery logs and edit email templates used for order communications.
+
+### Tools (`/admin/tools`)
+
+Provides a shareable link to the reconstitution calculator for customers.
 
 ---
 
-## 🔑 Adding Admin Users
+## Common Tasks
 
-- Add a user in **Supabase → Authentication**, then set **`admin: true`** in **App metadata** (same as `admin_auth_setup.sql`), **or** add their email to `VITE_ADMIN_EMAIL_ALLOWLIST`.
+### Adding a Product
 
----
+1. Go to `/admin/products` and click **Add Product**.
+2. Fill in product details (name, description, price, category).
+3. To show a sale price, set `compare_at_price` (the original/crossed-out price) and optionally a `sale_label` (e.g. "20% OFF").
+4. Upload a product image (stored in the `product-images` bucket).
+5. Save. Toggle active/inactive to control storefront visibility.
 
-## 🛠️ Supabase Admin Functions
+### Editing or Deleting a Product
 
-```typescript
-// Get all orders
-getAllOrders(limit, offset)
+- Click a product row to open the edit form. Make changes and save.
+- To delete, open the product and use the delete action. This removes it from the storefront.
 
-// Get orders by status
-getOrdersByStatus('pending')
+### Managing Orders
 
-// Update order status
-updateOrderStatus('PEP-20260330-AB12', 'shipped')
+1. Go to `/admin/dashboard` to see all orders.
+2. Use search to find orders by order ID, customer email, or name.
+3. Filter by status to focus on specific stages.
+4. Click an order to view full details, including a reconstitution guide for the ordered products.
+5. Update the order status using the status dropdown. The full lifecycle is: **pending > viewed > paid > processing > shipped > delivered > cancelled**.
+6. When you mark an order as **paid**, an SMS is automatically sent to the customer via Twilio.
 
-// Get all products
-getAllProductMappings()
-```
+### Creating Discount Codes
 
----
+1. Go to `/admin/discounts` and click **Add Discount**.
+2. Set the code, discount type (percentage or fixed), and value.
+3. Save. The code is immediately available for customers at checkout.
+4. Monitor redemption counts from the discounts list.
 
-## 🔒 Security
+### Using the Tools Page
 
-**Current:**
-- 24-hour session expiry
-- Protected routes
-- localStorage sessions
+Go to `/admin/tools` to get a shareable link to the reconstitution calculator. Copy and send this link to customers who need mixing guidance.
 
-**Production Recommendations:**
-- Use Supabase Auth
-- Hash passwords
-- Add role-based permissions
-- Enable audit logging
+### Reconstitution Guide in Order Details
 
----
-
-## 🧪 Testing
-
-```bash
-# 1. Start dev server
-npm run dev
-
-# 2. Visit admin login
-http://localhost:5173/admin/login
-
-# 3. Login with default credentials
-
-# 4. Test dashboard features:
-- View orders
-- Update status
-- Search/filter
-- View products
-
-# 5. Test logout
-```
+When viewing an order's detail panel, a reconstitution guide section shows the recommended mixing instructions (BAC water volume, resulting concentration) for each peptide in that order. This helps when advising customers on product preparation.
 
 ---
 
-## 📂 Key Files
+## Security
 
-```
-src/
-├── context/AdminAuthContext.tsx      # Auth system
-├── components/admin/ProtectedRoute.tsx
-├── pages/
-│   ├── AdminLogin.tsx                # Login page
-│   ├── AdminDashboard.tsx            # Main dashboard
-│   └── AdminProducts.tsx             # Products view
-└── services/supabaseService.ts       # Admin APIs
-```
+- All admin routes are protected. Unauthenticated users are redirected to `/admin/login`.
+- Backend operations require `jwt_is_admin()` -- only users with `app_metadata.admin = true` in Supabase can perform admin actions.
+- The `VITE_ADMIN_EMAIL_ALLOWLIST` env var is no longer used. Admin access is controlled exclusively through Supabase `app_metadata`.
 
 ---
 
-## 🚨 Common Issues
+## Troubleshooting
 
-**Can't login:**
-- Check email/password exact match
-- Check browser console for errors
+**Cannot log in:** Verify the user exists in Supabase Authentication and has `{ "admin": true }` in App metadata.
 
-**Orders not loading:**
-- Verify Supabase connection
-- Check `.env.local` credentials
+**Orders not loading:** Check Supabase connection settings in `.env.local` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Verify the `payment_tracking` table exists.
 
-**Status updates failing:**
-- Check Supabase RLS policies
-- Check network tab for errors
+**SMS not sending on mark-as-paid:** Confirm Twilio secrets are set in Supabase Edge Function Secrets (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`). Check that `MOCK_SMS_DELIVERY` is not set to `true`.
+
+**Product images not displaying:** Verify the `product-images` bucket exists in Supabase Storage and that the image was uploaded successfully.
 
 ---
 
-## 📞 Support
-
-**Supabase Dashboard:**
-https://ytacbvfcltikxzudlkzn.supabase.co
-
-**Email:**
-info@lamininpeptab.com.au
-
----
-
-## ✅ Pre-Deployment Checklist
-
-- [ ] Change default admin password
-- [ ] Add real admin users
-- [ ] Test all features
-- [ ] Verify Supabase connection
-- [ ] Update credentials in Vercel
-- [ ] Test on production URL
-
----
-
-**Last Updated:** March 30, 2026
+**Last Updated:** May 2026

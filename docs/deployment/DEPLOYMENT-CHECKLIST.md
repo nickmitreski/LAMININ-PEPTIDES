@@ -1,311 +1,118 @@
-# 🚀 DEPLOYMENT CHECKLIST - Laminin Peptide Lab
+# Deployment Checklist - Laminin
 
-Complete checklist for deploying your e-commerce platform to production.
-
----
-
-## ✅ PRE-DEPLOYMENT CHECKS
-
-### 1. Supabase Setup
-- [ ] Run `supabase/schema.sql` in Supabase SQL Editor
-- [ ] Verify tables created: `customers`, `order_references`, `product_mappings`
-- [ ] Check seed data: 27 product mappings inserted
-- [ ] Test database connection locally
-
-### 2. Environment Variables (Local)
-- [ ] Copy `.env.local.template` to `.env.local`
-- [ ] Add Supabase URL: `https://ytacbvfcltikxzudlkzn.supabase.co`
-- [ ] Add Supabase Anon Key: `sb_publishable_jRLtLGh7uslmqubJ_qQY7w_ogbknh7D`
-- [ ] (Optional) Add protein store URL
-- [ ] Test checkout flow locally
-
-### 3. Code Quality
-- [ ] `npm run typecheck` - No TypeScript errors
-- [ ] `npm run lint` - Only minor warnings (acceptable)
-- [ ] `npm run build` - Build succeeds
-- [ ] All images optimized (or plan to optimize post-launch)
-
-### 4. Testing
-- [ ] Test product browsing
-- [ ] Test cart add/remove
-- [ ] Test checkout form validation
-- [ ] Test order creation (check Supabase dashboard)
-- [ ] Test order confirmation page
-- [ ] Test mobile responsiveness
+Step-by-step checklist for deploying changes to production.
 
 ---
 
-## 🌐 VERCEL DEPLOYMENT
+## 1. Push to GitHub
 
-### Step 1: Push to GitHub
+Commit and push your changes to the `main` branch:
 
 ```bash
 git add .
-git commit -m "feat: Complete Supabase integration and production setup"
+git commit -m "your commit message"
 git push origin main
 ```
 
-### Step 2: Deploy to Vercel
+---
 
-1. **Import Project:**
-   - Go to https://vercel.com/new
-   - Import your GitHub repository
-   - Framework Preset: **Vite**
-   - Root Directory: `.` (default)
+## 2. Frontend (Vercel)
 
-2. **Add Environment Variables:**
-   ```env
-   VITE_SUPABASE_URL=https://ytacbvfcltikxzudlkzn.supabase.co
-   VITE_SUPABASE_ANON_KEY=sb_publishable_jRLtLGh7uslmqubJ_qQY7w_ogbknh7D
-   VITE_APP_URL=https://your-domain.vercel.app
-   ```
+Vercel auto-deploys on every push to `main`. No manual action needed.
 
-3. **Deploy:**
-   - Click "Deploy"
-   - Wait 2-3 minutes
-   - ✅ Your site is live!
-
-### Step 3: Configure Custom Domain (Optional)
-
-1. Vercel Dashboard > Settings > Domains
-2. Add: `lamininpeplab.com.au`
-3. Update DNS records (Vercel provides instructions)
-4. Wait for SSL certificate (automatic)
-5. Update `VITE_APP_URL` to your custom domain
+- Verify the build succeeds in the Vercel dashboard.
+- If this is the first deploy, import the repo at https://vercel.com/new with framework preset **Vite**.
+- Ensure all `VITE_*` environment variables are set in **Vercel Dashboard > Settings > Environment Variables**:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+  - `VITE_APP_URL` (set to your production URL)
 
 ---
 
-## 📊 POST-DEPLOYMENT VERIFICATION
+## 3. Database Migrations (Supabase)
 
-### Test Production Site:
-
-1. **Homepage:**
-   - [ ] All images load
-   - [ ] Navigation works
-   - [ ] Featured products display
-
-2. **Library Page:**
-   - [ ] All 27 products display
-   - [ ] Category filters work
-   - [ ] Search functionality works
-
-3. **Product Pages:**
-   - [ ] Product details load
-   - [ ] Add to cart works
-   - [ ] Structured data present (view source)
-
-4. **Cart:**
-   - [ ] Items display correctly
-   - [ ] Quantity updates work
-   - [ ] Total calculation correct
-
-5. **Checkout:**
-   - [ ] Form validation works
-   - [ ] Supabase connection works
-   - [ ] Order created in database
-   - [ ] Redirect to confirmation
-
-6. **Order Confirmation:**
-   - [ ] Order details display
-   - [ ] Status shows correctly
-   - [ ] Support links work
-
----
-
-## 🔍 SEO VERIFICATION
-
-### Google Search Console:
-
-1. **Submit Sitemap:**
-   - Add property: `https://lamininpeplab.com.au`
-   - Submit sitemap: `https://lamininpeplab.com.au/sitemap.xml`
-
-2. **Verify robots.txt:**
-   - Check: `https://lamininpeplab.com.au/robots.txt`
-
-3. **Test Rich Results:**
-   - Use: https://search.google.com/test/rich-results
-   - Test a product page URL
-   - Should show: ✅ Product schema detected
-
-### Performance Audit:
+Apply any new migrations:
 
 ```bash
-# Run Lighthouse
-npx lighthouse https://lamininpeplab.com.au --view
+npx supabase db push
 ```
 
-**Target Scores:**
-- Performance: 80+
-- Accessibility: 95+
-- Best Practices: 90+
-- SEO: 95+
+Or run the SQL directly in **Supabase Dashboard > SQL Editor**.
+
+- [ ] Verify new tables/columns exist after migration.
+- [ ] Confirm RLS policies are in place.
 
 ---
 
-## 📈 MONITORING SETUP
+## 4. Edge Functions (Supabase)
 
-### 1. Supabase Monitoring
-
-- **Dashboard:** https://ytacbvfcltikxzudlkzn.supabase.co
-- Monitor:
-  - [ ] Database size (should be < 500MB on free tier)
-  - [ ] API requests (< 500k/month on free tier)
-  - [ ] Storage used
-
-### 2. Vercel Analytics
-
-- **Dashboard:** https://vercel.com/your-project/analytics
-- Monitor:
-  - [ ] Page views
-  - [ ] Load times
-  - [ ] Error rates
-
-### 3. Order Tracking
-
-- **Check daily:**
-  ```sql
-  SELECT COUNT(*) as total_orders, status
-  FROM order_references
-  WHERE created_at >= NOW() - INTERVAL '24 hours'
-  GROUP BY status;
-  ```
-
----
-
-## 🔒 SECURITY CHECKLIST
-
-- [x] No credentials in git history
-- [x] `.env.local` in `.gitignore`
-- [x] Environment variables in Vercel only
-- [x] Supabase RLS policies enabled
-- [ ] Rate limiting configured (TODO if needed)
-- [ ] CAPTCHA on contact form (TODO if needed)
-
----
-
-## 📧 OPTIONAL: EMAIL NOTIFICATIONS
-
-### Resend Setup (Recommended):
-
-1. **Sign up:** https://resend.com
-2. **Add domain:** `lamininpeplab.com.au`
-3. **Verify DNS** records
-4. **Get API key**
-
-### Create Vercel Edge Function:
-
-```typescript
-// api/send-order-confirmation.ts
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-export async function POST(request: Request) {
-  const { order_id, customer_email } = await request.json();
-
-  await resend.emails.send({
-    from: 'info@lamininpeptab.com.au',
-    to: customer_email,
-    subject: `Order Confirmation - ${order_id}`,
-    html: `<p>Thank you for your order!</p>`
-  });
-
-  return new Response('OK');
-}
-```
-
----
-
-## 🎯 PARTNER STORE INTEGRATION
-
-### If using a partner protein store:
-
-1. **Provide partner with:**
-   - Webhook endpoint (create later)
-   - API documentation (`SUPABASE-SETUP.md` > Partner Store Integration)
-   - Test credentials
-
-2. **Partner implements:**
-   - POST `/api/peptide-bridge/checkout` endpoint
-   - Checkout page for redirected customers
-   - Webhook to update order status
-
-3. **Add to Vercel:**
-   ```env
-   VITE_PROTEIN_STORE_URL=https://partner-store.com
-   VITE_PROTEIN_STORE_API_KEY=provided_by_partner
-   ```
-
----
-
-## 🐛 COMMON DEPLOYMENT ISSUES
-
-### Issue: "Module not found"
-**Fix:** Clear Vercel cache and redeploy
-
-### Issue: Environment variables not working
-**Fix:** Must start with `VITE_` for Vite apps
-
-### Issue: Supabase connection failed
-**Fix:** Check URL and key are correct, no trailing slashes
-
-### Issue: Images not loading
-**Fix:** Ensure images are in `public/` folder
-
-### Issue: 404 on refresh
-**Fix:** Vercel routing configured (already done in `vercel.json`)
-
----
-
-## 📊 SUCCESS METRICS
-
-After 1 week, check:
-
-- [ ] Orders created successfully
-- [ ] No JavaScript errors in console
-- [ ] Performance score > 80
-- [ ] Mobile traffic working
-- [ ] All product pages indexed by Google
-
----
-
-## 🎉 LAUNCH CHECKLIST
-
-**Final Steps Before Launch:**
-
-1. [ ] All environment variables added to Vercel
-2. [ ] Supabase schema executed successfully
-3. [ ] Test order completed on production
-4. [ ] Custom domain configured (if applicable)
-5. [ ] Analytics tracking enabled
-6. [ ] Sitemap submitted to Google
-7. [ ] Social media accounts updated with URL
-8. [ ] Announcement email prepared
-
-**READY TO LAUNCH? 🚀**
+Deploy updated Edge Functions:
 
 ```bash
-# Final build test
-npm run build
-
-# Deploy
-git push origin main
-
-# Verify
-open https://lamininpeplab.com.au
+npx supabase functions deploy <function-name> --no-verify-jwt
 ```
 
+Deploy all functions if unsure which changed:
+
+```bash
+npx supabase functions deploy --no-verify-jwt
+```
+
+- [ ] Verify all required secrets are set in **Supabase Dashboard > Edge Functions > Secrets** (see `SECRETS_CHECKLIST.md`).
+
 ---
 
-## 📞 SUPPORT CONTACTS
+## 5. Secrets
 
-- **Vercel Support:** support@vercel.com
-- **Supabase Support:** https://supabase.com/dashboard/support
-- **Domain Registrar:** (your provider)
-- **Development Team:** (your team contact)
+All Edge Function secrets are managed in **Supabase Dashboard > Edge Functions > Secrets**.
+
+Alternatively, use the CLI:
+
+```bash
+npx supabase secrets set KEY="value"
+npx supabase secrets list
+```
+
+Required secrets for production (see `SECRETS_CHECKLIST.md` for full details):
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`
+- `RESEND_API_KEY`, `RESEND_FROM`
+- `ENABLE_CODE_DELIVERY` (set to `true`)
+- `MOCK_SMS_DELIVERY` should NOT be set to `true` in production
 
 ---
 
-**Last Updated:** March 30, 2026
-**Status:** ✅ Ready for Production
+## 6. Post-Deploy Verification
+
+- [ ] **Admin dashboard loads:** Visit `/admin/login`, sign in, confirm `/admin/dashboard` shows orders.
+- [ ] **Products page works:** Visit `/admin/products`, verify product list loads and CRUD operations function.
+- [ ] **Storefront loads:** Visit the production URL, browse products, verify images load.
+- [ ] **Checkout flow:** Complete a test checkout. Confirm a `payment_tracking` record is created in Supabase.
+- [ ] **SMS delivery:** Mark a test order as "paid" in the admin dashboard. Verify the customer receives an SMS (or check logs if `MOCK_SMS_DELIVERY=true`).
+- [ ] **Discount codes:** Create a test discount code in `/admin/discounts` and verify it applies at checkout.
+- [ ] **No console errors:** Open browser DevTools on key pages and check for JavaScript errors.
+
+---
+
+## Troubleshooting
+
+**Vercel build fails:**
+- Check the build log in the Vercel dashboard.
+- Run `npm run build` locally to reproduce.
+- Ensure all `VITE_*` env vars are set in Vercel.
+
+**Edge Function errors:**
+- Check logs in **Supabase Dashboard > Edge Functions > Logs**.
+- Verify secrets are set correctly.
+- Re-deploy the function.
+
+**Database migration issues:**
+- Check the SQL Editor output for errors.
+- Verify you are connected to the correct Supabase project.
+
+**SMS not sending:**
+- Confirm `ENABLE_CODE_DELIVERY=true` and `MOCK_SMS_DELIVERY` is not `true`.
+- Verify Twilio credentials (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`).
+
+---
+
+**Last Updated:** May 2026
