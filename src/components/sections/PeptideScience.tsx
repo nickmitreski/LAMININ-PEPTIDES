@@ -108,9 +108,11 @@ export default function PeptideScience() {
           </Label>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             {sources.map((s, i) => (
-              <span
+              <Label
                 key={s}
-                className="flex items-center text-xs font-medium tracking-wider text-carbon-700"
+                as="span"
+                uppercase={false}
+                className="flex items-center text-carbon-700"
               >
                 {i > 0 && (
                   <span
@@ -119,7 +121,7 @@ export default function PeptideScience() {
                   />
                 )}
                 {s}
-              </span>
+              </Label>
             ))}
           </div>
         </div>
