@@ -79,7 +79,7 @@ export default function BankTransferModal({
           <button
             type="button"
             onClick={onClose}
-            className="ml-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-carbon-900"
+            className="ml-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-carbon-900 transition-colors hover:bg-neutral-100 hover:text-carbon-900"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -88,7 +88,7 @@ export default function BankTransferModal({
 
         {/* Order Reference */}
         <div className="mb-6 rounded-sm border-2 border-accent/30 bg-accent/10 px-4 py-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-600">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-carbon-900">
             Your Order Reference
           </p>
           <div className="flex items-center justify-between gap-3">
@@ -116,7 +116,7 @@ export default function BankTransferModal({
 
         {/* Amount to Pay */}
         <div className="mb-6 rounded-sm border border-carbon-900/10 bg-platinum/50 px-4 py-3">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-600">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-carbon-900">
             Amount to Pay
           </p>
           <p className="text-2xl font-bold text-carbon-900 sm:text-xl">{formattedAmount}</p>

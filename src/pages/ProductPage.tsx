@@ -296,7 +296,7 @@ export default function ProductPage() {
                     : 'Add to cart'}
                 </Button>
 
-                <Text variant="small" className="leading-relaxed text-neutral-600">
+                <Text variant="small" className="leading-relaxed text-carbon-900">
                   Each batch is analytically verified for purity and identity.
                   Certificates of Analysis available.
                 </Text>
@@ -322,7 +322,7 @@ export default function ProductPage() {
                     (copy?.paragraphs?.length ?? 0) > 0 ? (
                       <ProductOverviewBody paragraphs={copy!.paragraphs} />
                     ) : (
-                      <Text variant="body" className="text-neutral-600">
+                      <Text variant="body" className="text-carbon-900">
                         Product description coming soon.
                       </Text>
                     ),
@@ -332,23 +332,23 @@ export default function ProductPage() {
                   title: 'SPECIFICATIONS',
                   content: (
                     <div className="space-y-3">
-                      <Text variant="body" className="text-neutral-600">
+                      <Text variant="body" className="text-carbon-900">
                         <strong className="text-carbon-900">Compound:</strong>{' '}
                         {peptide.name}
                       </Text>
                       {selectedVariant && (
-                        <Text variant="body" className="text-neutral-600">
+                        <Text variant="body" className="text-carbon-900">
                           <strong className="text-carbon-900">Strength:</strong>{' '}
                           {selectedVariant.label}
                         </Text>
                       )}
-                      <Text variant="body" className="text-neutral-600">
+                      <Text variant="body" className="text-carbon-900">
                         <strong className="text-carbon-900">Appearance:</strong>{' '}
                         {liquidAncillary
                           ? 'Liquid'
                           : 'Lyophilised powder (research grade), unless otherwise stated for ancillary products.'}
                       </Text>
-                      <Text variant="body" className="text-neutral-600">
+                      <Text variant="body" className="text-carbon-900">
                         <strong className="text-carbon-900">Purity (stated):</strong>{' '}
                         {liquidAncillary ? 'N/A' : peptide.purity}
                       </Text>
@@ -364,7 +364,7 @@ export default function ProductPage() {
                   title: 'ANALYTICAL VERIFICATION',
                   content: (
                     <div className="space-y-4">
-                      <Text variant="body" className="text-neutral-600">
+                      <Text variant="body" className="text-carbon-900">
                         We provide batch-oriented Certificates of Analysis where
                         available to support identity and purity claims.
                       </Text>
@@ -401,20 +401,20 @@ export default function ProductPage() {
                   content: (
                     <div className="space-y-3">
                       {liquidAncillary ? (
-                        <Text variant="body" className="text-neutral-600">
+                        <Text variant="body" className="text-carbon-900">
                           Store sealed liquid ancillaries in line with the label
                           and standard laboratory practice: cool, dry, and
                           protected from light unless otherwise directed.
                         </Text>
                       ) : (
                         <>
-                          <Text variant="body" className="text-neutral-600">
+                          <Text variant="body" className="text-carbon-900">
                             Store in line with standard laboratory practice: cool,
                             dry, and protected from light where applicable. Many
                             lyophilised peptides are held refrigerated prior to
                             reconstitution.
                           </Text>
-                          <Text variant="body" className="text-neutral-600">
+                          <Text variant="body" className="text-carbon-900">
                             After reconstitution, follow your institution’s SOPs
                             and relevant literature for stability and handling.
                           </Text>
@@ -427,7 +427,7 @@ export default function ProductPage() {
                   id: 'research-notice',
                   title: 'RESEARCH USE NOTICE',
                   content: (
-                    <Text variant="body" className="text-neutral-600 leading-relaxed">
+                    <Text variant="body" className="text-carbon-900 leading-relaxed">
                       All materials are supplied strictly for{' '}
                       <strong className="font-medium text-carbon-900">
                         laboratory research use only

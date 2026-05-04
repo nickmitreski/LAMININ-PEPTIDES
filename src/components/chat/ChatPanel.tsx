@@ -237,7 +237,7 @@ export default function ChatPanel({ onClose, onMinimize }: ChatPanelProps) {
           <div className="flex justify-start">
             <div className="bg-neutral-100 rounded-lg px-4 py-3 flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-carbon-900" />
-              <Text variant="caption" className="text-neutral-600">
+              <Text variant="caption" className="text-carbon-900">
                 Thinking...
               </Text>
             </div>

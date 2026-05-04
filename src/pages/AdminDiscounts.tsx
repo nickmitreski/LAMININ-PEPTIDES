@@ -323,12 +323,12 @@ export default function AdminDiscounts() {
               <table className="w-full">
                 <thead className="border-b border-carbon-900/10 bg-grey/30">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Code</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Discount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Uses</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Valid</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Code</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Discount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Uses</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Valid</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-carbon-900/10">
@@ -381,7 +381,7 @@ export default function AdminDiscounts() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           {!code.is_active ? (
-                            <span className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
+                            <span className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-carbon-900">
                               Disabled
                             </span>
                           ) : isExpired ? (
@@ -424,7 +424,7 @@ export default function AdminDiscounts() {
                             <button
                               type="button"
                               onClick={() => void handleToggleActive(code)}
-                              className="rounded-sm border border-carbon-900/20 p-2 text-neutral-600 transition-colors hover:bg-grey/30 hover:text-carbon-900"
+                              className="rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900"
                               title={code.is_active ? 'Disable' : 'Enable'}
                             >
                               {code.is_active ? <ToggleRight className="h-4 w-4 text-green-600" /> : <ToggleLeft className="h-4 w-4" />}
@@ -432,7 +432,7 @@ export default function AdminDiscounts() {
                             <button
                               type="button"
                               onClick={() => openEdit(code)}
-                              className="rounded-sm border border-carbon-900/20 p-2 text-neutral-600 transition-colors hover:bg-grey/30 hover:text-carbon-900"
+                              className="rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900"
                               title="Edit"
                             >
                               <Edit3 className="h-4 w-4" />
@@ -440,7 +440,7 @@ export default function AdminDiscounts() {
                             <button
                               type="button"
                               onClick={() => void openRedemptions(code)}
-                              className="rounded-sm border border-carbon-900/20 p-2 text-neutral-600 transition-colors hover:bg-grey/30 hover:text-carbon-900"
+                              className="rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900"
                               title="View uses"
                             >
                               <Eye className="h-4 w-4" />
@@ -765,10 +765,10 @@ export default function AdminDiscounts() {
               <table className="w-full">
                 <thead className="border-b border-carbon-900/10">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Order</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Customer</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Saved</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">Date</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Order</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Customer</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Saved</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-carbon-900/10">

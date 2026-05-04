@@ -344,7 +344,7 @@ export default function Checkout() {
           <div className="mb-8">
             <Link
               to="/cart"
-              className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-carbon-900 mb-4 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-carbon-900 hover:text-carbon-900 mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to cart
@@ -508,7 +508,7 @@ export default function Checkout() {
                   </Text>
                   <div className="rounded-sm border border-carbon-900/10 bg-neutral-50 px-4 py-3">
                     <p className="text-sm font-medium text-carbon-900">Bank transfer / PayID</p>
-                    <p className="mt-1 text-xs text-neutral-600">
+                    <p className="mt-1 text-xs text-carbon-900">
                       Complete payment using your banking app
                     </p>
                   </div>

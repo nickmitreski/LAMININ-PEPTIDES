@@ -387,7 +387,7 @@ export default function AdminCustomers() {
                                     >
                                       <div className="flex items-center gap-3">
                                         <span className="font-mono text-sm font-medium text-carbon-900">{order.peptide_order_id}</span>
-                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] || 'bg-neutral-100 text-neutral-600'}`}>
+                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] || 'bg-neutral-100 text-carbon-900'}`}>
                                           {order.status}
                                         </span>
                                       </div>

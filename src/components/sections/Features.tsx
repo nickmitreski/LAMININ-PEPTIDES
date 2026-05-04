@@ -35,7 +35,7 @@ export default function Features() {
         <div className="text-center">
           <Link
             to="/coa"
-            className="text-xs text-neutral-600 hover:text-carbon-900 underline underline-offset-4 transition-colors"
+            className="text-xs text-carbon-900 hover:text-carbon-900 underline underline-offset-4 transition-colors"
           >
             View Certificates of Analysis
           </Link>

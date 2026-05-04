@@ -328,7 +328,7 @@ export default function AdminEmails() {
               className={`flex-1 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors ${
                 tab === 'logs'
                   ? 'bg-white text-carbon-900 shadow-sm'
-                  : 'text-neutral-600 hover:text-carbon-900'
+                  : 'text-carbon-900 hover:text-carbon-900'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -342,7 +342,7 @@ export default function AdminEmails() {
               className={`flex-1 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors ${
                 tab === 'templates'
                   ? 'bg-white text-carbon-900 shadow-sm'
-                  : 'text-neutral-600 hover:text-carbon-900'
+                  : 'text-carbon-900 hover:text-carbon-900'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -655,7 +655,7 @@ export default function AdminEmails() {
               <button
                 type="button"
                 onClick={() => setEditingTemplate(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-sm text-neutral-600 hover:bg-neutral-100"
+                className="flex h-8 w-8 items-center justify-center rounded-sm text-carbon-900 hover:bg-neutral-100"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
@@ -665,7 +665,7 @@ export default function AdminEmails() {
             <div className="space-y-4">
               {/* Template name */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-carbon-900">
                   Template name
                 </label>
                 <input
@@ -678,7 +678,7 @@ export default function AdminEmails() {
 
               {/* Subject line */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-carbon-900">
                   Subject line
                 </label>
                 <input
@@ -692,7 +692,7 @@ export default function AdminEmails() {
 
               {/* HTML body */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-carbon-900">
                   Email body (HTML)
                 </label>
                 <textarea
@@ -709,7 +709,7 @@ export default function AdminEmails() {
 
               {/* Plain text body */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-carbon-900">
                   Plain text fallback
                 </label>
                 <textarea
@@ -724,7 +724,7 @@ export default function AdminEmails() {
               {/* HTML Preview */}
               {templateDraft.body_html && (
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-600">
+                  <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-carbon-900">
                     Preview
                   </label>
                   <div className="rounded-sm border border-carbon-900/10 bg-neutral-50 p-4">

@@ -395,25 +395,25 @@ export default function AdminProducts() {
                         aria-label="Select all visible products"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
                       CFG Code
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
                       Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
                       Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
                       Stock
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
                       Sale
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-neutral-600">
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-carbon-900">
                       Actions
                     </th>
                   </tr>

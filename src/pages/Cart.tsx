@@ -62,7 +62,7 @@ export default function Cart() {
             <button
               type="button"
               onClick={handleClearCart}
-              className="rounded-sm text-sm text-neutral-600 underline underline-offset-4 transition-colors hover:text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2"
+              className="rounded-sm text-sm text-carbon-900 underline underline-offset-4 transition-colors hover:text-carbon-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2"
             >
               Clear cart
             </button>

@@ -465,7 +465,7 @@ export default function AdminDashboard() {
         type="button"
         onClick={() => toggleSort(sortKeyValue)}
         className={`group inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
-          active ? 'text-carbon-900' : 'text-neutral-600 hover:text-carbon-900'
+          active ? 'text-carbon-900' : 'text-carbon-900 hover:text-carbon-900'
         }`}
       >
         {label}
@@ -665,7 +665,7 @@ export default function AdminDashboard() {
                       />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-600">
+                      <span className="text-xs font-medium uppercase tracking-wider text-carbon-900">
                         Order ID
                       </span>
                     </th>
@@ -673,7 +673,7 @@ export default function AdminDashboard() {
                       <SortHeader label="Customer" sortKeyValue="customer" />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-600">
+                      <span className="text-xs font-medium uppercase tracking-wider text-carbon-900">
                         Contact
                       </span>
                     </th>
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
                       <SortHeader label="Date" sortKeyValue="date" />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-600">
+                      <span className="text-xs font-medium uppercase tracking-wider text-carbon-900">
                         Actions
                       </span>
                     </th>
@@ -780,7 +780,7 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setSelectedOrder(order)}
-                              className="rounded-sm border border-carbon-900/20 p-2 text-neutral-600 transition-colors hover:bg-grey/30 hover:text-carbon-900"
+                              className="rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900"
                               title="View details"
                             >
                               <Eye className="h-4 w-4" />

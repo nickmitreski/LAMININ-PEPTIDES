@@ -15,7 +15,7 @@ export default function Privacy() {
         <PageTopBanner title="Privacy policy" subtitle="How we handle your data and protect your privacy." />
 
         <div className="mx-auto max-w-3xl space-y-8">
-          <Text variant="body" className="text-neutral-600">
+          <Text variant="body" className="text-carbon-900">
             Laminin Peptide Lab is committed to protecting your privacy and handling your
             information with discretion and integrity.
           </Text>
@@ -24,7 +24,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Information collection
             </Heading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               We collect only the information necessary to process and fulfil orders, including
               basic contact and delivery details provided at the time of purchase. Limited
               technical data may also be collected automatically to ensure the functionality,
@@ -36,24 +36,24 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Use of information
             </Heading>
-            <Text variant="body" className="mb-3 text-neutral-600">
+            <Text variant="body" className="mb-3 text-carbon-900">
               Information collected is used solely to:
             </Text>
             <ul className="ml-4 list-disc space-y-2 pl-1">
-              <Text variant="body" as="li" className="text-neutral-600">
+              <Text variant="body" as="li" className="text-carbon-900">
                 Process and deliver orders
               </Text>
-              <Text variant="body" as="li" className="text-neutral-600">
+              <Text variant="body" as="li" className="text-carbon-900">
                 Communicate relevant order updates
               </Text>
-              <Text variant="body" as="li" className="text-neutral-600">
+              <Text variant="body" as="li" className="text-carbon-900">
                 Maintain internal records
               </Text>
-              <Text variant="body" as="li" className="text-neutral-600">
+              <Text variant="body" as="li" className="text-carbon-900">
                 Improve website performance and user experience
               </Text>
             </ul>
-            <Text variant="body" className="mt-3 text-neutral-600">
+            <Text variant="body" className="mt-3 text-carbon-900">
               We do not sell, rent, or distribute personal information to third parties.
             </Text>
           </div>
@@ -62,7 +62,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Data security
             </Heading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               We take reasonable measures to protect your information using secure systems and
               industry-standard practices.
             </Text>
@@ -72,7 +72,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Third-party services
             </Heading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               Certain third-party services may be used to support payment processing, website
               functionality, and order fulfilment.
             </Text>
@@ -82,7 +82,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Data retention
             </Heading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               Information is retained only for as long as necessary to fulfil its intended
               purpose.
             </Text>
@@ -92,7 +92,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Changes to this policy
             </Heading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               This Privacy Policy may be updated periodically.
             </Text>
           </div>
@@ -101,7 +101,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Research use &amp; disclaimer
             </Heading>
-            <div className="space-y-3 text-neutral-600">
+            <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 All products supplied by Laminin Peptide Lab are intended strictly for laboratory
                 research purposes only. These compounds are not approved for human consumption,
@@ -135,7 +135,7 @@ export default function Privacy() {
             <Heading level={4} className="mb-3">
               Contact
             </Heading>
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               Questions about this Privacy Policy:{' '}
               <a
                 href="mailto:info@lamininpeplab.com.au"

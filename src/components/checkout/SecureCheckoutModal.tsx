@@ -240,7 +240,7 @@ export default function SecureCheckoutModal({
               </div>
             ) : null}
             {!codeDeliveryPending && !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
-              <div className="flex flex-wrap items-center justify-center gap-4 rounded-sm border border-carbon-900/10 bg-platinum/50 px-4 py-3 text-sm text-neutral-600 sm:text-xs">
+              <div className="flex flex-wrap items-center justify-center gap-4 rounded-sm border border-carbon-900/10 bg-platinum/50 px-4 py-3 text-sm text-carbon-900 sm:text-xs">
                 <span className="inline-flex items-center gap-1.5">
                   <Mail className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
                   Email

@@ -11,7 +11,7 @@ export default function CoreForgeMark({
 }) {
   const onDark = variant === 'onDark';
   const core = onDark ? 'text-white' : 'text-carbon-900';
-  const sub = onDark ? 'text-white/55' : 'text-neutral-600';
+  const sub = onDark ? 'text-white/55' : 'text-carbon-900';
 
   return (
     <div

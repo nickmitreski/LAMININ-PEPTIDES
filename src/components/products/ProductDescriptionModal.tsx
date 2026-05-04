@@ -62,7 +62,7 @@ export default function ProductDescriptionModal({
             >
               Description
             </p>
-            <p className="mt-0.5 truncate text-sm font-medium text-neutral-600">
+            <p className="mt-0.5 truncate text-sm font-medium text-carbon-900">
               {productTitle}
             </p>
           </div>
@@ -84,14 +84,14 @@ export default function ProductDescriptionModal({
                 <Text
                   key={i}
                   variant="body"
-                  className="text-neutral-600 leading-relaxed"
+                  className="text-carbon-900 leading-relaxed"
                 >
                   {p}
                 </Text>
               ))}
             </div>
           ) : (
-            <Text variant="body" className="text-neutral-600">
+            <Text variant="body" className="text-carbon-900">
               Coming soon
             </Text>
           )}

@@ -110,7 +110,7 @@ export function ProductOverviewBody({
         Product description
       </Text>
       {paragraphs.map((p, i) => (
-        <Text key={i} variant="body" className="text-neutral-600 leading-relaxed">
+        <Text key={i} variant="body" className="text-carbon-900 leading-relaxed">
           {p}
         </Text>
       ))}
