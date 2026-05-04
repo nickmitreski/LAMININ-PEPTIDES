@@ -1,6 +1,5 @@
 import { useId, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import Card from './Card';
 import { Text } from './Typography';
 import type { FAQItem } from '../../data/faq';
 
@@ -24,11 +23,9 @@ export default function FaqAccordion({ items }: FaqAccordionProps) {
         const headerId = `${baseId}-header-${item.id}`;
 
         return (
-          <Card
+          <div
             key={item.id}
-            variant="bordered"
-            padding="none"
-            className="overflow-hidden transition-shadow duration-200 hover:shadow-md !bg-accent !border-2 !border-white/60 shadow-md shadow-carbon-900/5 ring-1 ring-white/40"
+            className="overflow-hidden rounded-xl border-2 border-white/60 bg-accent shadow-md shadow-carbon-900/5 ring-1 ring-white/40 transition-shadow duration-200 hover:shadow-lg"
           >
             <button
               type="button"
@@ -72,7 +69,7 @@ export default function FaqAccordion({ items }: FaqAccordionProps) {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         );
       })}
     </div>
