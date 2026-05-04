@@ -37,7 +37,7 @@ export default function FAQ() {
         </div>
 
         <div ref={ctaRef} data-revealed={ctaRevealed} className="reveal">
-          <Card padding="lg" className="mx-auto mt-16 max-w-5xl bg-platinum md:mt-20">
+          <Card padding="lg" className="mx-auto mt-12 max-w-5xl bg-platinum sm:mt-16">
             <Heading level={5} className="mb-3">
               Didn't find what you need?
             </Heading>

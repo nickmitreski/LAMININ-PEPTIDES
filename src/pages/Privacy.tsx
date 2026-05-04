@@ -17,7 +17,7 @@ export default function Privacy() {
       <Section background="white" spacing="lg">
         <PageTopBanner title="Privacy policy" subtitle="How we handle your data and protect your privacy." />
 
-        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-3xl space-y-8">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-5xl space-y-8">
           <Text variant="body" className="text-carbon-900">
             Laminin Peptide Lab is committed to protecting your privacy and handling your
             information with discretion and integrity.

@@ -17,7 +17,7 @@ export default function Disclaimer() {
       <Section background="white" spacing="lg">
         <PageTopBanner title="Disclaimer" subtitle="Terms of use and legal information." />
 
-        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-3xl space-y-6">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-5xl space-y-8">
           <Text variant="body" className="text-carbon-900">
             All products supplied by Laminin Peptide Lab are intended strictly for laboratory research
             purposes only.
