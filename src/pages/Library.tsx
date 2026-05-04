@@ -7,6 +7,7 @@ import PeptideCard from '../components/peptides/PeptideCard';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import SearchField from '../components/ui/SearchField';
+import TrustStrip from '../components/ui/TrustStrip';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
 import { FlaskConical } from 'lucide-react';
@@ -96,6 +97,8 @@ export default function Library() {
           eyebrow="Compound Library"
           icon={<FlaskConical />}
         />
+
+        <TrustStrip />
 
         <div className="mx-auto mb-8 max-w-xl md:mb-12">
           <SearchField
