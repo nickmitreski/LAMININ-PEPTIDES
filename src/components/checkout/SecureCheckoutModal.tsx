@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Shield, Loader2, Mail, Smartphone } from 'lucide-react';
+import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import {
   CHECKOUT_BRAND_NAME,
@@ -74,25 +75,18 @@ export default function SecureCheckoutModal({
     return () => window.clearTimeout(t);
   }, [open, phase]);
 
-  if (!open) return null;
+  // Only allow backdrop-close during error phase
+  const handleBackdropClose = phase === 'error' ? onDismissError : () => {};
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-carbon-900/60 px-4 pb-safe pt-4 sm:items-center sm:px-6 sm:pb-6"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && phase === 'error') onDismissError();
-      }}
+    <Modal
+      open={open}
+      onClose={handleBackdropClose}
+      aria-labelledby="secure-checkout-title"
+      backdropClassName="items-end sm:items-center px-4 pb-safe pt-4 sm:px-6 sm:pb-6 bg-carbon-900/60"
+      className="max-h-[min(90vh,32rem)] w-full max-w-md overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl outline-none sm:p-8"
     >
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="secure-checkout-title"
-        aria-describedby="secure-checkout-desc"
-        tabIndex={-1}
-        className="max-h-[min(90vh,32rem)] w-full max-w-md overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl outline-none sm:p-8"
-      >
+      <div ref={panelRef} tabIndex={-1}>
         {phase === 'encrypting' ? (
           <div className="flex flex-col items-center gap-6 py-4 text-center">
             <div className="relative flex h-24 w-24 items-center justify-center">
@@ -326,6 +320,6 @@ export default function SecureCheckoutModal({
           </div>
         ) : null}
       </div>
-    </div>
+    </Modal>
   );
 }

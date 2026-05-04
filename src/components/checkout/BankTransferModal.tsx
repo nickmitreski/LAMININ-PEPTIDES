@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Copy, CheckCircle2, X, Mail } from 'lucide-react';
-import { useState } from 'react';
+import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { Heading, Text } from '../ui/Typography';
 
@@ -42,30 +42,20 @@ export default function BankTransferModal({
     }
   };
 
-  if (!open) return null;
-
   const formattedAmount = new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: currency,
   }).format(totalAmount);
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-carbon-900/60 px-4 pb-safe pt-4 sm:items-center sm:px-6 sm:pb-6"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="bank-transfer-title"
+      backdropClassName="items-end sm:items-center px-4 pb-safe pt-4 sm:px-6 sm:pb-6 bg-carbon-900/60"
+      className="max-h-[min(90vh,48rem)] w-full max-w-lg overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl outline-none sm:p-8"
     >
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="bank-transfer-title"
-        aria-describedby="bank-transfer-desc"
-        tabIndex={-1}
-        className="max-h-[min(90vh,48rem)] w-full max-w-lg overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl outline-none sm:p-8"
-      >
+      <div ref={modalRef} tabIndex={-1}>
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -168,6 +158,6 @@ export default function BankTransferModal({
           </a>
         </p>
       </div>
-    </div>
+    </Modal>
   );
 }
