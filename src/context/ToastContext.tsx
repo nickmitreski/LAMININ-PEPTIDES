@@ -81,10 +81,10 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
   };
 
   const styles = {
-    success: 'bg-green-50 border-green-200 text-green-900',
-    error: 'bg-red-50 border-red-200 text-red-900',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-900',
-    info: 'bg-blue-50 border-blue-200 text-blue-900',
+    success: 'bg-success-light border-success-border text-success-text',
+    error: 'bg-error-light border-error-border text-error-text',
+    warning: 'bg-warning-light border-warning-border text-warning-text',
+    info: 'bg-info-light border-info-border text-info-text',
   };
 
   // Use assertive role for errors/warnings so they interrupt a screen reader,

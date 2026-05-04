@@ -574,7 +574,7 @@ export default function Checkout() {
                     </div>
                   )}
                   {discountError && (
-                    <p className="mt-2 text-xs text-red-600">{discountError}</p>
+                    <p className="mt-2 text-xs text-error">{discountError}</p>
                   )}
                 </Card>
               </div>

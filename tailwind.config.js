@@ -64,6 +64,40 @@ export default {
           dark:    '#2563EB',
         },
 
+        // Semantic status colors
+        error: {
+          DEFAULT: '#DC2626',  // red-600
+          light:   '#FEF2F2',  // red-50
+          muted:   '#FEE2E2',  // red-100
+          border:  '#FECACA',  // red-200
+          dark:    '#B91C1C',  // red-700
+          text:    '#7F1D1D',  // red-900
+        },
+        success: {
+          DEFAULT: '#16A34A',  // green-600
+          light:   '#F0FDF4',  // green-50
+          muted:   '#DCFCE7',  // green-100
+          border:  '#BBF7D0',  // green-200
+          dark:    '#15803D',  // green-700
+          text:    '#14532D',  // green-900
+        },
+        warning: {
+          DEFAULT: '#D97706',  // amber-600
+          light:   '#FFFBEB',  // amber-50
+          muted:   '#FEF3C7',  // amber-100
+          border:  '#FDE68A',  // amber-200
+          dark:    '#B45309',  // amber-700
+          text:    '#78350F',  // amber-900
+        },
+        info: {
+          DEFAULT: '#2563EB',  // blue-600
+          light:   '#EFF6FF',  // blue-50
+          muted:   '#DBEAFE',  // blue-100
+          border:  '#BFDBFE',  // blue-200
+          dark:    '#1D4ED8',  // blue-700
+          text:    '#1E3A8A',  // blue-900
+        },
+
         // Page backgrounds
         grey: '#F1F2F2',
         platinum: '#F1F2F2',

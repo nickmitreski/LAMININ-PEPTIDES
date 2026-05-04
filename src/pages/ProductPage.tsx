@@ -241,7 +241,7 @@ export default function ProductPage() {
                         as="span"
                         variant="lead"
                         weight="medium"
-                        className="text-2xl font-bold text-red-600"
+                        className="text-2xl font-bold text-error"
                       >
                         {priceLine}
                       </Text>

@@ -79,7 +79,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
             imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
           />
           {saleInfo && (
-            <span className="absolute left-2 top-2 z-10 rounded bg-red-600 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+            <span className="absolute left-2 top-2 z-10 rounded bg-error px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
               {saleInfo.saleLabel || 'SALE'}
             </span>
           )}
@@ -106,7 +106,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
             {' · '}
             <span className="text-carbon-400 line-through">${saleInfo.compareAtPrice.toFixed(0)}</span>
             {' '}
-            <span className="font-semibold text-red-600">{priceLabel}</span>
+            <span className="font-semibold text-error">{priceLabel}</span>
           </>
         ) : (
           priceLabel ? ` · ${priceLabel}` : ''

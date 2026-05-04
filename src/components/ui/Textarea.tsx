@@ -28,11 +28,11 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           rows={4}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`input resize-y ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''} ${className}`}
+          className={`input resize-y ${error ? 'border-error focus:ring-error focus:border-error' : ''} ${className}`}
           {...props}
         />
         {error && (
-          <p id={errorId} className="mt-1 text-xs text-red-600">
+          <p id={errorId} className="mt-1 text-xs text-error">
             {error}
           </p>
         )}

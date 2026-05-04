@@ -75,10 +75,10 @@ export default class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-md w-full text-center">
             <div className="mb-6">
               <div
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4"
+                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-error-muted mb-4"
                 aria-hidden
               >
-                <AlertTriangle className="h-8 w-8 text-red-600" strokeWidth={2} />
+                <AlertTriangle className="h-8 w-8 text-error" strokeWidth={2} />
               </div>
               <Heading level={1} className="mb-3 text-xl sm:text-2xl">
                 Something went wrong
@@ -87,7 +87,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                 We're sorry, but something unexpected happened. Please try refreshing the page.
               </Text>
               {import.meta.env.DEV && this.state.error && (
-                <details className="text-left mb-6 p-4 bg-red-50 border border-red-200 rounded-sm">
+                <details className="text-left mb-6 p-4 bg-error-light border border-error-border rounded-sm">
                   <summary className="cursor-pointer font-medium text-sm mb-2">
                     Error details
                   </summary>

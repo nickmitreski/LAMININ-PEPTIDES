@@ -41,7 +41,7 @@ export default function Button({
     accent:
       'bg-accent text-carbon-900 border border-accent-dark/25 hover:bg-accent-dark active:bg-accent-dark/90',
     danger:
-      'bg-red-600 text-white border border-red-700/30 hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-600',
+      'bg-error text-white border border-error-dark/30 hover:bg-error-dark active:bg-error-dark/90 focus-visible:ring-error',
   };
 
   const sizes = {

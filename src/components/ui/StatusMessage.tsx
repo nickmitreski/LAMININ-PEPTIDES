@@ -14,7 +14,7 @@ export default function StatusMessage({
 }: StatusMessageProps) {
   const toneClass = variant === 'success'
     ? 'bg-accent/10 border-accent/20 text-carbon-900'
-    : 'bg-red-50 border-red-200 text-red-800';
+    : 'bg-error-light border-error-border text-error-text';
 
   return (
     <Card padding="sm" variant="default" className={`${toneClass} ${className}`}>
