@@ -192,13 +192,13 @@ export default function SecureCheckoutModal({
             </div>
             {demoOtp ? (
               <div
-                className="rounded-sm border-2 border-amber-400/90 bg-amber-50 px-4 py-3 text-center sm:text-left"
+                className="rounded-sm border-2 border-warning/90 bg-warning-light px-4 py-3 text-center sm:text-left"
                 role="status"
               >
-                <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+                <p className="text-xs font-semibold uppercase tracking-wide text-warning-text">
                   Demo only — remove before production
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-amber-950 sm:text-xs">
+                <p className="mt-2 text-sm leading-relaxed text-warning-text sm:text-xs">
                   Your one-time code (same as SMS when enabled): enter it on the CoreForge payment
                   screen. Turn off Edge secret{' '}
                   <span className="font-mono">RETURN_CHECKOUT_OTP_IN_RESPONSE</span> when using Twilio.
@@ -248,7 +248,7 @@ export default function SecureCheckoutModal({
                 </span>
               </div>
             ) : !partnerOpensPaymentUi && !linkDeliveredInMessages ? (
-              <div className="rounded-sm border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950 sm:text-xs">
+              <div className="rounded-sm border border-warning-border/80 bg-warning-light/90 px-4 py-3 text-sm leading-relaxed text-warning-text sm:text-xs">
                 {deliveryEnabledAtEdge ? (
                   <>
                     Delivery incomplete: check Edge logs for <span className="font-mono">secure-checkout-init</span>{' '}

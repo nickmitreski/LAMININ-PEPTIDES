@@ -245,7 +245,7 @@ export default function ProductPage() {
                       >
                         {priceLine}
                       </Text>
-                      <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-bold uppercase text-white">
+                      <span className="rounded bg-error px-2 py-0.5 text-xs font-bold uppercase text-white">
                         {saleInfo.saleLabel || 'SALE'}
                       </span>
                     </div>

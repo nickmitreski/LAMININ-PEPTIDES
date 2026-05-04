@@ -29,14 +29,14 @@ export default class CheckoutPaymentErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="rounded-sm border border-red-200 bg-red-50 p-4" role="alert">
+        <div className="rounded-sm border border-error-border bg-error-light p-4" role="alert">
           <div className="flex gap-3">
-            <AlertTriangle className="h-5 w-5 shrink-0 text-red-600" />
+            <AlertTriangle className="h-5 w-5 shrink-0 text-error" />
             <div className="min-w-0 space-y-2">
-              <Text variant="small" weight="medium" className="text-red-900">
+              <Text variant="small" weight="medium" className="text-error-text">
                 Checkout could not continue
               </Text>
-              <Text variant="caption" className="text-red-800">
+              <Text variant="caption" className="text-error-text">
                 {this.state.message ?? 'Something went wrong. Please refresh and try again.'}
               </Text>
               <Button
