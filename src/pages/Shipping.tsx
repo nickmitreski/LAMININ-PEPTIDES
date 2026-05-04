@@ -2,7 +2,7 @@ import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
-import { Truck } from 'lucide-react';
+import { Truck, MapPin, Package } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Shipping terms (April 2026). */
@@ -32,7 +32,7 @@ export default function Shipping() {
           </Text>
 
           <div>
-            <PolicySectionHeading>Shipping</PolicySectionHeading>
+            <PolicySectionHeading icon={<Truck />}>Shipping</PolicySectionHeading>
             <ul className="mb-4 ml-4 list-disc space-y-2 pl-1">
               <Text variant="body" as="li" className="text-carbon-900">
                 Complimentary express shipping on orders over $250
@@ -48,7 +48,7 @@ export default function Shipping() {
           </div>
 
           <div>
-            <PolicySectionHeading>Delivery</PolicySectionHeading>
+            <PolicySectionHeading icon={<MapPin />}>Delivery</PolicySectionHeading>
             <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 All deliveries are sent with authority to leave (ATL). Parcels may be left unattended
@@ -62,7 +62,7 @@ export default function Shipping() {
           </div>
 
           <div>
-            <PolicySectionHeading>Discreet packaging</PolicySectionHeading>
+            <PolicySectionHeading icon={<Package />}>Discreet packaging</PolicySectionHeading>
             <Text variant="body" className="text-carbon-900">
               All orders are shipped in discreet packaging, with no external indication of contents.
             </Text>

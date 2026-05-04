@@ -16,7 +16,7 @@ import {
   coaDownloadButtonLabel,
   getCoaDownload,
 } from '../data/coaPdfs';
-import { CheckCircle, ShieldCheck } from 'lucide-react';
+import { CheckCircle, ShieldCheck, FileCheck, Award } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import useScrollReveal from '../hooks/useScrollReveal';
 
@@ -92,7 +92,7 @@ export default function COA() {
           aria-label="About certificates of analysis"
         >
           <div className="space-y-4">
-            <PolicySectionHeading>Certificates of Analysis</PolicySectionHeading>
+            <PolicySectionHeading icon={<FileCheck />}>Certificates of Analysis</PolicySectionHeading>
             <div className="space-y-3">
               <Text variant="body" className="text-carbon-900">
                 Laminin Peptide Lab provides batch-specific Certificates of Analysis to support
@@ -110,7 +110,7 @@ export default function COA() {
           </div>
 
           <div className="space-y-4 pt-2">
-            <PolicySectionHeading>Quality &amp; Analytical Integrity</PolicySectionHeading>
+            <PolicySectionHeading icon={<Award />}>Quality &amp; Analytical Integrity</PolicySectionHeading>
             <div className="space-y-3">
               <Text variant="body" className="text-carbon-900">
                 At Laminin Peptide Lab, maintaining the analytical integrity of the compounds we

@@ -2,7 +2,7 @@ import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
-import { Award } from 'lucide-react';
+import { Award, FlaskConical, Target, ShieldCheck, Info } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Aligned with the Purity Assurance Guarantee (March 2026). */
@@ -34,7 +34,7 @@ export default function Guarantee() {
           </Text>
 
           <div>
-            <PolicySectionHeading>Analytical verification</PolicySectionHeading>
+            <PolicySectionHeading icon={<FlaskConical />}>Analytical verification</PolicySectionHeading>
             <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 Compounds supplied by Laminin Peptide Lab are manufactured by partners operating
@@ -51,7 +51,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <PolicySectionHeading>Purity standard</PolicySectionHeading>
+            <PolicySectionHeading icon={<Target />}>Purity standard</PolicySectionHeading>
             <Text variant="body" className="text-carbon-900">
               Laminin Peptide Lab maintains a minimum purity standard of ≥99% for peptide
               compounds, verified through analytical testing prior to supply. This standard
@@ -61,7 +61,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <PolicySectionHeading>Our guarantee</PolicySectionHeading>
+            <PolicySectionHeading icon={<ShieldCheck />}>Our guarantee</PolicySectionHeading>
             <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 If independent analytical testing demonstrates that the purity of a compound
@@ -78,7 +78,7 @@ export default function Guarantee() {
           </div>
 
           <div>
-            <PolicySectionHeading>Additional information</PolicySectionHeading>
+            <PolicySectionHeading icon={<Info />}>Additional information</PolicySectionHeading>
             <div className="space-y-3 text-carbon-900">
               <Text variant="body">
                 The Purity Assurance Guarantee applies specifically to the analytical purity of the
