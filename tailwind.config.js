@@ -98,6 +98,13 @@ export default {
           text:    '#1E3A8A',  // blue-900
         },
 
+        // Deep navy for header/footer/trust bar
+        navy: {
+          DEFAULT: '#0F172A',
+          light:   '#1E293B',
+          dark:    '#0B1120',
+        },
+
         // Page backgrounds
         grey: '#F1F2F2',
         platinum: '#F1F2F2',

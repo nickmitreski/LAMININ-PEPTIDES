@@ -30,7 +30,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="border-t border-white/5 bg-carbon-900 text-white pb-safe">
+    <footer className="border-t border-white/5 bg-navy text-white pb-safe">
       <Container>
         <div className="py-12 lg:py-20 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
@@ -62,7 +62,7 @@ export default function Footer() {
                     <li key={link.path}>
                       <Link
                         to={link.path}
-                        className="inline-flex min-h-10 max-w-full items-center rounded-sm py-1.5 text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                        className="inline-flex min-h-10 max-w-full items-center rounded-sm py-1.5 text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation"
                       >
                         {link.label}
                       </Link>
@@ -86,31 +86,31 @@ export default function Footer() {
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-end">
                 <Link
                   to="/privacy"
-                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation"
                 >
                   Privacy policy
                 </Link>
                 <Link
                   to="/disclaimer"
-                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation"
                 >
                   Disclaimer
                 </Link>
                 <Link
                   to="/guarantee"
-                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation"
                 >
                   Purity guarantee
                 </Link>
                 <Link
                   to="/shipping"
-                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                  className="inline-flex min-h-10 items-center rounded-sm text-xs text-white transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation"
                 >
                   Shipping terms
                 </Link>
                 <Link
                   to="/admin/login"
-                  className="inline-flex min-h-11 items-center rounded-sm text-xs text-white/45 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                  className="inline-flex min-h-11 items-center rounded-sm text-xs text-white/45 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation"
                 >
                   Staff sign-in
                 </Link>
