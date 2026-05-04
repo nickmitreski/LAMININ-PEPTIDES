@@ -107,7 +107,7 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                 <Text variant="caption" muted className="mb-1 uppercase">
                   Status
                 </Text>
-                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide bg-yellow-100 text-yellow-800 border-yellow-200">
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide bg-warning-muted text-warning-text border-warning-border">
                   {order.status}
                 </span>
               </div>
@@ -259,18 +259,18 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
 
           {/* Discount Section */}
           {order.discount_code && (
-            <Card padding="lg" className="bg-green-50 border border-green-200">
+            <Card padding="lg" className="bg-success-light border border-success-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <Text variant="small" weight="medium" className="text-green-800">
+                  <Text variant="small" weight="medium" className="text-success-text">
                     Discount applied
                   </Text>
-                  <Text variant="caption" className="mt-1 font-mono text-green-700">
+                  <Text variant="caption" className="mt-1 font-mono text-success-dark">
                     {order.discount_code}
                   </Text>
                 </div>
                 {order.discount_amount != null && order.discount_amount > 0 && (
-                  <Text variant="small" weight="semibold" className="text-green-800">
+                  <Text variant="small" weight="semibold" className="text-success-text">
                     -{formatPrice(order.discount_amount)}
                   </Text>
                 )}
@@ -302,7 +302,7 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                   <span className="text-carbon-600">Status</span>
                   <span className="font-medium">
                     {paymentTracking.payment_status === 'payment_received' ? (
-                      <span className="text-green-700">Paid</span>
+                      <span className="text-success-dark">Paid</span>
                     ) : paymentTracking.payment_status === 'viewed_instructions' ? (
                       <span className="text-blue-700">Viewed instructions</span>
                     ) : (

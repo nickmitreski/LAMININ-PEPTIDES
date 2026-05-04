@@ -349,14 +349,14 @@ export default function ProductEditor({
         <div className="p-6 space-y-6">
           {/* Alerts */}
           {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-sm text-red-800">
+            <div className="flex items-center gap-2 p-4 bg-error-light border border-error-border rounded-sm text-error-text">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <Text className="text-sm">{error}</Text>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-sm text-green-800">
+            <div className="flex items-center gap-2 p-4 bg-success-light border border-success-border rounded-sm text-success-text">
               <CheckCircle className="w-5 h-5 flex-shrink-0" />
               <Text className="text-sm">{success}</Text>
             </div>
@@ -638,10 +638,10 @@ export default function ProductEditor({
                         onClick={() =>
                           handleDeleteImage(image.id, image.storage_path)
                         }
-                        className="p-2 bg-white rounded hover:bg-red-50 transition-colors"
+                        className="p-2 bg-white rounded hover:bg-error-light transition-colors"
                         title="Delete image"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        <Trash2 className="w-4 h-4 text-error" />
                       </button>
                     </div>
                   </div>
@@ -661,8 +661,8 @@ export default function ProductEditor({
 
         {/* Danger zone */}
         <div className="px-6 pb-6">
-          <div className="border border-red-200 rounded-sm p-4 bg-red-50/50">
-            <Heading level={3} className="text-red-800 mb-2 text-sm">
+          <div className="border border-error-border rounded-sm p-4 bg-error-light/50">
+            <Heading level={3} className="text-error-text mb-2 text-sm">
               Danger zone
             </Heading>
             {!confirmDelete ? (
@@ -670,14 +670,14 @@ export default function ProductEditor({
                 type="button"
                 onClick={() => setConfirmDelete(true)}
                 disabled={deleting}
-                className="inline-flex items-center gap-2 rounded-sm border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                className="inline-flex items-center gap-2 rounded-sm border border-error-border bg-white px-3 py-1.5 text-sm font-medium text-error-dark transition-colors hover:bg-error-light"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete this product
               </button>
             ) : (
               <div className="flex items-center gap-3">
-                <Text variant="small" className="text-red-700">
+                <Text variant="small" className="text-error-dark">
                   Are you sure? This cannot be undone.
                 </Text>
                 <button
@@ -701,7 +701,7 @@ export default function ProductEditor({
                     }
                   }}
                   disabled={deleting}
-                  className="inline-flex items-center gap-2 rounded-sm bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-sm bg-error px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-error-dark disabled:opacity-60"
                 >
                   {deleting ? (
                     <>

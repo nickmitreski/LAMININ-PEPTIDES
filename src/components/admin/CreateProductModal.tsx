@@ -116,14 +116,14 @@ export default function CreateProductModal({
         <div className="p-6 space-y-6">
           {/* Alerts */}
           {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-sm text-red-800">
+            <div className="flex items-center gap-2 p-4 bg-error-light border border-error-border rounded-sm text-error-text">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <Text className="text-sm">{error}</Text>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-sm text-green-800">
+            <div className="flex items-center gap-2 p-4 bg-success-light border border-success-border rounded-sm text-success-text">
               <CheckCircle className="w-5 h-5 flex-shrink-0" />
               <Text className="text-sm">{success}</Text>
             </div>
