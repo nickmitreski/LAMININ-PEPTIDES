@@ -1,6 +1,6 @@
 .btn {
   @apply inline-flex items-center justify-center;
-  @apply font-medium tracking-button;
+  @apply font-display font-medium tracking-button;
   @apply touch-manipulation transition-all duration-200;
   @apply disabled:cursor-not-allowed disabled:opacity-40;
   @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;

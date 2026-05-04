@@ -103,7 +103,8 @@ export default {
         platinum: '#F1F2F2',
       },
       fontFamily: {
-        sans: ['Helvetica Neue', 'Helvetica', '-apple-system', 'BlinkMacSystemFont', 'Arial', 'sans-serif'],
+        sans: ['Instrument Sans', 'Helvetica Neue', '-apple-system', 'BlinkMacSystemFont', 'Arial', 'sans-serif'],
+        display: ['Cabinet Grotesk', 'Instrument Sans', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
       fontSize: {
         'xs':   ['0.75rem',   { lineHeight: '1.5',  letterSpacing: '0.02em' }],

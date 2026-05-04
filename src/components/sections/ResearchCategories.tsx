@@ -27,7 +27,7 @@ const tileTitle =
   [
     'max-w-[min(100%,16.5rem)] text-balance text-center sm:max-w-[min(100%,19rem)] md:max-w-[min(100%,23rem)]',
     'rounded-md px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5',
-    'bg-accent font-semibold uppercase tracking-[0.08em] text-carbon-900',
+    'font-display bg-accent font-bold uppercase tracking-tight text-carbon-900',
     'text-[length:clamp(0.8125rem,1.35vw+0.4rem,1.625rem)]',
     'sm:text-[length:clamp(0.9375rem,1.15vw+0.48rem,1.875rem)]',
     'md:text-[length:clamp(1rem,1vw+0.55rem,2.125rem)]',

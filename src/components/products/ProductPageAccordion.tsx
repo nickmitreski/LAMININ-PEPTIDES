@@ -58,7 +58,7 @@ export default function ProductPageAccordion({
               onClick={() => toggleSection(section.id)}
               className="flex min-h-14 w-full touch-manipulation items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-grey/50 sm:min-h-0 sm:px-5 sm:py-5 md:px-6 md:py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-carbon-900"
             >
-              <span className="text-sm font-bold uppercase tracking-[0.12em] text-carbon-900 md:text-[0.8125rem]">
+              <span className="font-display text-sm font-bold uppercase tracking-wide text-carbon-900 md:text-[0.8125rem]">
                 {section.title}
               </span>
               <Plus

@@ -21,12 +21,12 @@ export function Heading({
   const Component = (as || `h${level}`) as keyof JSX.IntrinsicElements;
 
   const styles = {
-    1: 'text-2xl md:text-3xl lg:text-4xl font-light tracking-luxury uppercase',
-    2: 'text-lg md:text-xl lg:text-2xl font-light tracking-luxury uppercase',
-    3: 'text-base md:text-lg font-light tracking-wider uppercase',
-    4: 'text-sm md:text-base font-light tracking-wider uppercase',
-    5: 'text-sm md:text-base font-normal tracking-wide uppercase',
-    6: 'text-xs font-medium tracking-wider uppercase',
+    1: 'font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight uppercase',
+    2: 'font-display text-lg md:text-xl lg:text-2xl font-bold tracking-tight uppercase',
+    3: 'font-display text-base md:text-lg font-bold tracking-wide uppercase',
+    4: 'font-display text-sm md:text-base font-bold tracking-wide uppercase',
+    5: 'font-display text-sm md:text-base font-medium tracking-wide uppercase',
+    6: 'font-display text-xs font-medium tracking-wider uppercase',
   };
 
   return (

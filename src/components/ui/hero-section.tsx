@@ -126,7 +126,7 @@ export function FinancialHero({
 
           <motion.div
             variants={v.item}
-            className="font-sans text-3xl font-bold uppercase leading-[1.1] tracking-[0.06em] text-carbon-900 sm:text-4xl sm:tracking-[0.08em] md:text-5xl md:tracking-[0.1em] lg:text-[3.5rem] lg:leading-[1.05] lg:tracking-[0.1em]"
+            className="font-display text-3xl font-bold uppercase leading-[1.1] tracking-tight text-carbon-900 sm:text-4xl md:text-5xl lg:text-[3.5rem] lg:leading-[1.05]"
           >
             {title}
           </motion.div>
