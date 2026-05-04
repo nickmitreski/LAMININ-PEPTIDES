@@ -1,50 +1,7 @@
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
-
-.animate-slideInRight {
-  animation: slideInRight 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
+/*
+ * One-shot animations (fadeIn, fadeInUp, slideInRight, shimmer) live in
+ * index.css — that is the single source of truth. Do NOT redefine them here.
+ */
 
 /* Reveal-on-scroll. Use with `useScrollReveal()` and `data-revealed`. */
 .reveal {
