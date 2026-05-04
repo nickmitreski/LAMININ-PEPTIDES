@@ -35,39 +35,30 @@ Guides are grouped by topic. Prefer editing here rather than scattering new mark
 - [Database setup](supabase/DATABASE-SETUP-COMPLETE.md)
 - [Apply migration](supabase/APPLY_MIGRATION_NOW.md)
 
-## Admin / Product Tooling
+## SQL Reference & Templates
 
-8 files covering admin dashboard features, navigation, product editing, and backend implementation.
+27 ad-hoc SQL scripts (setup, migrations, debugging) plus a comprehensive index. Useful as a template for future Supabase projects.
 
-See files in [`admin/`](admin/):
+See [`sql-reference/README.md`](sql-reference/README.md) for the full index covering:
+- Database architecture (tables, RPC functions, security model)
+- Setup script run order for new projects
+- Production migration reference
+- Maintenance and debugging scripts
 
-- [Admin navigation](admin/ADMIN_NAVIGATION_COMPLETE.md)
-- [Admin panel features](admin/ADMIN_PANEL_FEATURES.md)
-- [Admin quick reference](admin/ADMIN-QUICK-REFERENCE.md)
-- [Admin system complete](admin/ADMIN-SYSTEM-COMPLETE.md)
-- [Admin system guide](admin/ADMIN-SYSTEM-GUIDE.md)
-- [Backend admin implementation](admin/BACKEND_ADMIN_IMPLEMENTATION.md)
-- [Dashboard improvements and product editing](admin/DASHBOARD_IMPROVEMENTS_AND_PRODUCT_EDITING.md)
-- [Product editor guide](admin/PRODUCT_EDITOR_GUIDE.md)
+## Admin
 
-## Partner / Legacy
+- [Admin quick reference](admin/ADMIN-QUICK-REFERENCE.md) -- current admin dashboard guide
 
-**Legacy -- CoreForge partner integration has been removed. These docs are kept for historical reference only.**
-
-13 files of historical partner and CoreForge-related notes live in [`partner/`](partner/). These cover the former embedded checkout, payment link, and white-label referral flows that are no longer active.
-
-## Archive
-
-7 session summaries and change logs in [`archive/`](archive/):
-
-- [Complete summary](archive/COMPLETE_SUMMARY.md)
-- [CoreForge features removed](archive/COREFORGE_FEATURES_REMOVED.md)
-- [Fixes applied](archive/FIXES-APPLIED.md)
-- [Implementation complete](archive/IMPLEMENTATION_COMPLETE.md)
-- [Inventory system updated](archive/INVENTORY_SYSTEM_UPDATED.md)
-- [Restore to CoreForge version](archive/RESTORE_TO_COREFORGE_VERSION.md)
-- [Testing inventory system](archive/TESTING_INVENTORY_SYSTEM.md)
+Deprecated admin docs moved to [`archive/admin/`](archive/admin/).
 
 ## Quality
 
 - [COA PDF coverage](quality/COA-COVERAGE.md) -- mapped peptides vs catalogue, `npm run verify:coa`
+
+## Archive
+
+Historical session notes, change logs, and deprecated documentation:
+
+- [`archive/`](archive/) -- 7 session summaries and change logs
+- [`archive/admin/`](archive/admin/) -- 7 deprecated admin docs (superseded by ADMIN-QUICK-REFERENCE)
+- [`archive/partner/`](archive/partner/) -- 13 deprecated CoreForge partner integration docs (removed April 2026)
