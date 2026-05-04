@@ -32,20 +32,20 @@ export default function CartSummary({
       {discount > 0 && (
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Text variant="small" className="text-green-700">
+            <Text variant="small" className="text-success-dark">
               Discount{discountCode ? ` (${discountCode})` : ''}
             </Text>
             {onRemoveDiscount && (
               <button
                 type="button"
                 onClick={onRemoveDiscount}
-                className="text-xs text-red-500 underline underline-offset-2 hover:text-red-700"
+                className="text-xs text-error underline underline-offset-2 hover:text-error-dark"
               >
                 Remove
               </button>
             )}
           </div>
-          <Text variant="small" weight="medium" className="text-green-700">
+          <Text variant="small" weight="medium" className="text-success-dark">
             &minus;{formatPrice(discount)}
           </Text>
         </div>

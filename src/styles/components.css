@@ -17,6 +17,11 @@
   @apply focus:border-carbon-900 focus:outline-none focus:ring-1 focus:ring-carbon-900;
 }
 
+/* Input with leading icon — overrides left padding to make room for the icon. */
+.input-search {
+  padding-left: 2.75rem; /* 44px = w-11 icon container */
+}
+
 /* Admin table header cells — matches Label component style but with tighter tracking
    suited for data-dense table layouts. */
 .th-label {

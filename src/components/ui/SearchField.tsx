@@ -23,7 +23,7 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
       )}
       <input
         ref={ref}
-        className={`input ${showIcon ? '!pl-11' : ''} ${className}`}
+        className={`input ${showIcon ? 'input-search' : ''} ${className}`}
         {...props}
       />
     </div>

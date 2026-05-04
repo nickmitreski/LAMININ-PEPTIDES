@@ -10,8 +10,8 @@ export default function ErrorPage() {
     <div className="min-h-screen bg-platinum">
       <Section background="white" spacing="xl" className="min-h-[70vh]">
         <div className="mx-auto max-w-lg px-4 text-center sm:px-0">
-          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-            <AlertTriangle className="h-8 w-8 text-amber-800" strokeWidth={2} aria-hidden />
+          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-warning-muted">
+            <AlertTriangle className="h-8 w-8 text-warning-text" strokeWidth={2} aria-hidden />
           </div>
           <Heading level={1} className="mb-3 text-2xl sm:text-3xl">
             We hit a snag

@@ -1,3 +1,5 @@
+import { Minus, Plus } from 'lucide-react';
+
 interface ProductQuantityStepperProps {
   value: number;
   onChange: (next: number) => void;
@@ -30,7 +32,7 @@ export default function ProductQuantityStepper({
         className={btnClass}
         aria-label="Decrease quantity"
       >
-        −
+        <Minus className="h-4 w-4" strokeWidth={2} aria-hidden />
       </button>
       <span className="flex min-w-[3rem] items-center justify-center border-x border-carbon-900/10 text-sm font-semibold tabular-nums tracking-wide">
         {value}
@@ -42,7 +44,7 @@ export default function ProductQuantityStepper({
         className={btnClass}
         aria-label="Increase quantity"
       >
-        +
+        <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
       </button>
     </div>
   );

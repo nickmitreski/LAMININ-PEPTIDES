@@ -51,8 +51,8 @@ export default function OrderConfirmation() {
         <div className="mx-auto max-w-2xl px-4 sm:px-0">
           {/* Success Header */}
           <div className="mb-8 text-center">
-            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="h-10 w-10 text-green-600" strokeWidth={2} />
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-success-muted">
+              <CheckCircle2 className="h-10 w-10 text-success" strokeWidth={2} />
             </div>
             <Heading level={3} className="mb-3 text-2xl sm:text-3xl">
               Order received
@@ -93,30 +93,30 @@ export default function OrderConfirmation() {
             </div>
 
             {/* Payment Status */}
-            <div className="rounded-sm bg-amber-50 border border-amber-200 p-4">
-              <Text variant="small" weight="medium" className="mb-2 text-amber-900">
+            <div className="rounded-sm bg-warning-light border border-warning-border p-4">
+              <Text variant="small" weight="medium" className="mb-2 text-warning-text">
                 Payment required
               </Text>
-              <Text variant="caption" className="text-amber-800">
+              <Text variant="caption" className="text-warning-text">
                 Your order is reserved pending payment. Please check your email for payment instructions.
               </Text>
             </div>
           </Card>
 
           {/* Email Notification */}
-          <Card padding="lg" className="mb-6 border-2 border-blue-200 bg-blue-50">
+          <Card padding="lg" className="mb-6 border-2 border-info-border bg-info-light">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                <Mail className="h-6 w-6 text-blue-600" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-info-muted">
+                <Mail className="h-6 w-6 text-info" />
               </div>
               <div>
-                <Heading level={5} className="mb-2 text-blue-900">
+                <Heading level={5} className="mb-2 text-info-text">
                   Check your email
                 </Heading>
-                <Text variant="body" className="text-blue-800 leading-relaxed">
+                <Text variant="body" className="text-info-text leading-relaxed">
                   We've sent payment instructions to your email address. Please follow the instructions in the email to complete your payment.
                 </Text>
-                <Text variant="caption" className="mt-2 block text-blue-700">
+                <Text variant="caption" className="mt-2 block text-info-dark">
                   Don't forget to include your order reference <strong className="font-mono">{orderRef}</strong> when making your payment.
                 </Text>
               </div>
@@ -130,25 +130,25 @@ export default function OrderConfirmation() {
             </Heading>
             <ul className="space-y-2 text-sm text-carbon-900">
               <li className="flex items-start gap-2">
-                <span className="font-bold text-blue-600">1.</span>
+                <span className="font-bold text-info">1.</span>
                 <Text variant="caption" className="text-carbon-900">
                   Check your email for payment instructions
                 </Text>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-blue-600">2.</span>
+                <span className="font-bold text-info">2.</span>
                 <Text variant="caption" className="text-carbon-900">
                   Complete your payment using your order reference <strong className="font-mono">{orderRef}</strong>
                 </Text>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-blue-600">3.</span>
+                <span className="font-bold text-info">3.</span>
                 <Text variant="caption" className="text-carbon-900">
                   Orders are processed and dispatched the next business day after payment is received
                 </Text>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-blue-600">4.</span>
+                <span className="font-bold text-info">4.</span>
                 <Text variant="caption" className="text-carbon-900">
                   You will receive a confirmation email once we verify your payment
                 </Text>

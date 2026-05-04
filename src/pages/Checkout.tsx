@@ -520,20 +520,20 @@ export default function Checkout() {
                     Discount code
                   </Heading>
                   {appliedDiscount?.valid ? (
-                    <div className="flex items-center justify-between rounded-sm border border-green-200 bg-green-50 px-4 py-3">
+                    <div className="flex items-center justify-between rounded-sm border border-success-border bg-success-light px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-green-700" />
-                        <span className="text-sm font-medium text-green-800">
+                        <Tag className="h-4 w-4 text-success-dark" />
+                        <span className="text-sm font-medium text-success-text">
                           {appliedDiscount.code}
                         </span>
-                        <span className="text-xs text-green-600">
+                        <span className="text-xs text-success">
                           &minus;{formatPrice(discountAmount)}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={handleRemoveDiscount}
-                        className="rounded p-1 text-green-600 transition-colors hover:bg-green-100 hover:text-green-800"
+                        className="rounded p-1 text-success transition-colors hover:bg-success-muted hover:text-success-text"
                         aria-label="Remove discount code"
                       >
                         <X className="h-4 w-4" />

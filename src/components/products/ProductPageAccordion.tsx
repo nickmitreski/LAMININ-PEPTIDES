@@ -1,5 +1,6 @@
 import { useId, useState, type ReactNode } from 'react';
 import { Plus } from 'lucide-react';
+import { cn } from '../../lib/utils';
 import { Text } from '../ui/Typography';
 
 export interface ProductAccordionSection {
@@ -43,11 +44,11 @@ export default function ProductPageAccordion({
         return (
           <div
             key={section.id}
-            className={`
-              ${!isFirst ? 'border-t border-carbon-900/10' : ''}
-              ${isFirst ? 'rounded-t-xl' : ''}
-              ${isLast && !isOpen ? 'rounded-b-xl' : ''}
-            `}
+            className={cn(
+              !isFirst && 'border-t border-carbon-900/10',
+              isFirst && 'rounded-t-xl',
+              isLast && !isOpen && 'rounded-b-xl',
+            )}
           >
             <button
               type="button"
@@ -61,9 +62,10 @@ export default function ProductPageAccordion({
                 {section.title}
               </span>
               <Plus
-                className={`h-5 w-5 flex-shrink-0 text-carbon-900 transition-transform duration-200 ${
-                  isOpen ? 'rotate-45' : ''
-                }`}
+                className={cn(
+                  'h-5 w-5 flex-shrink-0 text-carbon-900 transition-transform duration-200',
+                  isOpen && 'rotate-45',
+                )}
                 strokeWidth={1.75}
                 aria-hidden
               />
@@ -73,15 +75,17 @@ export default function ProductPageAccordion({
               id={panelId}
               role="region"
               aria-labelledby={headerId}
-              className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-                isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-              }`}
+              className={cn(
+                'grid transition-[grid-template-rows] duration-200 ease-out',
+                isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+              )}
             >
               <div className="min-h-0 overflow-hidden">
                 <div
-                  className={`border-t border-carbon-900/10 bg-grey px-5 py-5 md:px-6 md:py-6 ${
-                    isLast ? 'rounded-b-xl' : ''
-                  }`}
+                  className={cn(
+                    'border-t border-carbon-900/10 bg-grey px-5 py-5 md:px-6 md:py-6',
+                    isLast && 'rounded-b-xl',
+                  )}
                 >
                   {section.content}
                 </div>

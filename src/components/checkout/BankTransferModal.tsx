@@ -92,7 +92,7 @@ export default function BankTransferModal({
               aria-label="Copy reference"
             >
               {copiedField === 'reference' ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
               ) : (
                 <Copy className="h-4 w-4" />
               )}
@@ -113,14 +113,14 @@ export default function BankTransferModal({
         </div>
 
         {/* Email Notification */}
-        <div className="mb-6 rounded-sm border border-blue-200 bg-blue-50 px-4 py-4">
+        <div className="mb-6 rounded-sm border border-info-border bg-info-light px-4 py-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-              <Mail className="h-5 w-5 text-blue-600" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-info-muted">
+              <Mail className="h-5 w-5 text-info" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-blue-900 mb-1">Check your email</p>
-              <p className="text-sm leading-relaxed text-blue-800">
+              <p className="text-sm font-semibold text-info-text mb-1">Check your email</p>
+              <p className="text-sm leading-relaxed text-info-text">
                 You will receive an email with payment instructions shortly. Please follow the instructions in the email to complete your payment.
               </p>
             </div>

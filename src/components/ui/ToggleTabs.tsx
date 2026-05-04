@@ -1,3 +1,4 @@
+import { cn } from '../../lib/utils';
 import Button from './Button';
 
 export type ToggleTabItem = { id: string; label: string };
@@ -28,13 +29,10 @@ export default function ToggleTabs({
     }));
   return (
     <div
-      className={[
-        /* Bleed to screen edges on small viewports so tabs can scroll */
+      className={cn(
         '-mx-4 px-4 sm:mx-0 sm:px-0',
         className,
-      ]
-        .join(' ')
-        .trim()}
+      )}
     >
       <div
         className="
@@ -53,12 +51,12 @@ export default function ToggleTabs({
             onClick={() => onTabChange(id)}
             variant={activeTab === id ? 'primary' : 'outline'}
             size="md"
-            className={[
+            className={cn(
               'shrink-0 snap-start min-h-11 touch-manipulation px-4 py-2.5 text-xs sm:min-h-0 sm:px-6 sm:text-sm',
               activeTab === id
                 ? 'bg-accent hover:bg-accent-dark text-carbon-900'
                 : 'bg-white',
-            ].join(' ')}
+            )}
           >
             {label}
           </Button>

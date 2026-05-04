@@ -17,7 +17,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-xs font-medium tracking-wide text-carbon-900 mb-2"
+            className="mb-2 block text-xs font-medium tracking-wide text-carbon-900"
           >
             {label}
           </label>
