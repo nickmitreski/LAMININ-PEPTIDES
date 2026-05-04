@@ -43,7 +43,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-navy sticky top-0 z-50 border-b border-white/5 pt-safe">
+    <header className="bg-carbon-900 sticky top-0 z-50 border-b border-white/5 pt-safe">
       <Container>
         <div className="flex min-h-[4.25rem] w-full items-center gap-2 py-2 md:min-h-24 md:gap-4 md:py-0">
           <div className="shrink-0">
@@ -70,7 +70,7 @@ export default function Header() {
                 aria-current={isActive(link.path) ? 'page' : undefined}
                 className={`
                   px-5 py-2.5 text-sm font-medium tracking-wide rounded-sm transition-all duration-200
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900
                   ${
                     isActive(link.path)
                       ? 'text-carbon-900 bg-accent'
@@ -87,7 +87,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation active:bg-white/15"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation active:bg-white/15"
               aria-label="Search catalogue"
             >
               <Search className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -95,7 +95,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
-              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation active:bg-white/15"
+              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation active:bg-white/15"
               aria-label={`Shopping cart with ${state.itemCount} items`}
             >
               <ShoppingCart className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -110,7 +110,7 @@ export default function Header() {
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy touch-manipulation active:bg-white/10 lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation active:bg-white/10 lg:hidden"
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -119,7 +119,7 @@ export default function Header() {
       </Container>
 
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-navy border-t border-white/5 animate-fadeIn">
+        <div className="lg:hidden bg-carbon-900 border-t border-white/5 animate-fadeIn">
           <Container>
             <nav className="space-y-1 py-4 pb-safe sm:py-6">
               {navLinks.map((link) => (
@@ -130,7 +130,7 @@ export default function Header() {
                   aria-current={isActive(link.path) ? 'page' : undefined}
                   className={`
                     block min-h-12 px-4 py-3.5 text-sm font-medium leading-snug tracking-wide rounded-sm transition-all duration-200 touch-manipulation
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-navy
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900
                     ${
                       isActive(link.path)
                         ? 'text-carbon-900 bg-accent'

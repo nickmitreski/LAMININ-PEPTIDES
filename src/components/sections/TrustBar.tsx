@@ -19,7 +19,7 @@ export default function TrustBar() {
   const { ref, revealed } = useScrollReveal<HTMLDivElement>();
 
   return (
-    <section className="relative overflow-hidden border-t border-white/5 bg-navy">
+    <section className="relative overflow-hidden border-t border-white/5 bg-carbon-900">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"

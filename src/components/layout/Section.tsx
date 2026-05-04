@@ -33,7 +33,7 @@ export default function Section({
     white: 'bg-white',                // True white
     elevated: 'bg-white',             // Same as white, semantic name
     neutral: 'bg-neutral-100',        // Grey sections
-    dark: 'bg-navy text-white', // Navy sections
+    dark: 'bg-carbon-900 text-white', // Navy sections
     accent: 'bg-accent text-carbon-900', // Aqua sections
     none: '',
   };
