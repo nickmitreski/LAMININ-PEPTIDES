@@ -20,6 +20,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllOrders,
@@ -164,6 +165,7 @@ function exportOrdersCsv(orders: OrderReferenceRow[]) {
 }
 
 export default function AdminDashboard() {
+  useDocumentTitle("Orders Dashboard", "Manage orders, payments, and shipments.");
   const navigate = useNavigate();
   const { logout, user: adminUser, authReady } = useAdminAuth();
   const { showToast } = useToast();

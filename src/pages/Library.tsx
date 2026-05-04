@@ -7,6 +7,7 @@ import PeptideCard from '../components/peptides/PeptideCard';
 import Button from '../components/ui/Button';
 import CTACard from '../components/ui/CTACard';
 import SearchField from '../components/ui/SearchField';
+import Skeleton from '../components/ui/Skeleton';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
 import { FlaskConical, CheckCircle, Truck } from 'lucide-react';
@@ -78,7 +79,7 @@ export default function Library() {
 
   const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
   const { ref: ctaRef, revealed: ctaRevealed } = useScrollReveal<HTMLDivElement>();
-  const { isProductActive, allProducts } = useShopImages();
+  const { loading, isProductActive, allProducts } = useShopImages();
 
   // Use merged catalog (static + DB-only products), filtered by category and active status
   const categoryPeptides = activeCategory === 'All'
@@ -122,20 +123,36 @@ export default function Library() {
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <Text variant="caption" muted>
-            {filteredPeptides.length} {filteredPeptides.length === 1 ? 'compound' : 'compounds'} found
+            {loading ? '\u00A0' : `${filteredPeptides.length} ${filteredPeptides.length === 1 ? 'compound' : 'compounds'} found`}
           </Text>
           <TextLink to="/coa" className="shrink-0 self-start sm:self-auto">
             View all certificates →
           </TextLink>
         </div>
 
-        <div ref={gridRef} data-revealed={gridRevealed} className="reveal mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
-          {filteredPeptides.map((peptide) => (
-            <PeptideCard key={peptide.id} peptide={peptide} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-3">
+                <Skeleton className="aspect-square w-full" rounded="md" />
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-2.5 w-1/2" />
+                <Skeleton className="mt-auto h-9 w-full" rounded="sm" />
+                <Skeleton className="h-9 w-full" rounded="sm" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div ref={gridRef} data-revealed={gridRevealed} className="reveal mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
+              {filteredPeptides.map((peptide) => (
+                <PeptideCard key={peptide.id} peptide={peptide} />
+              ))}
+            </div>
+          </>
+        )}
 
-        {filteredPeptides.length === 0 && (
+        {!loading && filteredPeptides.length === 0 && (
           <div className="mx-auto max-w-md py-12 text-center sm:py-16">
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-platinum">
               <svg

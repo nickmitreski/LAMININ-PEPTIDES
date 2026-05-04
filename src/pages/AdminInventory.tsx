@@ -7,6 +7,7 @@ import Skeleton from '../components/ui/Skeleton';
 import { Heading, Text } from '../components/ui/Typography';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import { formatPrice } from '../lib/formatCurrency';
 
@@ -36,6 +37,7 @@ interface InventoryTransaction {
 type AdjustmentMode = 'add' | 'subtract' | 'set';
 
 export default function AdminInventory() {
+  useDocumentTitle("Inventory", "Track stock levels and transactions.");
   const navigate = useNavigate();
   const { logout, user: adminUser } = useAdminAuth();
 

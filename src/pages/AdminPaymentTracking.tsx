@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { markPaymentReceived } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
@@ -31,6 +32,7 @@ interface PaymentTracking {
 }
 
 export default function AdminPaymentTracking() {
+  useDocumentTitle("Payment Tracking", "Monitor payment status and confirmations.");
   const navigate = useNavigate();
   const { logout, user: adminUser } = useAdminAuth();
   const [payments, setPayments] = useState<PaymentTracking[]>([]);

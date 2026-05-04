@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -19,6 +20,7 @@ const LOGIN_ERRORS: Record<
 };
 
 export default function AdminLogin() {
+  useDocumentTitle('Admin Login', 'Sign in to the admin dashboard.');
   const navigate = useNavigate();
   const { login, isAuthenticated, authReady } = useAdminAuth();
   const [email, setEmail] = useState('');

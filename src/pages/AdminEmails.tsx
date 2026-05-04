@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
 import { Heading, Text } from '../components/ui/Typography';
@@ -96,6 +97,7 @@ function formatDate(iso: string) {
 /* ------------------------------------------------------------------ */
 
 export default function AdminEmails() {
+  useDocumentTitle("Email Management", "View email logs and manage templates.");
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
 

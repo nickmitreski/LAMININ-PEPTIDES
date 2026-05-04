@@ -16,6 +16,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllCustomers,
@@ -59,6 +60,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AdminCustomers() {
+  useDocumentTitle("Customers", "View and manage customer records.");
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
   const { showToast } = useToast();

@@ -18,6 +18,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllDiscountCodes,
@@ -71,6 +72,7 @@ const EMPTY_FORM: Omit<DiscountCode, 'id' | 'redemption_count' | 'created_at' | 
 };
 
 export default function AdminDiscounts() {
+  useDocumentTitle("Discount Codes", "Create and manage discount codes.");
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
   const { showToast } = useToast();

@@ -14,6 +14,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllProductMappings,
@@ -51,6 +52,7 @@ interface ProductMapping {
 const LOW_STOCK_THRESHOLD = 10;
 
 export default function AdminProducts() {
+  useDocumentTitle("Products", "Manage product catalog and pricing.");
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAdminAuth();
   const { showToast } = useToast();

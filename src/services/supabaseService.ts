@@ -390,7 +390,8 @@ export async function getAllCustomers(
   const { data, error } = await client
     .from('customers')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(500);
 
   if (error || !data) {
     console.error('[supabase] getAllCustomers', error);
