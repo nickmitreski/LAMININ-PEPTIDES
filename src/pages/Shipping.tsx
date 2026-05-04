@@ -4,6 +4,7 @@ import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
 import { Truck, MapPin, Package } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 /** Shipping terms (April 2026). */
 export default function Shipping() {
@@ -11,6 +12,8 @@ export default function Shipping() {
     'Shipping',
     'Express shipping terms across Australia: delivery windows, packaging, tracking, and discretion.'
   );
+  const { ref: contentRef, revealed: contentRevealed } = useScrollReveal<HTMLDivElement>();
+
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
@@ -25,7 +28,7 @@ export default function Shipping() {
           className="mb-8 md:mb-10"
         />
 
-        <div className="mx-auto max-w-5xl space-y-8">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-5xl space-y-8">
           <Text variant="body" className="text-carbon-900">
             Laminin Peptide Lab provides express shipping across Australia, prioritising reliability,
             discretion, and efficient delivery.

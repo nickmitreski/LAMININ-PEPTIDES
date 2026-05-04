@@ -4,6 +4,7 @@ import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
 import { FlaskConical, Target, ShieldCheck, Info, Award } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 /** Aligned with the Purity Assurance Guarantee (March 2026). */
 export default function Guarantee() {
@@ -11,6 +12,8 @@ export default function Guarantee() {
     'Purity Assurance Guarantee',
     'Our purity assurance guarantee: independently verified ≥99% purity, certificates of analysis, and replacement policy.'
   );
+  const { ref: contentRef, revealed: contentRevealed } = useScrollReveal<HTMLDivElement>();
+
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
@@ -25,7 +28,7 @@ export default function Guarantee() {
           className="mb-8 md:mb-10"
         />
 
-        <div className="mx-auto max-w-5xl space-y-8">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-5xl space-y-8">
           <Text variant="body" className="text-carbon-900">
             Laminin Peptide Lab is committed to maintaining high analytical standards for all
             compounds supplied for laboratory research. Each batch undergoes analytical

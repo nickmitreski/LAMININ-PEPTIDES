@@ -2,6 +2,7 @@ import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import { Heading, Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 /** Research-use disclaimer (March 2026). */
 export default function Disclaimer() {
@@ -9,12 +10,14 @@ export default function Disclaimer() {
     'Disclaimer',
     'Research-use disclaimer: products supplied by Laminin Peptide Lab are strictly for laboratory research and not for human or veterinary use.'
   );
+  const { ref: contentRef, revealed: contentRevealed } = useScrollReveal<HTMLDivElement>();
+
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <PageTopBanner title="Disclaimer" subtitle="Terms of use and legal information." />
 
-        <div className="mx-auto max-w-3xl space-y-6">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-3xl space-y-6">
           <Text variant="body" className="text-carbon-900">
             All products supplied by Laminin Peptide Lab are intended strictly for laboratory research
             purposes only.

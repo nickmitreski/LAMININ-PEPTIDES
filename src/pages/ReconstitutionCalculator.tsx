@@ -6,6 +6,7 @@ import Button from '../components/ui/Button';
 import { Heading, Label, Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useShopImages } from '../context/ShopImagesContext';
+import useScrollReveal from '../hooks/useScrollReveal';
 import { PEPTIDE_ID_TO_CFG, PRODUCT_MAPPINGS } from '../data/productMappings';
 import { getVariants } from '../data/productPricing';
 
@@ -111,6 +112,8 @@ export default function ReconstitutionCalculator() {
     };
   }, [desiredDoseMg, vialStrengthMg, diluentMl]);
 
+  const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
+
   const applyProductStrength = (nextProductId: string) => {
     setSelectedProductId(nextProductId);
     const option = productOptions.find((item) => item.id === nextProductId);
@@ -127,7 +130,7 @@ export default function ReconstitutionCalculator() {
           subtitle="Select your Laminin compound, set your target dose, then calculate concentration, draw volume, and U-100 units using bacteriostatic water."
         />
 
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <div ref={gridRef} data-revealed={gridRevealed} className="reveal mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <Card padding="lg" className="border border-carbon-900/20 shadow-sm">
             <Heading level={4} className="mb-5 !font-bold">
               Calculator inputs

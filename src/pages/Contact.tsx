@@ -9,6 +9,7 @@ import { Heading, Text } from '../components/ui/Typography';
 import { sendContactMessage } from '../services/emailService';
 import { Mail, Clock, ShieldCheck, MessageSquare } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 interface FormData {
   name: string;
@@ -69,6 +70,7 @@ export default function Contact() {
     setIsSubmitting(false);
   };
 
+  const { ref: contentRef, revealed: contentRevealed } = useScrollReveal<HTMLDivElement>();
   const messageLength = formData.message.length;
   const messageOverLimit = messageLength > MAX_MESSAGE_LENGTH;
 
@@ -77,7 +79,7 @@ export default function Contact() {
       <Section background="white" spacing="lg">
         <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." />
 
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-16">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto grid max-w-5xl grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-16">
           {/* Left column — contact info */}
           <div className="lg:col-span-2">
             <Heading level={4} className="mb-4">

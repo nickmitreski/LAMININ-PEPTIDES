@@ -2,6 +2,7 @@ import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import { Heading, Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 /** Aligned with the published Privacy Policy (March 2026). */
 export default function Privacy() {
@@ -9,12 +10,14 @@ export default function Privacy() {
     'Privacy Policy',
     'How Laminin Peptide Lab collects, uses, and protects your personal information.'
   );
+  const { ref: contentRef, revealed: contentRevealed } = useScrollReveal<HTMLDivElement>();
+
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <PageTopBanner title="Privacy policy" subtitle="How we handle your data and protect your privacy." />
 
-        <div className="mx-auto max-w-3xl space-y-8">
+        <div ref={contentRef} data-revealed={contentRevealed} className="reveal mx-auto max-w-3xl space-y-8">
           <Text variant="body" className="text-carbon-900">
             Laminin Peptide Lab is committed to protecting your privacy and handling your
             information with discretion and integrity.
