@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -535,7 +536,7 @@ export default function AdminEmails() {
                                 {log.body_html ? (
                                   <div
                                     className="prose prose-sm max-w-none text-sm"
-                                    dangerouslySetInnerHTML={{ __html: log.body_html }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(log.body_html) }}
                                   />
                                 ) : (
                                   <Text variant="caption" className="whitespace-pre-wrap text-carbon-900">
@@ -732,7 +733,7 @@ export default function AdminEmails() {
                   <div className="rounded-sm border border-carbon-900/10 bg-neutral-50 p-4">
                     <div
                       className="prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: templateDraft.body_html }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(templateDraft.body_html) }}
                     />
                   </div>
                 </div>

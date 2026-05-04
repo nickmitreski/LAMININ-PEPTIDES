@@ -1,4 +1,5 @@
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Requires local part, @, domain with dot, and TLD of 2+ chars. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 
 export interface ContactValidationResult {
   ok: boolean;
