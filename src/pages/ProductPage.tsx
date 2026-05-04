@@ -202,9 +202,9 @@ export default function ProductPage() {
               <Label tone="muted" className="mb-3 block tracking-[0.2em]">
                 {peptide.category}
               </Label>
-              <h1 className="text-2xl font-bold uppercase leading-[1.15] tracking-[0.06em] text-carbon-900 sm:text-3xl md:text-4xl md:tracking-[0.07em]">
+              <Heading level={1} className="!font-bold !leading-[1.15] !tracking-[0.06em] sm:!text-3xl md:!text-4xl md:!tracking-[0.07em]">
                 {headline}
-              </h1>
+              </Heading>
 
               {variants && variants.length > 0 && (
                 <div className="mt-4 max-w-xs">
