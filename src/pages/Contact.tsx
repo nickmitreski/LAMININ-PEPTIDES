@@ -201,7 +201,7 @@ export default function Contact() {
                   <Text
                     variant="caption"
                     muted={!messageOverLimit}
-                    className={messageOverLimit ? 'text-red-600' : undefined}
+                    className={messageOverLimit ? 'text-error' : undefined}
                   >
                     {messageLength}/{MAX_MESSAGE_LENGTH}
                   </Text>

@@ -152,7 +152,7 @@ export default function AdminPaymentTracking() {
   const getStatusBadge = (status: string) => {
     if (status === 'payment_received') {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-sm bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800">
+        <span className="inline-flex items-center gap-1.5 rounded-sm bg-success-muted px-2.5 py-1 text-xs font-medium text-success-text">
           <CheckCircle2 className="h-3.5 w-3.5" />
           Paid
         </span>
@@ -167,7 +167,7 @@ export default function AdminPaymentTracking() {
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-sm bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
+      <span className="inline-flex items-center gap-1.5 rounded-sm bg-warning-muted px-2.5 py-1 text-xs font-medium text-warning-text">
         <Clock className="h-3.5 w-3.5" />
         Pending
       </span>
@@ -222,7 +222,7 @@ export default function AdminPaymentTracking() {
                 </Text>
                 <Heading level={4}>{pendingCount}</Heading>
               </div>
-              <Clock className="h-8 w-8 text-amber-500" />
+              <Clock className="h-8 w-8 text-warning" />
             </div>
           </Card>
 
@@ -234,7 +234,7 @@ export default function AdminPaymentTracking() {
                 </Text>
                 <Heading level={4}>{paidCount}</Heading>
               </div>
-              <CheckCircle2 className="h-8 w-8 text-green-500" />
+              <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
           </Card>
 

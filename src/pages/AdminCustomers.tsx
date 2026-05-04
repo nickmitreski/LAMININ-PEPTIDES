@@ -50,11 +50,11 @@ interface Customer {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  paid: 'bg-green-100 text-green-800',
+  pending: 'bg-warning-muted text-warning-text',
+  paid: 'bg-success-muted text-success-text',
   processing: 'bg-blue-100 text-blue-800',
   shipped: 'bg-purple-100 text-purple-800',
-  delivered: 'bg-green-100 text-green-800',
+  delivered: 'bg-success-muted text-success-text',
   cancelled: 'bg-error-muted text-error-text',
 };
 
@@ -204,8 +204,8 @@ export default function AdminCustomers() {
 
           <Card className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-sm">
-                <ShoppingBag className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-success-muted rounded-sm">
+                <ShoppingBag className="w-6 h-6 text-success" />
               </div>
               <div>
                 <Text className="text-sm text-carbon-600">Total orders</Text>
@@ -412,14 +412,14 @@ export default function AdminCustomers() {
         </Card>
 
         {/* Warning */}
-        <Card className="mt-6 p-4 bg-yellow-50 border-yellow-200">
+        <Card className="mt-6 p-4 bg-warning-light border-warning-border">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
             <div>
-              <Text className="font-medium text-yellow-900 mb-1">
+              <Text className="font-medium text-warning-text mb-1">
                 Important: customer deletion
               </Text>
-              <Text className="text-sm text-yellow-800">
+              <Text className="text-sm text-warning-text">
                 Deleting a customer will permanently remove them and{' '}
                 <strong>all their orders</strong> from the database. This action
                 cannot be undone. Use with caution.

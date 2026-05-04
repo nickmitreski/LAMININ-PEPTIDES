@@ -306,7 +306,7 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                     ) : paymentTracking.payment_status === 'viewed_instructions' ? (
                       <span className="text-blue-700">Viewed instructions</span>
                     ) : (
-                      <span className="text-amber-700">Pending</span>
+                      <span className="text-warning-dark">Pending</span>
                     )}
                   </span>
                 </div>
@@ -335,7 +335,7 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                   <button
                     type="button"
                     onClick={() => onPaymentAction('mark_paid', paymentTracking.id)}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-sm bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-sm bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-success-dark"
                   >
                     <DollarSign className="h-3.5 w-3.5" />
                     Mark as Paid

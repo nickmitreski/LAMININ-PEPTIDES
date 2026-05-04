@@ -61,10 +61,10 @@ type Tab = 'logs' | 'templates';
 /* ------------------------------------------------------------------ */
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: typeof CheckCircle2 }> = {
-  queued: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
+  queued: { bg: 'bg-warning-muted', text: 'text-warning-text', icon: Clock },
   sent: { bg: 'bg-blue-100', text: 'text-blue-800', icon: Send },
-  delivered: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle2 },
-  failed: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle },
+  delivered: { bg: 'bg-success-muted', text: 'text-success-text', icon: CheckCircle2 },
+  failed: { bg: 'bg-error-muted', text: 'text-error-text', icon: XCircle },
   bounced: { bg: 'bg-orange-100', text: 'text-orange-800', icon: XCircle },
 };
 
@@ -304,19 +304,19 @@ export default function AdminEmails() {
               <Text variant="caption" muted className="mb-1 block">
                 Delivered
               </Text>
-              <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
+              <p className="text-2xl font-bold text-success">{stats.delivered}</p>
             </Card>
             <Card padding="md" className="text-center">
               <Text variant="caption" muted className="mb-1 block">
                 Queued
               </Text>
-              <p className="text-2xl font-bold text-yellow-600">{stats.queued}</p>
+              <p className="text-2xl font-bold text-warning">{stats.queued}</p>
             </Card>
             <Card padding="md" className="text-center">
               <Text variant="caption" muted className="mb-1 block">
                 Failed
               </Text>
-              <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+              <p className="text-2xl font-bold text-error">{stats.failed}</p>
             </Card>
           </div>
 
@@ -515,8 +515,8 @@ export default function AdminEmails() {
                                   <Text variant="caption" muted className="mb-1 block text-xs uppercase tracking-wide">
                                     Error
                                   </Text>
-                                  <div className="rounded-sm bg-red-50 border border-red-200 px-3 py-2">
-                                    <Text variant="caption" className="text-red-800">
+                                  <div className="rounded-sm bg-error-light border border-error-border px-3 py-2">
+                                    <Text variant="caption" className="text-error-text">
                                       {log.error_message}
                                     </Text>
                                   </div>

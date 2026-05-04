@@ -325,7 +325,7 @@ export default function AdminProducts() {
                 type="button"
                 onClick={() => void handleBulkToggle(true)}
                 disabled={bulkToggling}
-                className="inline-flex items-center gap-2 rounded-sm bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-sm bg-success px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-success-dark disabled:opacity-60"
               >
                 <CheckCircle className="h-4 w-4" />
                 Set Active
@@ -504,7 +504,7 @@ export default function AdminProducts() {
                         </td>
                         <td className="px-6 py-4">
                           {product.is_active ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-success-border bg-success-muted px-2.5 py-0.5 text-xs font-medium text-success-text">
                               <CheckCircle className="h-3 w-3" />
                               Active
                             </span>

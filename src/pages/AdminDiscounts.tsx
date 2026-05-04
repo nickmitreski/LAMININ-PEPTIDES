@@ -279,7 +279,7 @@ export default function AdminDiscounts() {
           </Card>
           <Card padding="md">
             <Text variant="caption" muted className="mb-1 block uppercase tracking-wider">Active</Text>
-            <Text variant="body" weight="semibold" className="text-2xl text-green-700">{activeCount}</Text>
+            <Text variant="body" weight="semibold" className="text-2xl text-success-dark">{activeCount}</Text>
           </Card>
           <Card padding="md">
             <Text variant="caption" muted className="mb-1 block uppercase tracking-wider">Total uses</Text>
@@ -348,7 +348,7 @@ export default function AdminDiscounts() {
                               title="Copy code"
                             >
                               {copiedCode === code.code ? (
-                                <Check className="h-3.5 w-3.5 text-green-600" />
+                                <Check className="h-3.5 w-3.5 text-success" />
                               ) : (
                                 <Copy className="h-3.5 w-3.5" />
                               )}
@@ -389,11 +389,11 @@ export default function AdminDiscounts() {
                               Expired
                             </span>
                           ) : isMaxedOut ? (
-                            <span className="inline-flex items-center rounded-full border border-yellow-200 bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                            <span className="inline-flex items-center rounded-full border border-warning-border bg-warning-muted px-2.5 py-0.5 text-xs font-medium text-warning-text">
                               Maxed out
                             </span>
                           ) : (
-                            <span className="inline-flex items-center rounded-full border border-green-200 bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            <span className="inline-flex items-center rounded-full border border-success-border bg-success-muted px-2.5 py-0.5 text-xs font-medium text-success-text">
                               Active
                             </span>
                           )}
@@ -427,7 +427,7 @@ export default function AdminDiscounts() {
                               className="rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900"
                               title={code.is_active ? 'Disable' : 'Enable'}
                             >
-                              {code.is_active ? <ToggleRight className="h-4 w-4 text-green-600" /> : <ToggleLeft className="h-4 w-4" />}
+                              {code.is_active ? <ToggleRight className="h-4 w-4 text-success" /> : <ToggleLeft className="h-4 w-4" />}
                             </button>
                             <button
                               type="button"
@@ -776,7 +776,7 @@ export default function AdminDiscounts() {
                     <tr key={r.id}>
                       <td className="whitespace-nowrap px-3 py-3 font-mono text-sm">{r.order_reference}</td>
                       <td className="px-3 py-3 text-sm text-carbon-700">{r.customer_email || '—'}</td>
-                      <td className="whitespace-nowrap px-3 py-3 text-sm font-medium text-green-700">
+                      <td className="whitespace-nowrap px-3 py-3 text-sm font-medium text-success-dark">
                         &minus;{formatPrice(r.discount_amount)}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 text-sm text-carbon-700">

@@ -70,7 +70,7 @@ const EMPTY_COUNTS: OrderCounts = {
 };
 
 const STATUS_BADGE_COLORS: Record<OrderStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  pending: 'bg-warning-muted text-warning-text border-warning-border',
   viewed_instructions: 'bg-blue-100 text-blue-800 border-blue-200',
   payment_received: 'bg-success-muted text-success-text border-success-border',
   processing: 'bg-indigo-100 text-indigo-800 border-indigo-200',

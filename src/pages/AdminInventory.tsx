@@ -216,7 +216,7 @@ export default function AdminInventory() {
   const getStockColor = (product: Product) => {
     if (!product.track_inventory) return 'text-neutral-500';
     if (product.stock_quantity === 0) return 'text-error';
-    if (product.stock_quantity <= product.low_stock_threshold) return 'text-amber-600';
+    if (product.stock_quantity <= product.low_stock_threshold) return 'text-warning';
     return 'text-success';
   };
 
@@ -249,14 +249,14 @@ export default function AdminInventory() {
 
           {/* Low Stock Alert Banner */}
           {lowStockProducts.length > 0 && (
-            <div className="mb-6 rounded-lg border-2 border-amber-500 bg-amber-50 p-4">
+            <div className="mb-6 rounded-lg border-2 border-warning bg-warning-light p-4">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">⚠️</span>
                 <div className="flex-1">
-                  <Text className="font-bold text-amber-900">
+                  <Text className="font-bold text-warning-text">
                     Low stock alert
                   </Text>
-                  <Text variant="small" className="text-amber-800 mt-1">
+                  <Text variant="small" className="text-warning-text mt-1">
                     {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''} running low:
                   </Text>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -265,7 +265,7 @@ export default function AdminInventory() {
                         <button
                           key={p.cfg_code}
                           onClick={() => setSelectedProduct(p)}
-                          className="rounded bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-200"
+                          className="rounded bg-warning-muted px-3 py-1 text-xs font-medium text-warning-text hover:bg-warning-border"
                         >
                           {getProductDisplayName(p)} - {p.stock_quantity} left
                         </button>
@@ -384,7 +384,7 @@ export default function AdminInventory() {
                         onClick={() => setAdjustmentMode('add')}
                         className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                           adjustmentMode === 'add'
-                            ? 'bg-green-600 text-white'
+                            ? 'bg-success text-white'
                             : 'bg-grey/50 text-carbon-900 hover:bg-grey'
                         }`}
                       >
