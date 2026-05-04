@@ -52,9 +52,9 @@ export default function ProductDescriptionModal({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5 sm:py-5">
         {hasBody ? (
           <div className="space-y-4">
-            {paragraphs.map((p, i) => (
+            {paragraphs.map((p) => (
               <Text
-                key={i}
+                key={p.slice(0, 40)}
                 variant="body"
                 className="text-carbon-900 leading-relaxed"
               >

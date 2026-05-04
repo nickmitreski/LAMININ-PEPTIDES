@@ -62,9 +62,32 @@ export interface CustomerInput {
   phone?: string;
 }
 
+/** Shape of a raw row from the payment_tracking table. */
+interface PaymentTrackingRow {
+  id: string;
+  order_reference: string;
+  payment_status: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone: string | null;
+  customer_address: Record<string, string> | null;
+  total_amount: number;
+  cart_items: unknown[];
+  discount_code: string | null;
+  discount_amount: number | null;
+  admin_notes: string | null;
+  payment_viewed_at: string | null;
+  payment_completed_at: string | null;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  currency: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /** Map a raw payment_tracking DB row to the normalised OrderReferenceRow shape. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function paymentRowToOrder(row: any): OrderReferenceRow {
+function paymentRowToOrder(row: PaymentTrackingRow): OrderReferenceRow {
   const addr = row.customer_address as Record<string, string> | null;
   return {
     id: row.id,
@@ -278,7 +301,7 @@ export async function getAllOrders(
     return [];
   }
 
-  return (data as unknown[]).map(paymentRowToOrder);
+  return (data as PaymentTrackingRow[]).map(paymentRowToOrder);
 }
 
 export interface OrderCounts {
@@ -361,7 +384,7 @@ export async function getOrdersByStatus(
     return [];
   }
 
-  return (data as unknown[]).map(paymentRowToOrder);
+  return (data as PaymentTrackingRow[]).map(paymentRowToOrder);
 }
 
 /** Admin: Get all customers */

@@ -113,8 +113,8 @@ export function ProductOverviewBody({
       >
         Product description
       </Text>
-      {paragraphs.map((p, i) => (
-        <Text key={i} variant="body" className="text-carbon-900 leading-relaxed">
+      {paragraphs.map((p) => (
+        <Text key={p.slice(0, 40)} variant="body" className="text-carbon-900 leading-relaxed">
           {p}
         </Text>
       ))}
