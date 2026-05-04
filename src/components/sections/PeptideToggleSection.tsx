@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom';
 import Section from '../layout/Section';
 import SectionTitle from '../ui/SectionTitle';
+import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { Heading, Text } from '../ui/Typography';
 import useScrollReveal from '../../hooks/useScrollReveal';
-
-const AQUA_CTA =
-  'btn flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-sm font-medium bg-accent text-carbon-900 border border-carbon-900/10 transition-all duration-200 hover:bg-accent-dark active:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-carbon-900';
 
 type Pillar = {
   id: string;
@@ -99,8 +97,10 @@ export default function PeptideToggleSection() {
               <div className="min-h-2 flex-1" aria-hidden />
 
               <div className="shrink-0 pt-3">
-                <Link to={item.cta.to} className={AQUA_CTA}>
-                  {item.cta.label}
+                <Link to={item.cta.to}>
+                  <Button variant="accent" size="md" className="w-full">
+                    {item.cta.label}
+                  </Button>
                 </Link>
               </div>
             </Card>

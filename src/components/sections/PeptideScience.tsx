@@ -7,11 +7,9 @@ import {
 } from 'lucide-react';
 import Section from '../layout/Section';
 import SectionTitle from '../ui/SectionTitle';
+import Button from '../ui/Button';
 import { Heading, Label, Text } from '../ui/Typography';
 import useScrollReveal from '../../hooks/useScrollReveal';
-
-const AQUA_CTA =
-  'btn inline-flex items-center justify-center rounded-sm px-7 py-3 text-sm font-medium tracking-wide uppercase bg-accent text-carbon-900 border border-carbon-900/10 transition-all duration-200 hover:bg-accent-dark active:bg-accent-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-carbon-900';
 
 type Pillar = {
   icon: typeof BookOpenCheck;
@@ -128,8 +126,10 @@ export default function PeptideScience() {
       </div>
 
       <div className="mt-10 flex justify-center">
-        <Link to="/research" className={AQUA_CTA}>
-          Explore the research library
+        <Link to="/research">
+          <Button variant="accent" size="lg" className="uppercase tracking-wide">
+            Explore the research library
+          </Button>
         </Link>
       </div>
     </Section>
