@@ -5,9 +5,9 @@ import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Button from '../components/ui/Button';
 import StatusMessage from '../components/ui/StatusMessage';
-import { Text } from '../components/ui/Typography';
+import { Heading, Text } from '../components/ui/Typography';
 import { sendContactMessage } from '../services/emailService';
-import { Mail } from 'lucide-react';
+import { Mail, Clock, ShieldCheck, MessageSquare } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface FormData {
@@ -77,111 +77,159 @@ export default function Contact() {
       <Section background="white" spacing="lg">
         <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." eyebrow="Get in Touch" icon={<Mail />} />
 
-        <div className="max-w-lg mx-auto">
-          <Text variant="small" muted className="mb-6 block leading-relaxed">
-            Fill out the form below and we'll respond within 24 hours during business days. You can also email{' '}
-            <a
-              href="mailto:info@lamininpeplab.com.au"
-              className="font-medium text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
-            >
-              info@lamininpeplab.com.au
-            </a>{' '}
-            directly.
-          </Text>
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              label="Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Your name"
-            />
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-16">
+          {/* Left column — contact info */}
+          <div className="lg:col-span-2">
+            <Heading level={4} className="mb-4">
+              How can we help?
+            </Heading>
+            <Text variant="small" muted className="mb-8 block leading-relaxed">
+              Whether you have a question about our compounds, need help sourcing a
+              specific peptide, or want to discuss a bulk order — our team is here to
+              help.
+            </Text>
 
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              label="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="your.email@example.com"
-            />
-
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              label="Phone (optional)"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="Your phone number"
-            />
-
-            <div>
-              <Textarea
-                id="message"
-                name="message"
-                label="Message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows={5}
-                placeholder="How can we help you?"
-                maxLength={MAX_MESSAGE_LENGTH}
-              />
-              <div className="mt-1 flex justify-end">
-                <Text
-                  variant="caption"
-                  muted={!messageOverLimit}
-                  className={messageOverLimit ? 'text-red-600' : undefined}
-                >
-                  {messageLength}/{MAX_MESSAGE_LENGTH}
-                </Text>
+            <div className="space-y-5">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                  <Mail className="h-4 w-4" />
+                </span>
+                <div>
+                  <Text variant="caption" muted className="uppercase tracking-wide">
+                    Email
+                  </Text>
+                  <a
+                    href="mailto:info@lamininpeplab.com.au"
+                    className="mt-1 block text-sm font-medium text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
+                  >
+                    info@lamininpeplab.com.au
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                  <Clock className="h-4 w-4" />
+                </span>
+                <div>
+                  <Text variant="caption" muted className="uppercase tracking-wide">
+                    Response time
+                  </Text>
+                  <Text variant="small" weight="medium" className="mt-1">
+                    Within 24 hours
+                  </Text>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                  <MessageSquare className="h-4 w-4" />
+                </span>
+                <div>
+                  <Text variant="caption" muted className="uppercase tracking-wide">
+                    Enquiries
+                  </Text>
+                  <Text variant="small" weight="medium" className="mt-1">
+                    Technical, supply &amp; quality
+                  </Text>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div>
+                  <Text variant="caption" muted className="uppercase tracking-wide">
+                    Guarantee
+                  </Text>
+                  <Text variant="small" weight="medium" className="mt-1">
+                    {'\u2265'}99% purity assured
+                  </Text>
+                </div>
               </div>
             </div>
+          </div>
 
-            {submitStatus === 'success' && (
-              <StatusMessage
-                variant="success"
-                message="Thanks — we received your message and sent a confirmation to your inbox. Our team will respond within 24 hours."
+          {/* Right column — form */}
+          <div className="lg:col-span-3">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                label="Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Your name"
               />
-            )}
 
-            {submitStatus === 'error' && (
-              <StatusMessage
-                variant="error"
-                message={errorMessage ?? "Something went wrong. Please try again or email us directly."}
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                label="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="your.email@example.com"
               />
-            )}
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={isSubmitting || messageOverLimit}
-              className="w-full"
-            >
-              {isSubmitting ? 'Sending…' : 'Send message'}
-            </Button>
-          </form>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                label="Phone (optional)"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Your phone number"
+              />
 
-          <div className="mt-12 pt-10 border-t border-carbon-900/10 text-center space-y-1.5">
-            <Text variant="caption" muted>
-              <span className="font-medium text-carbon-900">Email:</span>{' '}
-              <a
-                href="mailto:info@lamininpeplab.com.au"
-                className="text-carbon-900 underline underline-offset-2 hover:text-accent-dark"
+              <div>
+                <Textarea
+                  id="message"
+                  name="message"
+                  label="Message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={5}
+                  placeholder="How can we help you?"
+                  maxLength={MAX_MESSAGE_LENGTH}
+                />
+                <div className="mt-1 flex justify-end">
+                  <Text
+                    variant="caption"
+                    muted={!messageOverLimit}
+                    className={messageOverLimit ? 'text-red-600' : undefined}
+                  >
+                    {messageLength}/{MAX_MESSAGE_LENGTH}
+                  </Text>
+                </div>
+              </div>
+
+              {submitStatus === 'success' && (
+                <StatusMessage
+                  variant="success"
+                  message="Thanks — we received your message and sent a confirmation to your inbox. Our team will respond within 24 hours."
+                />
+              )}
+
+              {submitStatus === 'error' && (
+                <StatusMessage
+                  variant="error"
+                  message={errorMessage ?? "Something went wrong. Please try again or email us directly."}
+                />
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                disabled={isSubmitting || messageOverLimit}
+                className="w-full"
               >
-                info@lamininpeplab.com.au
-              </a>
-            </Text>
-            <Text variant="caption" muted>
-              <span className="font-medium text-carbon-900">Response time:</span>{' '}Within 24 hours
-            </Text>
+                {isSubmitting ? 'Sending\u2026' : 'Send message'}
+              </Button>
+            </form>
           </div>
         </div>
       </Section>
