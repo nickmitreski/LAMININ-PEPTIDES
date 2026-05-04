@@ -215,9 +215,9 @@ export default function AdminInventory() {
   // Get stock level color
   const getStockColor = (product: Product) => {
     if (!product.track_inventory) return 'text-neutral-500';
-    if (product.stock_quantity === 0) return 'text-red-600';
+    if (product.stock_quantity === 0) return 'text-error';
     if (product.stock_quantity <= product.low_stock_threshold) return 'text-amber-600';
-    return 'text-green-600';
+    return 'text-success';
   };
 
   return (
@@ -394,7 +394,7 @@ export default function AdminInventory() {
                         onClick={() => setAdjustmentMode('subtract')}
                         className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                           adjustmentMode === 'subtract'
-                            ? 'bg-red-600 text-white'
+                            ? 'bg-error text-white'
                             : 'bg-grey/50 text-carbon-900 hover:bg-grey'
                         }`}
                       >
@@ -500,7 +500,7 @@ export default function AdminInventory() {
                               <div className="flex items-start justify-between mb-1">
                                 <div className="flex items-center gap-2">
                                   <span className={`text-lg ${
-                                    transaction.quantity_change > 0 ? 'text-green-600' : 'text-red-600'
+                                    transaction.quantity_change > 0 ? 'text-success' : 'text-error'
                                   }`}>
                                     {transaction.quantity_change > 0 ? '↑' : '↓'}
                                   </span>
@@ -514,7 +514,7 @@ export default function AdminInventory() {
                               </div>
                               <div className="ml-7 space-y-0.5">
                                 <Text variant="caption" className="text-neutral-700">
-                                  Change: <span className={`font-bold ${transaction.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  Change: <span className={`font-bold ${transaction.quantity_change > 0 ? 'text-success' : 'text-error'}`}>
                                     {transaction.quantity_change > 0 ? '+' : ''}{transaction.quantity_change}
                                   </span>
                                   {' • '}

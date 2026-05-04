@@ -407,7 +407,7 @@ export default function AdminPaymentTracking() {
                       size="sm"
                       onClick={() => deletePayment(payment.id)}
                       disabled={processingId === payment.id}
-                      className="inline-flex items-center gap-1.5 text-red-600 hover:bg-red-50"
+                      className="inline-flex items-center gap-1.5 text-error hover:bg-error-light"
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete

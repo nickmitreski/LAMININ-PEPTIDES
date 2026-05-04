@@ -282,7 +282,7 @@ export default function AdminProducts() {
           </Card>
           <Card padding="md" className="border-l-4 border-l-red-500">
             <div className="flex items-center gap-1.5 mb-1">
-              <TrendingDown className="h-3.5 w-3.5 text-red-500" />
+              <TrendingDown className="h-3.5 w-3.5 text-error" />
               <Text variant="small" muted>
                 Low Stock
               </Text>
@@ -489,14 +489,14 @@ export default function AdminProducts() {
                           <Text
                             variant="small"
                             weight="medium"
-                            className={isLowStock ? 'text-red-600' : ''}
+                            className={isLowStock ? 'text-error' : ''}
                           >
                             {product.stock_quantity}
                           </Text>
                           {isLowStock && (
                             <Text
                               variant="caption"
-                              className="block text-red-500"
+                              className="block text-error"
                             >
                               Low
                             </Text>
@@ -509,7 +509,7 @@ export default function AdminProducts() {
                               Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-error-border bg-error-muted px-2.5 py-0.5 text-xs font-medium text-error-text">
                               <XCircle className="h-3 w-3" />
                               Inactive
                             </span>
@@ -540,7 +540,7 @@ export default function AdminProducts() {
                             </Button>
                             <button
                               onClick={() => setDeleteTarget(product)}
-                              className="rounded-sm border border-red-200 p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                              className="rounded-sm border border-error-border p-2 text-error transition-colors hover:bg-error-light hover:text-error-dark"
                               title="Delete product"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -596,8 +596,8 @@ export default function AdminProducts() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-error-muted">
+                <AlertTriangle className="h-5 w-5 text-error" />
               </div>
               <div>
                 <Heading level={3} id="delete-product-title" className="mb-1">
@@ -632,7 +632,7 @@ export default function AdminProducts() {
                 type="button"
                 onClick={() => void handleDeleteConfirm()}
                 disabled={isDeleting}
-                className="inline-flex items-center justify-center rounded-sm bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-sm bg-error px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-error-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isDeleting ? (
                   <>

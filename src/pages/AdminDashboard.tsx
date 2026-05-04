@@ -72,11 +72,11 @@ const EMPTY_COUNTS: OrderCounts = {
 const STATUS_BADGE_COLORS: Record<OrderStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   viewed_instructions: 'bg-blue-100 text-blue-800 border-blue-200',
-  payment_received: 'bg-green-100 text-green-800 border-green-200',
+  payment_received: 'bg-success-muted text-success-text border-success-border',
   processing: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   shipped: 'bg-purple-100 text-purple-800 border-purple-200',
-  delivered: 'bg-green-100 text-green-800 border-green-200',
-  cancelled: 'bg-red-100 text-red-800 border-red-200',
+  delivered: 'bg-success-muted text-success-text border-success-border',
+  cancelled: 'bg-error-muted text-error-text border-error-border',
 };
 
 /** Human-readable labels for status values */
@@ -600,7 +600,7 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setBulkDeleteOpen(true)}
-                className="inline-flex items-center gap-2 rounded-sm bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                className="inline-flex items-center gap-2 rounded-sm bg-error px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-error-dark"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete selected
@@ -731,7 +731,7 @@ export default function AdminDashboard() {
                               title="Copy order ID"
                             >
                               {copiedId === order.peptide_order_id ? (
-                                <Check className="h-3.5 w-3.5 text-green-600" />
+                                <Check className="h-3.5 w-3.5 text-success" />
                               ) : (
                                 <Copy className="h-3.5 w-3.5" />
                               )}
@@ -800,7 +800,7 @@ export default function AdminDashboard() {
                             </select>
                             <button
                               onClick={() => setDeleteTarget(order)}
-                              className="rounded-sm border border-red-200 p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                              className="rounded-sm border border-error-border p-2 text-error transition-colors hover:bg-error-light hover:text-error-dark"
                               title="Delete order"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -880,8 +880,8 @@ export default function AdminDashboard() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-error-muted">
+                <AlertTriangle className="h-5 w-5 text-error" />
               </div>
               <div>
                 <Heading level={3} id="delete-order-title" className="mb-1">
@@ -921,7 +921,7 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={() => void handleDeleteConfirm()}
                 disabled={isDeleting}
-                className="inline-flex items-center justify-center rounded-sm bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-sm bg-error px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-error-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isDeleting ? (
                   <>
@@ -954,8 +954,8 @@ export default function AdminDashboard() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-error-muted">
+                <AlertTriangle className="h-5 w-5 text-error" />
               </div>
               <div>
                 <Heading level={3} id="bulk-delete-title" className="mb-1">
@@ -980,7 +980,7 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={() => void handleBulkDeleteConfirm()}
                 disabled={isDeleting}
-                className="inline-flex items-center justify-center rounded-sm bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-sm bg-error px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-error-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isDeleting ? (
                   <>

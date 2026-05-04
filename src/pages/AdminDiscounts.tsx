@@ -385,7 +385,7 @@ export default function AdminDiscounts() {
                               Disabled
                             </span>
                           ) : isExpired ? (
-                            <span className="inline-flex items-center rounded-full border border-red-200 bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                            <span className="inline-flex items-center rounded-full border border-error-border bg-error-muted px-2.5 py-0.5 text-xs font-medium text-error-text">
                               Expired
                             </span>
                           ) : isMaxedOut ? (
@@ -448,7 +448,7 @@ export default function AdminDiscounts() {
                             <button
                               type="button"
                               onClick={() => setDeleteTarget(code)}
-                              className="rounded-sm border border-red-200 p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                              className="rounded-sm border border-error-border p-2 text-error transition-colors hover:bg-error-light hover:text-error-dark"
                               title="Delete"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -680,8 +680,8 @@ export default function AdminDiscounts() {
         >
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-error-muted">
+                <AlertTriangle className="h-5 w-5 text-error" />
               </div>
               <div>
                 <Heading level={3} className="mb-1">Delete this code?</Heading>
@@ -704,7 +704,7 @@ export default function AdminDiscounts() {
                 type="button"
                 onClick={() => void handleDeleteConfirm()}
                 disabled={isDeleting}
-                className="inline-flex items-center justify-center rounded-sm bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-sm bg-error px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-error-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isDeleting ? (
                   <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Deleting…</>

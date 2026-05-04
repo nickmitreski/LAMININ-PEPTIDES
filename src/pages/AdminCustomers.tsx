@@ -55,7 +55,7 @@ const STATUS_COLORS: Record<string, string> = {
   processing: 'bg-blue-100 text-blue-800',
   shipped: 'bg-purple-100 text-purple-800',
   delivered: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
+  cancelled: 'bg-error-muted text-error-text',
 };
 
 export default function AdminCustomers() {
@@ -346,7 +346,7 @@ export default function AdminCustomers() {
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(customer.email)} className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                                    <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(customer.email)} className="flex items-center gap-1 text-error hover:text-error-dark hover:bg-error-light">
                                       <Trash2 className="w-3 h-3" /> Delete
                                     </Button>
                                   </div>

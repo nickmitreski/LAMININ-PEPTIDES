@@ -266,7 +266,7 @@ export default function SecureCheckoutModal({
             ) : null}
             {blockingConfigMessage ? (
               <div
-                className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-950 sm:text-xs"
+                className="rounded-sm border border-error-border bg-error-light px-4 py-3 text-sm leading-relaxed text-error-text sm:text-xs"
                 role="alert"
               >
                 <p className="font-semibold">Payment iframe cannot open</p>
@@ -305,7 +305,7 @@ export default function SecureCheckoutModal({
             >
               Could not send code
             </h2>
-            <p id="secure-checkout-desc" className="text-base text-red-900/90 sm:text-sm">
+            <p id="secure-checkout-desc" className="text-base text-error-text/90 sm:text-sm">
               {errorMessage || 'Something went wrong. Please try again.'}
             </p>
             <Button

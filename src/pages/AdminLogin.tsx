@@ -77,9 +77,9 @@ export default function AdminLogin() {
           <Card padding="lg">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="flex items-start gap-3 rounded-sm border border-red-200 bg-red-50 p-4">
-                  <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
-                  <Text variant="small" className="text-red-900">
+                <div className="flex items-start gap-3 rounded-sm border border-error-border bg-error-light p-4">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0 text-error" />
+                  <Text variant="small" className="text-error-text">
                     {error}
                   </Text>
                 </div>
