@@ -16,7 +16,7 @@ import {
   coaDownloadButtonLabel,
   getCoaDownload,
 } from '../data/coaPdfs';
-import { CheckCircle, ShieldCheck, FileCheck, Award } from 'lucide-react';
+import { CheckCircle, ShieldCheck, FileCheck, Award, FlaskConical, Target, FileText } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import useScrollReveal from '../hooks/useScrollReveal';
 
@@ -86,6 +86,48 @@ export default function COA() {
           eyebrow="Quality Assurance"
           icon={<ShieldCheck />}
         />
+
+        <div className="mx-auto mb-8 grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-3 md:mb-10">
+          <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
+            <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+              <FlaskConical className="h-4 w-4" />
+            </span>
+            <div>
+              <Text variant="caption" muted className="uppercase tracking-wide">
+                Method
+              </Text>
+              <Text variant="small" weight="medium" className="mt-1">
+                HPLC purity verified
+              </Text>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
+            <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+              <Target className="h-4 w-4" />
+            </span>
+            <div>
+              <Text variant="caption" muted className="uppercase tracking-wide">
+                Standard
+              </Text>
+              <Text variant="small" weight="medium" className="mt-1">
+                {'\u2265'}99% purity guaranteed
+              </Text>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
+            <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
+              <FileText className="h-4 w-4" />
+            </span>
+            <div>
+              <Text variant="caption" muted className="uppercase tracking-wide">
+                Reports
+              </Text>
+              <Text variant="small" weight="medium" className="mt-1">
+                Batch-specific documentation
+              </Text>
+            </div>
+          </div>
+        </div>
 
         <div
           className="mx-auto mb-10 max-w-5xl space-y-6 rounded-sm border border-accent/45 px-4 py-6 text-left sm:px-6 sm:py-7 md:mb-12"
