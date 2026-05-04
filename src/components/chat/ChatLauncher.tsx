@@ -41,7 +41,7 @@ export default function ChatLauncher() {
             fixed bottom-6 right-6 z-[100]
             flex items-center gap-3
             px-6 py-2
-            text-white
+            bg-accent text-white
             rounded-full shadow-lg
             border-2 border-black
             hover:brightness-110 active:brightness-95
@@ -49,7 +49,6 @@ export default function ChatLauncher() {
             touch-manipulation
             ${isMinimized ? 'ring-2 ring-accent ring-offset-2' : ''}
           `}
-          style={{ backgroundColor: '#00CED1' }}
           aria-label="Open chat assistant"
         >
           <MessageCircle className="h-6 w-6" strokeWidth={2.5} />
