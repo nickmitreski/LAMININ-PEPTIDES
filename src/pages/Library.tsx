@@ -17,6 +17,7 @@ import {
 } from '../data/peptides';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useShopImages } from '../context/ShopImagesContext';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 export default function Library() {
   useDocumentTitle(
@@ -75,6 +76,8 @@ export default function Library() {
     }
   };
 
+  const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
+  const { ref: ctaRef, revealed: ctaRevealed } = useScrollReveal<HTMLDivElement>();
   const { isProductActive, allProducts } = useShopImages();
 
   // Use merged catalog (static + DB-only products), filtered by category and active status
@@ -122,7 +125,7 @@ export default function Library() {
           </TextLink>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
+        <div ref={gridRef} data-revealed={gridRevealed} className="reveal mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
           {filteredPeptides.map((peptide) => (
             <PeptideCard key={peptide.id} peptide={peptide} />
           ))}
@@ -181,21 +184,23 @@ export default function Library() {
           </div>
         )}
 
-        <Card padding="lg" className="mt-12 bg-platinum sm:mt-16">
-          <div className="max-w-xl">
-            <Heading level={5} className="mb-3">
-              Need help finding a compound?
-            </Heading>
-            <Text variant="small" muted className="mb-5">
-              Can't find what you're looking for? Our team can help source specific research compounds or provide guidance on alternatives.
-            </Text>
-            <Link to="/contact">
-              <Button variant="primary" size="md">
-                Contact us
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        <div ref={ctaRef} data-revealed={ctaRevealed} className="reveal">
+          <Card padding="lg" className="mt-12 bg-platinum sm:mt-16">
+            <div className="max-w-xl">
+              <Heading level={5} className="mb-3">
+                Need help finding a compound?
+              </Heading>
+              <Text variant="small" muted className="mb-5">
+                Can't find what you're looking for? Our team can help source specific research compounds or provide guidance on alternatives.
+              </Text>
+              <Link to="/contact">
+                <Button variant="primary" size="md">
+                  Contact us
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </Section>
     </div>
   );

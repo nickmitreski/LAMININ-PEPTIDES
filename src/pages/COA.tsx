@@ -18,6 +18,7 @@ import {
 } from '../data/coaPdfs';
 import { CheckCircle, ShieldCheck } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 type CoaCardEntry = {
   key: string;
@@ -56,6 +57,7 @@ export default function COA() {
     'Browse and download certificates of analysis for our research peptide range. Independently verified purity, mass, and identity data.'
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
 
   const coaEntries = useMemo(() => {
     const verified = allPeptides.filter(
@@ -160,7 +162,7 @@ export default function COA() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div ref={gridRef} data-revealed={gridRevealed} className="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEntries.map(({ key, peptide, variantId, title }) => {
             const coa = getCoaDownload(peptide.id, variantId);
             return (
