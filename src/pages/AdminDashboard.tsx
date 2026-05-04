@@ -165,7 +165,7 @@ function exportOrdersCsv(orders: OrderReferenceRow[]) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { logout, user: adminUser } = useAdminAuth();
+  const { logout, user: adminUser, authReady } = useAdminAuth();
   const { showToast } = useToast();
   const [orders, setOrders] = useState<OrderReferenceRow[]>([]);
   const [counts, setCounts] = useState<OrderCounts>(EMPTY_COUNTS);
@@ -216,11 +216,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     isMountedRef.current = true;
-    void loadOrders();
+    if (authReady) {
+      void loadOrders();
+    }
     return () => {
       isMountedRef.current = false;
     };
-  }, [loadOrders]);
+  }, [loadOrders, authReady]);
 
   // Auto-refresh: every 60s + when the tab regains focus.
   useEffect(() => {

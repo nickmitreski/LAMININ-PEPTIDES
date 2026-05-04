@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Section from '../layout/Section';
 import { Heading, Label, Text } from '../ui/Typography';
 import { productImageFile, cfgProductFiles } from '../../data/peptides';
@@ -38,25 +39,30 @@ const tileTitle =
 function CategoryTile({
   imageSrc,
   title,
+  categoryId,
 }: {
   imageSrc: string;
   title: string;
+  /** Library filter tab id, e.g. "Metabolic" — links to /library?category=X */
+  categoryId: string;
 }) {
   return (
-    <div className={tileFrame}>
-      <img
-        src={imageSrc}
-        alt=""
-        aria-hidden="true"
-        className={tileImage}
-        loading="lazy"
-        decoding="async"
-      />
-      <div className={tileWash} aria-hidden />
-      <div className={titleWrap}>
-        <h3 className={tileTitle}>{title}</h3>
+    <Link to={`/library?category=${encodeURIComponent(categoryId)}`} className="block h-full">
+      <div className={tileFrame}>
+        <img
+          src={imageSrc}
+          alt=""
+          aria-hidden="true"
+          className={tileImage}
+          loading="lazy"
+          decoding="async"
+        />
+        <div className={tileWash} aria-hidden />
+        <div className={titleWrap}>
+          <h3 className={tileTitle}>{title}</h3>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -99,6 +105,7 @@ export default function ResearchCategories() {
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.retatrutide)}
             title="Metabolic research"
+            categoryId="Metabolic"
           />
         </div>
         <div
@@ -108,6 +115,7 @@ export default function ResearchCategories() {
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.nad)}
             title="Longevity & cellular research"
+            categoryId="Longevity"
           />
         </div>
         <div
@@ -117,6 +125,7 @@ export default function ResearchCategories() {
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.semax)}
             title="Cognitive & neurological research"
+            categoryId="Cognitive"
           />
         </div>
         <div
@@ -126,6 +135,7 @@ export default function ResearchCategories() {
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.bpcTb)}
             title="Tissue regeneration"
+            categoryId="Healing"
           />
         </div>
         <div
@@ -135,6 +145,7 @@ export default function ResearchCategories() {
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.cjcNoDac)}
             title="Performance biology"
+            categoryId="Performance"
           />
         </div>
       </div>

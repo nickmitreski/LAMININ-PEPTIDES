@@ -75,7 +75,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." eyebrow="Get in Touch" icon={<Mail />} />
+        <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." />
 
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-16">
           {/* Left column — contact info */}

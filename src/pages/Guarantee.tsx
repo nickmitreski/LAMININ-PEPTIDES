@@ -1,8 +1,8 @@
 import Section from '../components/layout/Section';
-import PageTopBanner from '../components/ui/PageTopBanner';
+import PageHero from '../components/ui/PageHero';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
-import { Award, FlaskConical, Target, ShieldCheck, Info } from 'lucide-react';
+import { FlaskConical, Target, ShieldCheck, Info, Award } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Aligned with the Purity Assurance Guarantee (March 2026). */
@@ -14,11 +14,15 @@ export default function Guarantee() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner
+        <PageHero
           title="Purity assurance guarantee"
           subtitle="Our analytical standards, verification process, and refund policy for batch purity deviations."
-          eyebrow="Our Guarantee"
-          icon={<Award />}
+          tiles={[
+            { icon: <Target className="h-4 w-4" />, label: 'Standard', value: '\u226599% purity guaranteed' },
+            { icon: <FlaskConical className="h-4 w-4" />, label: 'Verification', value: 'HPLC analytical testing' },
+            { icon: <Award className="h-4 w-4" />, label: 'Policy', value: 'Full refund if below spec' },
+          ]}
+          className="mb-8 md:mb-10"
         />
 
         <div className="mx-auto max-w-5xl space-y-8">

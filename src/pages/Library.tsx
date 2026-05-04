@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import Section from '../components/layout/Section';
-import PageTopBanner from '../components/ui/PageTopBanner';
+import PageHero from '../components/ui/PageHero';
 import ToggleTabs from '../components/ui/ToggleTabs';
 import PeptideCard from '../components/peptides/PeptideCard';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import SearchField from '../components/ui/SearchField';
-import TrustStrip from '../components/ui/TrustStrip';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, CheckCircle, Truck } from 'lucide-react';
 import {
   peptideCategories,
   libraryTabItems,
@@ -91,14 +90,16 @@ export default function Library() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner
+        <PageHero
           title="Compound catalogue"
           subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity."
-          eyebrow="Compound Library"
-          icon={<FlaskConical />}
+          tiles={[
+            { icon: <FlaskConical className="h-4 w-4" />, label: 'Compounds', value: 'Research-grade peptides' },
+            { icon: <CheckCircle className="h-4 w-4" />, label: 'Purity', value: '99%+ verified via HPLC' },
+            { icon: <Truck className="h-4 w-4" />, label: 'Shipping', value: 'Express Australia-wide' },
+          ]}
+          className="mb-8 md:mb-10"
         />
-
-        <TrustStrip />
 
         <div className="mx-auto mb-8 max-w-xl md:mb-12">
           <SearchField

@@ -28,8 +28,8 @@ export default function Home() {
       {/* <PromoVideo /> */}{/* Hidden until video asset is ready */}
       <FeaturedProducts />
       <PeptideToggleSection />
-      <PeptideScience />
       <ResearchCategories />
+      <PeptideScience />
       <Disclaimer />
       <CTASection />
     </>

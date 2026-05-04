@@ -1,5 +1,5 @@
 import Section from '../components/layout/Section';
-import PageTopBanner from '../components/ui/PageTopBanner';
+import PageHero from '../components/ui/PageHero';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
 import { Truck, MapPin, Package } from 'lucide-react';
@@ -14,11 +14,15 @@ export default function Shipping() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner
+        <PageHero
           title="Shipping terms & policy"
           subtitle="Express shipping across Australia with tracking, discreet packaging, and authority-to-leave delivery."
-          eyebrow="Shipping & Delivery"
-          icon={<Truck />}
+          tiles={[
+            { icon: <Truck className="h-4 w-4" />, label: 'Service', value: 'Express Australia-wide' },
+            { icon: <MapPin className="h-4 w-4" />, label: 'Delivery', value: 'Next business day dispatch' },
+            { icon: <Package className="h-4 w-4" />, label: 'Packaging', value: 'Discreet, no branding' },
+          ]}
+          className="mb-8 md:mb-10"
         />
 
         <div className="mx-auto max-w-5xl space-y-8">

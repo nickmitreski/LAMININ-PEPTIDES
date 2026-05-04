@@ -1,7 +1,6 @@
 import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import { Heading, Text } from '../components/ui/Typography';
-import { FileText } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Research-use disclaimer (March 2026). */
@@ -13,7 +12,7 @@ export default function Disclaimer() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner title="Disclaimer" subtitle="Terms of use and legal information." eyebrow="Legal" icon={<FileText />} />
+        <PageTopBanner title="Disclaimer" subtitle="Terms of use and legal information." />
 
         <div className="mx-auto max-w-3xl space-y-6">
           <Text variant="body" className="text-neutral-600">

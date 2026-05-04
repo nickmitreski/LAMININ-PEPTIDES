@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Section from '../components/layout/Section';
-import PageTopBanner from '../components/ui/PageTopBanner';
+import PageHero from '../components/ui/PageHero';
 import Card from '../components/ui/Card';
 import { Heading, Label, Text } from '../components/ui/Typography';
 import { PEPTIDE_PROFILES, CATEGORY_FILTERS } from '../data/peptideData';
@@ -134,57 +134,15 @@ export default function ResearchLibrary() {
     <div className="min-h-screen bg-platinum">
       {/* Hero */}
       <Section background="white" spacing="sm">
-        <div className="mx-auto max-w-6xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm backdrop-blur-sm sm:px-10 sm:py-12">
-          <PageTopBanner
-            title="Peptide science"
-            subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."
-            eyebrow="Research Library"
-            icon={<BookOpen />}
-            className="mb-6"
-          />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
-              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
-                <BookOpen className="h-4 w-4" />
-              </span>
-              <div>
-                <Text variant="caption" muted className="uppercase tracking-wide">
-                  Coverage
-                </Text>
-                <Text variant="small" weight="medium" className="mt-1">
-                  Multi-domain peptide classes
-                </Text>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
-              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
-                <FlaskConical className="h-4 w-4" />
-              </span>
-              <div>
-                <Text variant="caption" muted className="uppercase tracking-wide">
-                  Focus
-                </Text>
-                <Text variant="small" weight="medium" className="mt-1">
-                  Research-grade compounds only
-                </Text>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-carbon-900/10 bg-platinum px-4 py-4">
-              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
-                <ShieldCheck className="h-4 w-4" />
-              </span>
-              <div>
-                <Text variant="caption" muted className="uppercase tracking-wide">
-                  Evidence
-                </Text>
-                <Text variant="small" weight="medium" className="mt-1">
-                  Profiled with citation links
-                </Text>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageHero
+          title="Peptide science"
+          subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."
+          tiles={[
+            { icon: <BookOpen className="h-4 w-4" />, label: 'Coverage', value: 'Multi-domain peptide classes' },
+            { icon: <FlaskConical className="h-4 w-4" />, label: 'Focus', value: 'Research-grade compounds only' },
+            { icon: <ShieldCheck className="h-4 w-4" />, label: 'Evidence', value: 'Profiled with citation links' },
+          ]}
+        />
       </Section>
 
       {/* Research Notice */}

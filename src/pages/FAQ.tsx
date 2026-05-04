@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import Section from '../components/layout/Section';
-import PageTopBanner from '../components/ui/PageTopBanner';
+import PageHero from '../components/ui/PageHero';
 import FaqAccordion from '../components/ui/FaqAccordion';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { faqItems } from '../data/faq';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, ShieldCheck, Mail } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import useScrollReveal from '../hooks/useScrollReveal';
 
@@ -21,11 +21,15 @@ export default function FAQ() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner
+        <PageHero
           title="Frequently asked questions"
           subtitle="Laboratory use, certificates of analysis, purity standards, storage, shipping, manufacturing quality, and our purity assurance guarantee."
-          eyebrow="Support"
-          icon={<HelpCircle />}
+          tiles={[
+            { icon: <HelpCircle className="h-4 w-4" />, label: 'Topics', value: 'Purity, storage & shipping' },
+            { icon: <ShieldCheck className="h-4 w-4" />, label: 'Guarantee', value: '99%+ purity assured' },
+            { icon: <Mail className="h-4 w-4" />, label: 'Support', value: 'Response within 24 hours' },
+          ]}
+          className="mb-8 md:mb-10"
         />
 
         <div ref={accordionRef} data-revealed={accordionRevealed} className="reveal mx-auto max-w-5xl">

@@ -412,21 +412,56 @@ export async function deleteCustomerAndOrders(
 }> {
   if (!client) return { success: false, error: 'No database client' };
 
+  // Try RPC first (if the SQL function exists), fall back to direct deletes.
   const { data, error } = await client.rpc('delete_customer_and_orders', {
     p_customer_email: customerEmail,
   });
 
-  if (error) {
-    console.error('[supabase] deleteCustomerAndOrders', error);
-    return { success: false, error: error.message };
+  if (!error && data) {
+    return data as {
+      success: boolean;
+      error?: string;
+      orders_deleted?: number;
+      notes_deleted?: number;
+    };
   }
 
-  return data as {
-    success: boolean;
-    error?: string;
-    orders_deleted?: number;
-    notes_deleted?: number;
-  };
+  // Fallback: direct table deletes (handles 404 when RPC function is missing)
+  console.warn('[supabase] deleteCustomerAndOrders RPC unavailable, using direct deletes', error);
+
+  try {
+    // Delete from payment_tracking
+    const { count: ptCount } = await client
+      .from('payment_tracking')
+      .delete({ count: 'exact' })
+      .eq('customer_email', customerEmail);
+
+    // Delete from order_references (legacy)
+    await client
+      .from('order_references')
+      .delete()
+      .eq('customer_email', customerEmail);
+
+    // Delete the customer record
+    const { error: custErr } = await client
+      .from('customers')
+      .delete()
+      .eq('email', customerEmail);
+
+    if (custErr) {
+      console.error('[supabase] deleteCustomerAndOrders direct delete', custErr);
+      return { success: false, error: custErr.message };
+    }
+
+    return {
+      success: true,
+      orders_deleted: ptCount ?? 0,
+      notes_deleted: 0,
+    };
+  } catch (e) {
+    console.error('[supabase] deleteCustomerAndOrders fallback failed', e);
+    return { success: false, error: 'Failed to delete customer' };
+  }
 }
 
 /** Admin: Delete individual order from payment_tracking */
