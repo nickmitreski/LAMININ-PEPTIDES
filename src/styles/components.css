@@ -16,3 +16,9 @@
   @apply placeholder:text-carbon-900/35;
   @apply focus:border-carbon-900 focus:outline-none focus:ring-1 focus:ring-carbon-900;
 }
+
+/* Admin table header cells — matches Label component style but with tighter tracking
+   suited for data-dense table layouts. */
+.th-label {
+  @apply text-xs font-medium uppercase tracking-wider text-carbon-900;
+}

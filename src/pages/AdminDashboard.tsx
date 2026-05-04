@@ -464,7 +464,7 @@ export default function AdminDashboard() {
       <button
         type="button"
         onClick={() => toggleSort(sortKeyValue)}
-        className={`group inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
+        className={`group inline-flex items-center gap-1.5 th-label transition-colors ${
           active ? 'text-carbon-900' : 'text-carbon-900 hover:text-carbon-900'
         }`}
       >
@@ -665,7 +665,7 @@ export default function AdminDashboard() {
                       />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-carbon-900">
+                      <span className="th-label">
                         Order ID
                       </span>
                     </th>
@@ -673,7 +673,7 @@ export default function AdminDashboard() {
                       <SortHeader label="Customer" sortKeyValue="customer" />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-carbon-900">
+                      <span className="th-label">
                         Contact
                       </span>
                     </th>
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
                       <SortHeader label="Date" sortKeyValue="date" />
                     </th>
                     <th className="px-6 py-3 text-left">
-                      <span className="text-xs font-medium uppercase tracking-wider text-carbon-900">
+                      <span className="th-label">
                         Actions
                       </span>
                     </th>

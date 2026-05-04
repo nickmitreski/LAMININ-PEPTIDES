@@ -323,12 +323,12 @@ export default function AdminDiscounts() {
               <table className="w-full">
                 <thead className="border-b border-carbon-900/10 bg-grey/30">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Code</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Discount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Uses</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Valid</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Actions</th>
+                    <th className="px-6 py-3 text-left th-label">Code</th>
+                    <th className="px-6 py-3 text-left th-label">Discount</th>
+                    <th className="px-6 py-3 text-left th-label">Status</th>
+                    <th className="px-6 py-3 text-left th-label">Uses</th>
+                    <th className="px-6 py-3 text-left th-label">Valid</th>
+                    <th className="px-6 py-3 text-left th-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-carbon-900/10">
@@ -765,10 +765,10 @@ export default function AdminDiscounts() {
               <table className="w-full">
                 <thead className="border-b border-carbon-900/10">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Order</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Customer</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Saved</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">Date</th>
+                    <th className="px-3 py-2 text-left th-label">Order</th>
+                    <th className="px-3 py-2 text-left th-label">Customer</th>
+                    <th className="px-3 py-2 text-left th-label">Saved</th>
+                    <th className="px-3 py-2 text-left th-label">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-carbon-900/10">

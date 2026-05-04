@@ -395,25 +395,25 @@ export default function AdminProducts() {
                         aria-label="Select all visible products"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-left th-label">
                       CFG Code
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-left th-label">
                       Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-left th-label">
                       Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-left th-label">
                       Stock
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-left th-label">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-left th-label">
                       Sale
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-carbon-900">
+                    <th className="px-6 py-3 text-right th-label">
                       Actions
                     </th>
                   </tr>

@@ -272,22 +272,22 @@ export default function AdminCustomers() {
               <table className="w-full">
                 <thead className="bg-carbon-50 border-b border-carbon-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left th-label">
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left th-label">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left th-label">
                       Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left th-label">
                       Orders
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left th-label">
                       Total spent
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-carbon-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left th-label">
                       Actions
                     </th>
                   </tr>
