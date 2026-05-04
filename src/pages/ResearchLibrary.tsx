@@ -138,6 +138,8 @@ export default function ResearchLibrary() {
           <PageTopBanner
             title="Peptide science"
             subtitle="Comprehensive research resource featuring evidence-informed peptide profiles across metabolic, regenerative, neurological, and longevity applications."
+            eyebrow="Research Library"
+            icon={<BookOpen />}
             className="mb-6"
           />
 

@@ -2,6 +2,7 @@ import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
+import { Truck } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Shipping terms (April 2026). */
@@ -16,6 +17,8 @@ export default function Shipping() {
         <PageTopBanner
           title="Shipping terms & policy"
           subtitle="Express shipping across Australia with tracking, discreet packaging, and authority-to-leave delivery."
+          eyebrow="Shipping & Delivery"
+          icon={<Truck />}
         />
 
         <div className="mx-auto max-w-5xl space-y-8">

@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import StatusMessage from '../components/ui/StatusMessage';
 import { Text } from '../components/ui/Typography';
 import { sendContactMessage } from '../services/emailService';
+import { Mail } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface FormData {
@@ -74,7 +75,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." />
+        <PageTopBanner title="Contact us" subtitle="Get in touch with our research team." eyebrow="Get in Touch" icon={<Mail />} />
 
         <div className="max-w-lg mx-auto">
           <Text variant="small" muted className="mb-6 block leading-relaxed">

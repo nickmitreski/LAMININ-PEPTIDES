@@ -16,7 +16,7 @@ import {
   coaDownloadButtonLabel,
   getCoaDownload,
 } from '../data/coaPdfs';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ShieldCheck } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type CoaCardEntry = {
@@ -81,6 +81,8 @@ export default function COA() {
         <PageTopBanner
           title="Certificate of analysis"
           subtitle="View third-party verification and purity reports for all compounds."
+          eyebrow="Quality Assurance"
+          icon={<ShieldCheck />}
         />
 
         <div

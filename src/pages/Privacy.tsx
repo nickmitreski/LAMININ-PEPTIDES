@@ -1,6 +1,7 @@
 import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import { Heading, Text } from '../components/ui/Typography';
+import { Lock } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Aligned with the published Privacy Policy (March 2026). */
@@ -12,7 +13,7 @@ export default function Privacy() {
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
-        <PageTopBanner title="Privacy policy" subtitle="How we handle your data and protect your privacy." />
+        <PageTopBanner title="Privacy policy" subtitle="How we handle your data and protect your privacy." eyebrow="Privacy" icon={<Lock />} />
 
         <div className="mx-auto max-w-3xl space-y-8">
           <Text variant="body" className="text-neutral-600">

@@ -9,6 +9,7 @@ import Card from '../components/ui/Card';
 import SearchField from '../components/ui/SearchField';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
+import { FlaskConical } from 'lucide-react';
 import {
   peptideCategories,
   libraryTabItems,
@@ -89,6 +90,8 @@ export default function Library() {
         <PageTopBanner
           title="Compound catalogue"
           subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity."
+          eyebrow="Compound Library"
+          icon={<FlaskConical />}
         />
 
         <div className="mx-auto mb-8 max-w-xl md:mb-12">

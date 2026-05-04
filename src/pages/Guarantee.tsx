@@ -2,6 +2,7 @@ import Section from '../components/layout/Section';
 import PageTopBanner from '../components/ui/PageTopBanner';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import { Text } from '../components/ui/Typography';
+import { Award } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 /** Aligned with the Purity Assurance Guarantee (March 2026). */
@@ -16,6 +17,8 @@ export default function Guarantee() {
         <PageTopBanner
           title="Purity assurance guarantee"
           subtitle="Our analytical standards, verification process, and refund policy for batch purity deviations."
+          eyebrow="Our Guarantee"
+          icon={<Award />}
         />
 
         <div className="mx-auto max-w-5xl space-y-8">
