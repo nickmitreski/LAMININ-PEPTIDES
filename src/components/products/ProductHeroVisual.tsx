@@ -20,7 +20,7 @@ export default function ProductHeroVisual({
         {/* Soft ambient backdrop — pure decoration. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-accent/10 via-transparent to-platinum/40 blur-2xl"
+          className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-accent/10 via-transparent to-platinum/40 blur-2xl"
         />
         <div
           aria-hidden="true"

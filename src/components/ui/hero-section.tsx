@@ -179,7 +179,7 @@ export function FinancialHero({
           {/* Soft ambient glow behind the cards. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-6 inset-y-10 -z-10 rounded-[3rem] bg-white/35 blur-3xl"
+            className="pointer-events-none absolute inset-x-6 inset-y-10 -z-10 rounded-full bg-white/35 blur-3xl"
           />
           {/* Rear card — sits lower & further right, tilted the other way */}
           <motion.img
