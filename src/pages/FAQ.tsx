@@ -1,10 +1,7 @@
-import { Link } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import PageHero from '../components/ui/PageHero';
 import FaqAccordion from '../components/ui/FaqAccordion';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import { Heading, Text } from '../components/ui/Typography';
+import CTACard from '../components/ui/CTACard';
 import { faqItems } from '../data/faq';
 import { HelpCircle, ShieldCheck, Mail } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -37,20 +34,11 @@ export default function FAQ() {
         </div>
 
         <div ref={ctaRef} data-revealed={ctaRevealed} className="reveal">
-          <Card padding="lg" className="mx-auto mt-12 max-w-5xl bg-platinum sm:mt-16">
-            <Heading level={5} className="mb-3">
-              Didn't find what you need?
-            </Heading>
-            <Text variant="small" muted className="mb-5">
-              Send a detailed message through our contact form—we reply to technical
-              and procurement questions from qualified research buyers.
-            </Text>
-            <Link to="/contact">
-              <Button variant="primary" size="md">
-                Contact us
-              </Button>
-            </Link>
-          </Card>
+          <CTACard
+            title="Didn't find what you need?"
+            description="Send a detailed message through our contact form — we reply to technical and procurement questions from qualified research buyers."
+            className="mx-auto max-w-5xl"
+          />
         </div>
       </Section>
     </div>

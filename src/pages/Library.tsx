@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import PageHero from '../components/ui/PageHero';
 import ToggleTabs from '../components/ui/ToggleTabs';
 import PeptideCard from '../components/peptides/PeptideCard';
 import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
+import CTACard from '../components/ui/CTACard';
 import SearchField from '../components/ui/SearchField';
 import TextLink from '../components/ui/TextLink';
 import { Heading, Text } from '../components/ui/Typography';
@@ -189,21 +189,10 @@ export default function Library() {
         )}
 
         <div ref={ctaRef} data-revealed={ctaRevealed} className="reveal">
-          <Card padding="lg" className="mt-12 bg-platinum sm:mt-16">
-            <div className="max-w-xl">
-              <Heading level={5} className="mb-3">
-                Need help finding a compound?
-              </Heading>
-              <Text variant="small" muted className="mb-5">
-                Can't find what you're looking for? Our team can help source specific research compounds or provide guidance on alternatives.
-              </Text>
-              <Link to="/contact">
-                <Button variant="primary" size="md">
-                  Contact us
-                </Button>
-              </Link>
-            </div>
-          </Card>
+          <CTACard
+            title="Need help finding a compound?"
+            description="Can't find what you're looking for? Our team can help source specific research compounds or provide guidance on alternatives."
+          />
         </div>
       </Section>
     </div>
