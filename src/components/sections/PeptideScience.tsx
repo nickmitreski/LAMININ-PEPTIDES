@@ -59,7 +59,7 @@ export default function PeptideScience() {
 
   return (
     <Section
-      background="white"
+      background="neutral"
       spacing="lg"
       id="peptide-science"
       aria-labelledby="peptide-science-heading"
@@ -101,7 +101,7 @@ export default function PeptideScience() {
         })}
       </div>
 
-      <div className="mt-12 rounded-lg border border-carbon-900/10 bg-neutral-50 px-6 py-6 sm:px-8">
+      <div className="mt-12 rounded-lg border border-carbon-900/10 bg-white px-6 py-6 sm:px-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-3">
           <Label className="text-carbon-600">
             Indexed sources include
