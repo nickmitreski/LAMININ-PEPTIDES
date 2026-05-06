@@ -241,6 +241,10 @@ $$;
 -- =====================================================================
 
 DROP POLICY IF EXISTS "Admin full access to email_logs" ON public.email_logs;
+DROP POLICY IF EXISTS "Admin select email_logs" ON public.email_logs;
+DROP POLICY IF EXISTS "Admin insert email_logs" ON public.email_logs;
+DROP POLICY IF EXISTS "Admin update email_logs" ON public.email_logs;
+DROP POLICY IF EXISTS "Admin delete email_logs" ON public.email_logs;
 
 CREATE POLICY "Admin select email_logs"
   ON public.email_logs FOR SELECT
@@ -264,6 +268,11 @@ CREATE POLICY "Admin delete email_logs"
 
 ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admin select inventory_transactions" ON public.inventory_transactions;
+DROP POLICY IF EXISTS "Admin insert inventory_transactions" ON public.inventory_transactions;
+DROP POLICY IF EXISTS "Admin update inventory_transactions" ON public.inventory_transactions;
+DROP POLICY IF EXISTS "Admin delete inventory_transactions" ON public.inventory_transactions;
+
 CREATE POLICY "Admin select inventory_transactions"
   ON public.inventory_transactions FOR SELECT
   USING (public.jwt_is_admin());
@@ -285,6 +294,10 @@ CREATE POLICY "Admin delete inventory_transactions"
 -- =====================================================================
 
 DROP POLICY IF EXISTS "Admin full access to email_templates" ON public.email_templates;
+DROP POLICY IF EXISTS "Admin select email_templates" ON public.email_templates;
+DROP POLICY IF EXISTS "Admin insert email_templates" ON public.email_templates;
+DROP POLICY IF EXISTS "Admin update email_templates" ON public.email_templates;
+DROP POLICY IF EXISTS "Admin delete email_templates" ON public.email_templates;
 
 CREATE POLICY "Admin select email_templates"
   ON public.email_templates FOR SELECT
@@ -318,6 +331,9 @@ DROP POLICY IF EXISTS "Anyone can read active discount codes" ON public.discount
 DROP POLICY IF EXISTS "Admins can insert product images" ON public.product_images;
 DROP POLICY IF EXISTS "Admins can update product images" ON public.product_images;
 DROP POLICY IF EXISTS "Admins can delete product images" ON public.product_images;
+DROP POLICY IF EXISTS "Admin insert product images" ON public.product_images;
+DROP POLICY IF EXISTS "Admin update product images" ON public.product_images;
+DROP POLICY IF EXISTS "Admin delete product images" ON public.product_images;
 
 CREATE POLICY "Admin insert product images"
   ON public.product_images FOR INSERT

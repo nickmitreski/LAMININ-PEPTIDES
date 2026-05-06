@@ -158,7 +158,10 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.create_product TO authenticated;
+-- Explicit arg types so GRANT is unambiguous when older create_product overloads exist.
+GRANT EXECUTE ON FUNCTION public.create_product(
+  text, text, text, numeric, text, text, boolean, integer, integer, boolean, numeric, text, integer
+) TO authenticated;
 
 -- =====================================================================
 -- 4. Create delete_product RPC (admin-only)
@@ -208,7 +211,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.delete_product TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_product(uuid) TO authenticated;
 
 -- =====================================================================
 -- 5. Add UPDATE/DELETE RLS policies for product_mappings (admin-only)
@@ -246,6 +249,6 @@ AS $$
   WHERE cfg_code ~ '^CFG-\d+$';
 $$;
 
-GRANT EXECUTE ON FUNCTION public.suggest_next_cfg_code TO authenticated;
+GRANT EXECUTE ON FUNCTION public.suggest_next_cfg_code() TO authenticated;
 
 COMMIT;

@@ -68,7 +68,9 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.upsert_payment_tracking TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_payment_tracking(
+  text, text, text, text, jsonb, jsonb, numeric, numeric, numeric, numeric, text, text, numeric
+) TO anon, authenticated;
 
 -- 3. Create customer upsert function for checkout
 CREATE OR REPLACE FUNCTION public.upsert_checkout_customer(
@@ -123,6 +125,8 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.upsert_checkout_customer TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_checkout_customer(
+  text, text, text, text, text, text, text, text, text, numeric
+) TO anon, authenticated;
 
 COMMIT;
