@@ -47,7 +47,7 @@ describe('buildCheckoutCartLines', () => {
     );
     expect(peptide_items).toHaveLength(1);
     expect(peptide_items[0].cfg_code).toBe('CFG-001');
-    expect(protein_items[0].protein_name).toContain('CoreForge');
+    expect(protein_items[0].protein_name).toContain('Partner');
     expect(peptide_items[0].line_total).toBe(119);
   });
 

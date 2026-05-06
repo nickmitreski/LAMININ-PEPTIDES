@@ -12,87 +12,87 @@ export interface ProductMapping {
 export const PRODUCT_MAPPINGS: Record<string, ProductMapping> = {
   'CFG-001': {
     peptideName: 'CJC-1295 (no DAC) 10mg',
-    proteinName: 'CoreForge Whey Protein 2kg (Chocolate)',
+    proteinName: 'Partner Whey Protein 2kg (Chocolate)',
     price: 119,
   },
   'CFG-002': {
     peptideName: 'Melanotan-1 10mg',
-    proteinName: 'CoreForge Creatine Monohydrate 500g',
+    proteinName: 'Partner Creatine Monohydrate 500g',
     price: 69,
   },
   'CFG-003': {
     peptideName: 'Melanotan-2 10mg',
-    proteinName: 'CoreForge Pre-Workout 30 Serves',
+    proteinName: 'Partner Pre-Workout 30 Serves',
     price: 69,
   },
   'CFG-004': {
     peptideName: 'KPV 10mg',
-    proteinName: 'CoreForge Thermogenic Fat Burner',
+    proteinName: 'Partner Thermogenic Fat Burner',
     price: 79,
   },
   'CFG-005': {
     peptideName: 'CJC-1295 + Ipamorelin',
-    proteinName: 'CoreForge Whey Isolate 2.5kg',
+    proteinName: 'Partner Whey Isolate 2.5kg',
     price: 179,
   },
   'CFG-006': {
     peptideName: 'Epithalon 50mg',
-    proteinName: 'CoreForge Performance Stack Bundle',
+    proteinName: 'Partner Performance Stack Bundle',
     price: 179,
   },
   'CFG-009': {
     peptideName: '5-amino-1MQ 10mg',
-    proteinName: 'CoreForge Whey Protein 1.5kg',
+    proteinName: 'Partner Whey Protein 1.5kg',
     price: 99,
   },
   'CFG-010': {
     peptideName: 'BPC-157 + TB-500 blend',
-    proteinName: 'CoreForge Plant Protein 2kg',
+    proteinName: 'Partner Plant Protein 2kg',
     price: 149,
   },
   'CFG-011': {
     peptideName: 'Selank 10mg',
-    proteinName: 'CoreForge Casein Protein 1kg',
+    proteinName: 'Partner Casein Protein 1kg',
     price: 79,
   },
   'CFG-012': {
     peptideName: 'SS-31 50mg',
-    proteinName: 'CoreForge Ultimate Muscle Stack',
+    proteinName: 'Partner Ultimate Muscle Stack',
     price: 249,
   },
   'CFG-015': {
     peptideName: 'GLOW 70mg',
-    proteinName: 'CoreForge Advanced Pre-Workout 60 Serves',
+    proteinName: 'Partner Advanced Pre-Workout 60 Serves',
     price: 179,
   },
   'CFG-016': {
     peptideName: 'GHK-Cu 100mg',
-    proteinName: 'CoreForge Collagen Protein Blend',
+    proteinName: 'Partner Collagen Protein Blend',
     price: 109,
   },
   'CFG-017': {
     peptideName: 'IGF-1 LR3 1mg',
-    proteinName: 'CoreForge Protein + Greens Blend',
+    proteinName: 'Partner Protein + Greens Blend',
     price: 139,
   },
   'CFG-019': {
     peptideName: 'Cerebrolysin 60mg',
-    proteinName: 'CoreForge Pre-Workout Energy',
+    proteinName: 'Partner Pre-Workout Energy',
     price: 89,
   },
   'CFG-020': {
     peptideName: 'TB-500 10mg',
-    proteinName: 'CoreForge Vegan Protein Blend',
+    proteinName: 'Partner Vegan Protein Blend',
     price: 109,
   },
   'CFG-021': {
     peptideName: 'MOTS-c 40mg',
-    proteinName: 'CoreForge Strength Duo',
+    proteinName: 'Partner Strength Duo',
     price: 149,
   },
   'CFG-022': {
     peptideName: 'FOXO4-DRI 10mg',
-    proteinName: 'CoreForge Complete Transformation System',
+    proteinName: 'Partner Complete Transformation System',
     price: 399,
   },
   /**
@@ -102,52 +102,52 @@ export const PRODUCT_MAPPINGS: Record<string, ProductMapping> = {
    */
   'CFG-023': {
     peptideName: 'Retatrutide 10mg',
-    proteinName: 'CoreForge Casein Protein 2kg (Vanilla Bean)',
+    proteinName: 'Partner Casein Protein 2kg (Vanilla Bean)',
     price: 149,
   },
   'CFG-026': {
     peptideName: 'Glutathione 1500mg',
-    proteinName: 'CoreForge Thermogenic Complex',
+    proteinName: 'Partner Thermogenic Complex',
     price: 89,
   },
   'CFG-027': {
     peptideName: 'Acetic acid water 10ml',
-    proteinName: 'CoreForge Creatine 100g',
+    proteinName: 'Partner Creatine 100g',
     price: 19,
   },
   'CFG-028': {
     peptideName: 'Bacteriostatic water 3ml',
-    proteinName: 'CoreForge Protein Sample Sachet',
+    proteinName: 'Partner Protein Sample Sachet',
     price: 5,
   },
   'CFG-029': {
     peptideName: 'Ara-290 10mg',
-    proteinName: 'CoreForge Lean Protein 1kg',
+    proteinName: 'Partner Lean Protein 1kg',
     price: 99,
   },
   'CFG-030': {
     peptideName: 'Ipamorelin 10mg',
-    proteinName: 'CoreForge Amino Energy Blend',
+    proteinName: 'Partner Amino Energy Blend',
     price: 89,
   },
   'CFG-031': {
     peptideName: 'BPC-157 10mg',
-    proteinName: 'CoreForge Pump Matrix Pre-Workout',
+    proteinName: 'Partner Pump Matrix Pre-Workout',
     price: 99,
   },
   'CFG-032': {
     peptideName: 'NAD+ 1000mg',
-    proteinName: 'CoreForge Whey Isolate 2kg',
+    proteinName: 'Partner Whey Isolate 2kg',
     price: 169,
   },
   'CFG-034': {
     peptideName: 'Semax 10mg',
-    proteinName: 'CoreForge Night Recovery Casein',
+    proteinName: 'Partner Night Recovery Casein',
     price: 79,
   },
   'CFG-035': {
     peptideName: 'KLOW 80mg',
-    proteinName: 'CoreForge Muscle Builder Kit',
+    proteinName: 'Partner Muscle Builder Kit',
     price: 189,
   },
 };
