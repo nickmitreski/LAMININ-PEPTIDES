@@ -6,6 +6,8 @@ interface ButtonProps {
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
+  /** Native tooltip (button) or anchor title. */
+  title?: string;
   'aria-label'?: string;
   role?: React.AriaRole;
   'aria-selected'?: boolean;
@@ -13,6 +15,9 @@ interface ButtonProps {
   href?: string;
   /** Suggested filename for `Content-Disposition` when used with `href` to a PDF. */
   download?: string;
+  /** Only used when `href` is set (external links). */
+  rel?: string;
+  target?: string;
 }
 
 export default function Button({
@@ -23,11 +28,14 @@ export default function Button({
   disabled = false,
   onClick,
   className = '',
+  title,
   'aria-label': ariaLabel,
   role,
   'aria-selected': ariaSelected,
   href,
   download,
+  rel,
+  target,
 }: ButtonProps) {
   const baseStyles = 'btn focus-visible:ring-carbon-900';
 
@@ -57,6 +65,9 @@ export default function Button({
       <a
         href={href}
         download={download}
+        title={title}
+        rel={rel}
+        target={target}
         aria-label={ariaLabel}
         className={composed}
       >
@@ -70,6 +81,7 @@ export default function Button({
       type={type}
       disabled={disabled}
       onClick={onClick}
+      title={title}
       aria-label={ariaLabel}
       role={role}
       aria-selected={ariaSelected}

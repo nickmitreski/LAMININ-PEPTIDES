@@ -62,8 +62,33 @@ export interface CustomerInput {
   phone?: string;
 }
 
-/** Shape of a raw row from the payment_tracking table. */
-interface PaymentTrackingRow {
+type CartLine = {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+};
+
+function normalizeCartItems(raw: unknown): CartLine[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CartLine[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const o = item as Record<string, unknown>;
+    const id = String(o.id ?? '');
+    const name = String(o.name ?? '');
+    const price = Number(o.price);
+    const quantity = Number(o.quantity);
+    if (!id || !name || !Number.isFinite(price) || !Number.isFinite(quantity)) continue;
+    const image = typeof o.image === 'string' ? o.image : undefined;
+    out.push({ id, name, price, quantity, image });
+  }
+  return out;
+}
+
+/** Shape of a raw row from the payment_tracking table (admin list / map helpers). */
+interface PaymentTrackingDbRow {
   id: string;
   order_reference: string;
   payment_status: string;
@@ -72,7 +97,7 @@ interface PaymentTrackingRow {
   customer_phone: string | null;
   customer_address: Record<string, string> | null;
   total_amount: number;
-  cart_items: unknown[];
+  cart_items: unknown;
   discount_code: string | null;
   discount_amount: number | null;
   admin_notes: string | null;
@@ -87,8 +112,9 @@ interface PaymentTrackingRow {
 }
 
 /** Map a raw payment_tracking DB row to the normalised OrderReferenceRow shape. */
-function paymentRowToOrder(row: PaymentTrackingRow): OrderReferenceRow {
+function paymentRowToOrder(row: PaymentTrackingDbRow): OrderReferenceRow {
   const addr = row.customer_address as Record<string, string> | null;
+  const cartItems = normalizeCartItems(row.cart_items);
   return {
     id: row.id,
     peptide_order_id: row.order_reference,
@@ -113,7 +139,7 @@ function paymentRowToOrder(row: PaymentTrackingRow): OrderReferenceRow {
     payment_status: row.payment_status,
     payment_viewed_at: row.payment_viewed_at,
     payment_completed_at: row.payment_completed_at,
-    cart_items: row.cart_items ?? [],
+    cart_items: cartItems,
     subtotal: row.subtotal,
     shipping: row.shipping,
     tax: row.tax,
@@ -301,7 +327,7 @@ export async function getAllOrders(
     return [];
   }
 
-  return (data as PaymentTrackingRow[]).map(paymentRowToOrder);
+  return (data as PaymentTrackingDbRow[]).map(paymentRowToOrder);
 }
 
 export interface OrderCounts {
@@ -384,7 +410,7 @@ export async function getOrdersByStatus(
     return [];
   }
 
-  return (data as PaymentTrackingRow[]).map(paymentRowToOrder);
+  return (data as PaymentTrackingDbRow[]).map(paymentRowToOrder);
 }
 
 /** Admin: Get all customers */
@@ -874,7 +900,7 @@ export interface PaymentTrackingRow {
   order_reference: string;
   customer_email: string;
   customer_name: string;
-  customer_phone: string;
+  customer_phone: string | null;
   customer_address: Record<string, string> | null;
   cart_items: Array<{ id: string; name: string; price: number; quantity: number; image?: string }>;
   subtotal: number;
