@@ -18,11 +18,12 @@ import {
   fetchShopPrimaryImageOverrides,
   fetchProductSaleInfo,
   fetchLiveProductCatalog,
+  type LiveCatalogEntry,
 } from '../services/supabaseService';
 import { CFG_CODE_TO_PEPTIDE_ID, PEPTIDE_ID_TO_CFG } from '../data/productMappings';
 
 type SaleInfo = { compareAtPrice: number; saleLabel: string | null };
-type LiveProductInfo = { price: number; isActive: boolean; name: string; stockQuantity: number };
+type LiveProductInfo = LiveCatalogEntry;
 
 type ShopImagesContextValue = {
   loading: boolean;
@@ -38,6 +39,8 @@ type ShopImagesContextValue = {
   isProductActive: (peptideId: string) => boolean;
   /** Get live DB price for a product, or null if not available. */
   getDbPrice: (peptideId: string) => number | null;
+  /** Storefront copy / bundle metadata from product_mappings (null if not in DB catalogue). */
+  getLiveCatalogEntry: (peptideId: string) => LiveCatalogEntry | null;
   /** All products: static catalog merged with DB-only products created via admin. */
   allProducts: Peptide[];
 };
@@ -155,6 +158,11 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
     [liveProductMap]
   );
 
+  const getLiveCatalogEntry = useCallback(
+    (peptideId: string): LiveCatalogEntry | null => liveProductMap[peptideId] ?? null,
+    [liveProductMap]
+  );
+
   const mergedAllProducts = useMemo(
     () => [...allPeptides, ...dbOnlyProducts],
     [dbOnlyProducts]
@@ -167,9 +175,18 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       resolveSaleInfo,
       isProductActive,
       getDbPrice,
+      getLiveCatalogEntry,
       allProducts: mergedAllProducts,
     }),
-    [loading, resolveDisplayImage, resolveSaleInfo, isProductActive, getDbPrice, mergedAllProducts]
+    [
+      loading,
+      resolveDisplayImage,
+      resolveSaleInfo,
+      isProductActive,
+      getDbPrice,
+      getLiveCatalogEntry,
+      mergedAllProducts,
+    ]
   );
 
   return (

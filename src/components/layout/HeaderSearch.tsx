@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import SearchField from '../ui/SearchField';
 import { Text } from '../ui/Typography';
-import { allPeptides, filterPeptidesByName } from '../../data/peptides';
+import { filterPeptidesByName } from '../../data/peptides';
 import { getProductSlug } from '../../data/productContent';
+import { useShopImages } from '../../context/ShopImagesContext';
 
 interface HeaderSearchProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface HeaderSearchProps {
 
 export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
   const navigate = useNavigate();
+  const { allProducts } = useShopImages();
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -50,13 +52,13 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
       onClose();
       return;
     }
-    const matches = filterPeptidesByName(trimmed, allPeptides);
+    const matches = filterPeptidesByName(trimmed, allProducts);
     if (matches.length === 1) {
       navigate(`/products/${getProductSlug(matches[0].id)}`);
       onClose();
       return;
     }
-    navigate(`/library?q=${encodeURIComponent(trimmed)}`);
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
     onClose();
   };
 
@@ -104,7 +106,8 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
             />
           </div>
           <Text variant="caption" muted className="block text-center leading-snug">
-            Press Enter to search — same matching as the library.
+            Press Enter to search the full site — or jump straight to a product
+            if only one name matches.
           </Text>
         </form>
       </div>

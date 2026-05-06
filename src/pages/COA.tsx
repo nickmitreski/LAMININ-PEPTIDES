@@ -63,7 +63,9 @@ export default function COA() {
     const verified = allPeptides.filter(
       (p) => p.coaVerified && !isLiquidAncillaryPeptide(p.id)
     );
-    return buildCoaCardEntries(verified);
+    return buildCoaCardEntries(verified).sort((a, b) =>
+      a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
+    );
   }, []);
 
   const filteredEntries = useMemo(() => {

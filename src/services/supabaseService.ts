@@ -424,6 +424,49 @@ export async function getAllCustomers(
   return data;
 }
 
+/** Admin: Update a customer record */
+export async function adminUpdateCustomer(
+  customerId: string,
+  patch: {
+    email?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postcode?: string | null;
+    country?: string | null;
+  },
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('admin_update_customer', {
+    p_customer_id: customerId,
+    p_email: patch.email ?? null,
+    p_first_name: patch.first_name ?? null,
+    p_last_name: patch.last_name ?? null,
+    p_phone: patch.phone ?? null,
+    p_address: patch.address ?? null,
+    p_city: patch.city ?? null,
+    p_state: patch.state ?? null,
+    p_postcode: patch.postcode ?? null,
+    p_country: patch.country ?? null,
+  });
+
+  if (error) {
+    console.error('[supabase] adminUpdateCustomer', error);
+    return { success: false, error: error.message };
+  }
+
+  const r = data as { success?: boolean; error?: string };
+  if (r?.success === false) {
+    return { success: false, error: r.error || 'Update failed' };
+  }
+  return { success: true };
+}
+
 /** Admin: Delete customer and all their orders */
 export async function deleteCustomerAndOrders(
   customerEmail: string,
@@ -562,6 +605,12 @@ export type AdminProductWithImages = {
   compare_at_price?: number | null;
   sale_label?: string | null;
   sort_order?: number | null;
+  overview_text?: string | null;
+  specifications_text?: string | null;
+  analytical_text?: string | null;
+  coa_link_url?: string | null;
+  product_type?: string | null;
+  bundle_items?: unknown;
   images?: Array<Record<string, unknown>> | null;
 };
 
@@ -610,6 +659,13 @@ export async function updateProduct(
     sort_order?: number;
     clear_compare_at_price?: boolean;
     clear_sale_label?: boolean;
+    overview_text?: string | null;
+    specifications_text?: string | null;
+    analytical_text?: string | null;
+    coa_link_url?: string | null;
+    clear_coa_link_url?: boolean;
+    product_type?: 'standard' | 'bundle';
+    bundle_items?: unknown;
   },
   client: SupabaseClient | null = supabase
 ): Promise<{ success: boolean; error?: string }> {
@@ -631,6 +687,13 @@ export async function updateProduct(
     p_sort_order: updates.sort_order ?? null,
     p_clear_compare_at_price: updates.clear_compare_at_price ?? false,
     p_clear_sale_label: updates.clear_sale_label ?? false,
+    p_overview_text: updates.overview_text ?? null,
+    p_specifications_text: updates.specifications_text ?? null,
+    p_analytical_text: updates.analytical_text ?? null,
+    p_coa_link_url: updates.coa_link_url ?? null,
+    p_clear_coa_link_url: updates.clear_coa_link_url ?? false,
+    p_product_type: updates.product_type ?? null,
+    p_bundle_items: updates.bundle_items !== undefined ? updates.bundle_items : null,
   });
 
   if (error) {
@@ -950,6 +1013,12 @@ export async function createProduct(
     compare_at_price?: number | null;
     sale_label?: string | null;
     sort_order?: number;
+    overview_text?: string | null;
+    specifications_text?: string | null;
+    analytical_text?: string | null;
+    coa_link_url?: string | null;
+    product_type?: 'standard' | 'bundle';
+    bundle_items?: unknown;
   },
   client: SupabaseClient | null
 ): Promise<{ success: boolean; product_id?: string; cfg_code?: string; error?: string }> {
@@ -967,6 +1036,12 @@ export async function createProduct(
     p_compare_at_price: data.compare_at_price ?? null,
     p_sale_label: data.sale_label ?? null,
     p_sort_order: data.sort_order ?? 0,
+    p_overview_text: data.overview_text ?? null,
+    p_specifications_text: data.specifications_text ?? null,
+    p_analytical_text: data.analytical_text ?? null,
+    p_coa_link_url: data.coa_link_url ?? null,
+    p_product_type: data.product_type ?? 'standard',
+    p_bundle_items: data.bundle_items ?? [],
   });
 
   if (error) {
@@ -995,6 +1070,25 @@ export async function deleteProduct(
 
   const r = result as { success: boolean; error?: string };
   return r;
+}
+
+/** Admin: Duplicate product (new CFG code, copies images + collection membership) */
+export async function duplicateProduct(
+  productId: string,
+  client: SupabaseClient | null
+): Promise<{ success: boolean; product_id?: string; cfg_code?: string; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+
+  const { data: result, error } = await client.rpc('duplicate_product', {
+    p_product_id: productId,
+  });
+
+  if (error) {
+    console.error('[supabase] duplicateProduct', error);
+    return { success: false, error: error.message };
+  }
+
+  return result as { success: boolean; product_id?: string; cfg_code?: string; error?: string };
 }
 
 export async function suggestNextCfgCode(
@@ -1033,32 +1127,263 @@ export async function fetchProductSaleInfo(): Promise<
   return out;
 }
 
-/** Storefront: fetch live product catalog (active status + prices) keyed by CFG code */
-export async function fetchLiveProductCatalog(): Promise<
-  Record<
-    string,
-    { price: number; isActive: boolean; name: string; stockQuantity: number }
-  >
-> {
+/** Storefront: live row used by catalogue + PDP overrides */
+export type LiveCatalogEntry = {
+  price: number;
+  isActive: boolean;
+  name: string;
+  stockQuantity: number;
+  overviewText: string | null;
+  specificationsText: string | null;
+  analyticalText: string | null;
+  coaLinkUrl: string | null;
+  productType: 'standard' | 'bundle';
+  bundleItems: Array<{ cfg_code: string; qty: number }>;
+};
+
+function parseBundleItemsJson(raw: unknown): Array<{ cfg_code: string; qty: number }> {
+  if (!raw || !Array.isArray(raw)) return [];
+  const out: Array<{ cfg_code: string; qty: number }> = [];
+  for (const x of raw) {
+    if (x && typeof x === 'object' && 'cfg_code' in x) {
+      const cfg = String((x as { cfg_code: string }).cfg_code).trim();
+      const qty = Math.max(1, Math.floor(Number((x as { qty?: number }).qty) || 1));
+      if (cfg) out.push({ cfg_code: cfg, qty });
+    }
+  }
+  return out;
+}
+
+/** Storefront: fetch live product catalog keyed by CFG code (ShopImages maps to peptide ids) */
+export async function fetchLiveProductCatalog(): Promise<Record<string, LiveCatalogEntry>> {
   if (!supabase) return {};
 
   const { data, error } = await supabase
     .from('product_mappings')
-    .select('cfg_code, peptide_name, price, is_active, stock_quantity');
+    .select(
+      'cfg_code, peptide_name, price, is_active, stock_quantity, overview_text, specifications_text, analytical_text, coa_link_url, product_type, bundle_items'
+    );
 
   if (error || !data) return {};
 
-  const out: Record<
-    string,
-    { price: number; isActive: boolean; name: string; stockQuantity: number }
-  > = {};
-  for (const row of data) {
-    out[row.cfg_code] = {
+  const out: Record<string, LiveCatalogEntry> = {};
+  for (const row of data as Array<Record<string, unknown>>) {
+    const cfg = String(row.cfg_code);
+    const pt = row.product_type === 'bundle' ? 'bundle' : 'standard';
+    out[cfg] = {
       price: Number(row.price),
-      isActive: row.is_active,
-      name: row.peptide_name,
-      stockQuantity: row.stock_quantity ?? 0,
+      isActive: Boolean(row.is_active),
+      name: String(row.peptide_name ?? ''),
+      stockQuantity: Number(row.stock_quantity ?? 0),
+      overviewText: (row.overview_text as string | null) ?? null,
+      specificationsText: (row.specifications_text as string | null) ?? null,
+      analyticalText: (row.analytical_text as string | null) ?? null,
+      coaLinkUrl: (row.coa_link_url as string | null) ?? null,
+      productType: pt,
+      bundleItems: parseBundleItemsJson(row.bundle_items),
     };
   }
   return out;
+}
+
+// --- Collections (storefront + admin) ---
+
+export type Collection = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
+export async function listCollections(
+  client: SupabaseClient | null = supabase,
+  includeInactive = false
+): Promise<Collection[]> {
+  if (!client) return [];
+  let q = client.from('collections').select('*').order('sort_order', { ascending: true });
+  if (!includeInactive) q = q.eq('is_active', true);
+  const { data, error } = await q;
+  if (error || !data) {
+    console.error('[supabase] listCollections', error);
+    return [];
+  }
+  return data as Collection[];
+}
+
+export async function adminListAllCollections(
+  client: SupabaseClient | null
+): Promise<Collection[]> {
+  if (!client) return [];
+  const { data, error } = await client
+    .from('collections')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error || !data) return [];
+  return data as Collection[];
+}
+
+export async function createCollectionRow(
+  client: SupabaseClient | null,
+  input: { slug: string; name: string; description?: string }
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+  const slug = input.slug.trim().toLowerCase().replace(/\s+/g, '-');
+  const { data, error } = await client
+    .from('collections')
+    .insert({
+      slug,
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+      is_active: true,
+    })
+    .select('id')
+    .single();
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, id: data.id as string };
+}
+
+export async function setProductCollections(
+  productId: string,
+  collectionIds: string[],
+  client: SupabaseClient | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+
+  const { data, error } = await client.rpc('set_product_collections', {
+    p_product_id: productId,
+    p_collection_ids: collectionIds,
+  });
+
+  if (error) {
+    console.error('[supabase] setProductCollections', error);
+    return { success: false, error: error.message };
+  }
+
+  const r = data as { success?: boolean; error?: string };
+  if (r?.success === false) return { success: false, error: r.error };
+  return { success: true };
+}
+
+export async function getCollectionIdsForProduct(
+  productId: string,
+  client: SupabaseClient | null
+): Promise<string[]> {
+  if (!client) return [];
+  const { data, error } = await client
+    .from('product_collection_members')
+    .select('collection_id')
+    .eq('product_id', productId);
+  if (error || !data) return [];
+  return data.map((r) => r.collection_id as string);
+}
+
+export async function getCollectionMetaBySlug(
+  slug: string
+): Promise<{ name: string; description: string | null } | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('collections')
+    .select('name, description')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+  if (error || !data) return null;
+  return { name: data.name as string, description: (data.description as string | null) ?? null };
+}
+
+/** Public: peptide storefront ids in a collection (by slug) */
+export async function getPeptideIdsInCollectionSlug(slug: string): Promise<string[]> {
+  if (!supabase) return [];
+  const { data: col, error: cErr } = await supabase
+    .from('collections')
+    .select('id')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+  if (cErr || !col) return [];
+
+  const { data: members, error: mErr } = await supabase
+    .from('product_collection_members')
+    .select('product_id')
+    .eq('collection_id', col.id);
+  if (mErr || !members?.length) return [];
+
+  const ids = members.map((m) => m.product_id as string);
+  const { data: pms, error: pErr } = await supabase
+    .from('product_mappings')
+    .select('cfg_code')
+    .in('id', ids);
+  if (pErr || !pms) return [];
+
+  const out: string[] = [];
+  for (const row of pms) {
+    const cfg = row.cfg_code as string;
+    const pid = CFG_CODE_TO_PEPTIDE_ID[cfg] ?? cfg.toLowerCase();
+    out.push(pid);
+  }
+  return out;
+}
+
+// --- Research profile overrides (/research) ---
+
+export type ResearchProfileOverrideRow = {
+  profile_id: string;
+  overview: string | null;
+  mechanism: string | null;
+  highlights: string | null;
+  updated_at: string;
+};
+
+export async function fetchResearchProfileOverrides(): Promise<
+  Record<string, ResearchProfileOverrideRow>
+> {
+  if (!supabase) return {};
+  const { data, error } = await supabase.from('research_profile_overrides').select('*');
+  if (error || !data) return {};
+  const out: Record<string, ResearchProfileOverrideRow> = {};
+  for (const row of data as ResearchProfileOverrideRow[]) {
+    out[row.profile_id] = row;
+  }
+  return out;
+}
+
+export async function upsertResearchProfileOverride(
+  client: SupabaseClient | null,
+  row: {
+    profile_id: string;
+    overview: string | null;
+    mechanism: string | null;
+    highlights: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+  const { error } = await client.from('research_profile_overrides').upsert(
+    {
+      profile_id: row.profile_id,
+      overview: row.overview,
+      mechanism: row.mechanism,
+      highlights: row.highlights,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'profile_id' }
+  );
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function deleteResearchProfileOverride(
+  client: SupabaseClient | null,
+  profileId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+  const { error } = await client
+    .from('research_profile_overrides')
+    .delete()
+    .eq('profile_id', profileId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
 }

@@ -240,3 +240,27 @@ export async function getAllRedemptions(
 
   return data as unknown as DiscountRedemption[];
 }
+
+/** Admin: redemptions in a date range (monthly export / affiliate reporting) */
+export async function getRedemptionsInRange(
+  startIso: string,
+  endIsoExclusive: string,
+  client: SupabaseClient | null = supabase
+): Promise<DiscountRedemption[]> {
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('discount_redemptions')
+    .select('*, discount_code:discount_codes(code, discount_type, discount_value)')
+    .gte('created_at', startIso)
+    .lt('created_at', endIsoExclusive)
+    .order('created_at', { ascending: true })
+    .limit(50000);
+
+  if (error || !data) {
+    console.error('[discount] getRedemptionsInRange', error);
+    return [];
+  }
+
+  return data as unknown as DiscountRedemption[];
+}

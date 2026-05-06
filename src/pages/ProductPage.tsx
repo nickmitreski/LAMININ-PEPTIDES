@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Section from '../components/layout/Section';
@@ -35,13 +35,14 @@ import { ProductStructuredData } from '../components/seo/StructuredData';
 import { formatPrice } from '../lib/formatCurrency';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useShopImages } from '../context/ShopImagesContext';
+import { CFG_CODE_TO_PEPTIDE_ID } from '../data/productMappings';
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
-  const { resolveDisplayImage, resolveSaleInfo, isProductActive, allProducts, getDbPrice } = useShopImages();
+  const { resolveDisplayImage, resolveSaleInfo, isProductActive, allProducts, getDbPrice, getLiveCatalogEntry } = useShopImages();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
@@ -57,6 +58,28 @@ export default function ProductPage() {
     ? allProducts.find((p) => p.id === peptideId)
     : undefined;
   const copy = peptideId ? getProductCopy(peptideId) : undefined;
+
+  const live = useMemo(
+    () => (peptideId ? getLiveCatalogEntry(peptideId) : null),
+    [peptideId, getLiveCatalogEntry]
+  );
+
+  const overviewParagraphs = useMemo(() => {
+    const fromDb = live?.overviewText?.trim();
+    if (fromDb) {
+      return fromDb.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+    }
+    return copy?.paragraphs ?? [];
+  }, [live?.overviewText, copy?.paragraphs]);
+
+  const bundleLines = useMemo(() => {
+    if (live?.productType !== 'bundle' || !live.bundleItems?.length) return [];
+    return live.bundleItems.map((item) => {
+      const pid = CFG_CODE_TO_PEPTIDE_ID[item.cfg_code] ?? item.cfg_code.toLowerCase();
+      const name = allProducts.find((p) => p.id === pid)?.name ?? item.cfg_code;
+      return { label: `${item.qty}× ${name}` };
+    });
+  }, [live?.productType, live?.bundleItems, allProducts]);
 
   useEffect(() => {
     if (!peptideId) {
@@ -167,7 +190,7 @@ export default function ProductPage() {
     <div className="min-h-screen bg-platinum pb-32 md:pb-20">
       <ProductStructuredData
         name={headline}
-        description={copy?.paragraphs?.[0] || ''}
+        description={overviewParagraphs[0] || copy?.paragraphs?.[0] || ''}
         image={displayImage}
         price={price !== null ? price : undefined}
         purity={peptide.purity}
@@ -311,6 +334,25 @@ export default function ProductPage() {
             <SuggestedPeptides currentPeptide={peptide} />
 
             <div className="mt-6 border-t border-carbon-900/10 pt-6 md:pt-8">
+            {bundleLines.length > 0 && (
+              <div className="mb-6 rounded-xl border border-carbon-900/10 bg-white p-4 shadow-sm ring-1 ring-carbon-900/[0.03] md:p-5">
+                <Text
+                  variant="caption"
+                  className="mb-3 block uppercase tracking-[0.16em] text-carbon-900/70"
+                >
+                  This bundle includes
+                </Text>
+                <ul className="list-disc space-y-1.5 pl-5">
+                  {bundleLines.map((b) => (
+                    <li key={b.label}>
+                      <Text variant="body" className="text-carbon-900">
+                        {b.label}
+                      </Text>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <ProductPageAccordion
               openId={accordionOpenId}
               onOpenIdChange={setAccordionOpenId}
@@ -319,8 +361,8 @@ export default function ProductPage() {
                   id: 'overview',
                   title: 'OVERVIEW',
                   content:
-                    (copy?.paragraphs?.length ?? 0) > 0 ? (
-                      <ProductOverviewBody paragraphs={copy!.paragraphs} />
+                    overviewParagraphs.length > 0 ? (
+                      <ProductOverviewBody paragraphs={overviewParagraphs} />
                     ) : (
                       <Text variant="body" className="text-carbon-900">
                         Product description coming soon.
@@ -332,6 +374,15 @@ export default function ProductPage() {
                   title: 'SPECIFICATIONS',
                   content: (
                     <div className="space-y-3">
+                      {live?.specificationsText?.trim() ? (
+                        <Text
+                          as="div"
+                          variant="body"
+                          className="text-carbon-900 whitespace-pre-wrap leading-relaxed"
+                        >
+                          {live.specificationsText.trim()}
+                        </Text>
+                      ) : null}
                       <Text variant="body" className="text-carbon-900">
                         <strong className="text-carbon-900">Compound:</strong>{' '}
                         {peptide.name}
@@ -365,8 +416,8 @@ export default function ProductPage() {
                   content: (
                     <div className="space-y-4">
                       <Text variant="body" className="text-carbon-900">
-                        We provide batch-oriented Certificates of Analysis where
-                        available to support identity and purity claims.
+                        {live?.analyticalText?.trim() ||
+                          'We provide batch-oriented Certificates of Analysis where available to support identity and purity claims.'}
                       </Text>
                       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                         <Link to="/coa">
@@ -374,6 +425,17 @@ export default function ProductPage() {
                             View all COAs
                           </Button>
                         </Link>
+                        {live?.coaLinkUrl ? (
+                          <Button
+                            variant="accent"
+                            size="md"
+                            href={live.coaLinkUrl}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            Product COA (link)
+                          </Button>
+                        ) : null}
                         {coaDownload && (
                           <Button
                             variant="accent"
@@ -385,7 +447,7 @@ export default function ProductPage() {
                           </Button>
                         )}
                       </div>
-                      {!coaDownload && (
+                      {!coaDownload && !live?.coaLinkUrl && (
                         <Text variant="small" muted>
                           A downloadable certificate for this line is not yet linked;
                           check the COA directory or contact us for the batch you
@@ -449,7 +511,7 @@ export default function ProductPage() {
         open={descriptionModalOpen}
         onClose={() => setDescriptionModalOpen(false)}
         productTitle={peptide.name}
-        paragraphs={copy?.paragraphs ?? []}
+        paragraphs={overviewParagraphs}
       />
 
       <ProductStickyAddToCart

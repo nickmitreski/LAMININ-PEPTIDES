@@ -18,6 +18,7 @@ import { ShopImagesProvider } from './context/ShopImagesContext';
 
 const Home = lazy(() => import('./pages/Home'));
 const Library = lazy(() => import('./pages/Library'));
+const SiteSearch = lazy(() => import('./pages/SiteSearch'));
 const ResearchLibrary = lazy(() => import('./pages/ResearchLibrary'));
 const COA = lazy(() => import('./pages/COA'));
 const Contact = lazy(() => import('./pages/Contact'));
@@ -40,6 +41,8 @@ const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminDiscounts = lazy(() => import('./pages/AdminDiscounts'));
 const AdminEmails = lazy(() => import('./pages/AdminEmails'));
 const AdminTools = lazy(() => import('./pages/AdminTools'));
+const AdminResearch = lazy(() => import('./pages/AdminResearch'));
+const AdminCollections = lazy(() => import('./pages/AdminCollections'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 
 function App() {
@@ -112,6 +115,22 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/research"
+                  element={
+                    <ProtectedRoute>
+                      <AdminResearch />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/collections"
+                  element={
+                    <ProtectedRoute>
+                      <AdminCollections />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Public Routes (with header/footer) */}
                 <Route
@@ -128,6 +147,8 @@ function App() {
                           <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/library" element={<Library />} />
+                            <Route path="/collections/:collectionSlug" element={<Library />} />
+                            <Route path="/search" element={<SiteSearch />} />
                             <Route
                               path="/research"
                               element={<ResearchLibrary />}

@@ -14,6 +14,7 @@ import {
   ChevronUp,
   RefreshCw,
   Calendar,
+  Pencil,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -22,6 +23,7 @@ import {
   getAllCustomers,
   getAllOrders,
   deleteCustomerAndOrders,
+  adminUpdateCustomer,
   type OrderReferenceRow,
 } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
@@ -72,6 +74,19 @@ export default function AdminCustomers() {
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [customerOrders, setCustomerOrders] = useState<OrderReferenceRow[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editForm, setEditForm] = useState({
+    email: '',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    postcode: '',
+    country: '',
+  });
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
@@ -115,6 +130,55 @@ export default function AdminCustomers() {
   useEffect(() => {
     void loadCustomers();
   }, [loadCustomers]);
+
+  const handleSaveCustomer = async () => {
+    if (!editingCustomer) return;
+    setEditSaving(true);
+    try {
+      const db = getAdminSupabase();
+      const r = await adminUpdateCustomer(
+        editingCustomer.id,
+        {
+          email: editForm.email.trim(),
+          first_name: editForm.first_name.trim() || null,
+          last_name: editForm.last_name.trim() || null,
+          phone: editForm.phone.trim() || null,
+          address: editForm.address.trim() || null,
+          city: editForm.city.trim() || null,
+          state: editForm.state.trim() || null,
+          postcode: editForm.postcode.trim() || null,
+          country: editForm.country.trim() || null,
+        },
+        db
+      );
+      if (r.success) {
+        showToast('Customer updated', 'success');
+        setEditingCustomer(null);
+        await loadCustomers();
+      } else {
+        showToast(r.error || 'Update failed', 'error');
+      }
+    } catch {
+      showToast('Update failed', 'error');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const openEdit = (c: Customer) => {
+    setEditingCustomer(c);
+    setEditForm({
+      email: c.email,
+      first_name: c.first_name ?? '',
+      last_name: c.last_name ?? '',
+      phone: c.phone ?? '',
+      address: c.address ?? '',
+      city: c.city ?? '',
+      state: c.state ?? '',
+      postcode: c.postcode ?? '',
+      country: c.country ?? '',
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -348,6 +412,14 @@ export default function AdminCustomers() {
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => openEdit(customer)}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Pencil className="w-3 h-3" /> Edit
+                                    </Button>
                                     <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(customer.email)} className="flex items-center gap-1 text-error hover:text-error-dark hover:bg-error-light">
                                       <Trash2 className="w-3 h-3" /> Delete
                                     </Button>
@@ -412,6 +484,99 @@ export default function AdminCustomers() {
             </div>
           )}
         </Card>
+
+        {editingCustomer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
+              <Heading level={3} className="mb-4">
+                Edit customer
+              </Heading>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">Email</label>
+                  <input
+                    type="email"
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">First name</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.first_name}
+                    onChange={(e) => setEditForm((f) => ({ ...f, first_name: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">Last name</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.last_name}
+                    onChange={(e) => setEditForm((f) => ({ ...f, last_name: e.target.value }))}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">Phone</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">Address</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.address}
+                    onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">City</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.city}
+                    onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">State</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.state}
+                    onChange={(e) => setEditForm((f) => ({ ...f, state: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">Postcode</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.postcode}
+                    onChange={(e) => setEditForm((f) => ({ ...f, postcode: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-carbon-700">Country</label>
+                  <input
+                    className="input min-h-11 w-full text-base md:text-sm"
+                    value={editForm.country}
+                    onChange={(e) => setEditForm((f) => ({ ...f, country: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditingCustomer(null)} disabled={editSaving}>
+                  Cancel
+                </Button>
+                <Button onClick={() => void handleSaveCustomer()} disabled={editSaving || !editForm.email.trim()}>
+                  {editSaving ? 'Saving…' : 'Save'}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Warning */}
         <Card className="mt-6 p-4 bg-warning-light border-warning-border">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams, useParams } from 'react-router-dom';
 import Section from '../components/layout/Section';
 import PageHero from '../components/ui/PageHero';
 import ToggleTabs from '../components/ui/ToggleTabs';
@@ -16,11 +16,13 @@ import {
   libraryTabItems,
   filterPeptidesByName,
 } from '../data/peptides';
+import { getCollectionMetaBySlug, getPeptideIdsInCollectionSlug } from '../services/supabaseService';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useShopImages } from '../context/ShopImagesContext';
 import useScrollReveal from '../hooks/useScrollReveal';
 
 export default function Library() {
+  const { collectionSlug } = useParams<{ collectionSlug?: string }>();
   useDocumentTitle(
     'Compound Library',
     'Browse our full compound library of research-grade peptides — categorised by application, with purity certificates available on request.'
@@ -29,6 +31,36 @@ export default function Library() {
   const [, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string>(peptideCategories[0]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [collectionIdSet, setCollectionIdSet] = useState<Set<string> | null>(null);
+  const [collectionMeta, setCollectionMeta] = useState<{
+    name: string;
+    description: string | null;
+  } | null>(null);
+  const [collectionLoading, setCollectionLoading] = useState(false);
+
+  useEffect(() => {
+    if (!collectionSlug) {
+      setCollectionIdSet(null);
+      setCollectionMeta(null);
+      setCollectionLoading(false);
+      return;
+    }
+    setCollectionLoading(true);
+    let cancelled = false;
+    void (async () => {
+      const [ids, meta] = await Promise.all([
+        getPeptideIdsInCollectionSlug(collectionSlug),
+        getCollectionMetaBySlug(collectionSlug),
+      ]);
+      if (cancelled) return;
+      setCollectionMeta(meta);
+      setCollectionIdSet(new Set(ids));
+      setCollectionLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [collectionSlug]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -85,15 +117,22 @@ export default function Library() {
   const categoryPeptides = activeCategory === 'All'
     ? [...allProducts].sort((a, b) => a.name.localeCompare(b.name))
     : allProducts.filter((p) => p.libraryFilters.includes(activeCategory as import('../data/peptides').LibraryTheme));
-  const activePeptides = categoryPeptides.filter((p) => isProductActive(p.id));
+  const collectionFiltered =
+    collectionIdSet == null
+      ? categoryPeptides
+      : categoryPeptides.filter((p) => collectionIdSet.has(p.id));
+  const activePeptides = collectionFiltered.filter((p) => isProductActive(p.id));
   const filteredPeptides = filterPeptidesByName(searchTerm, activePeptides);
 
   return (
     <div className="min-h-screen">
       <Section background="white" spacing="lg">
         <PageHero
-          title="Compound catalogue"
-          subtitle="Browse our complete catalogue of laboratory-grade peptides with verified purity."
+          title={collectionMeta?.name ?? 'Compound catalogue'}
+          subtitle={
+            collectionMeta?.description ??
+            'Browse our complete catalogue of laboratory-grade peptides with verified purity.'
+          }
           tiles={[
             { icon: <FlaskConical className="h-4 w-4" />, label: 'Compounds', value: 'Research-grade peptides' },
             { icon: <CheckCircle className="h-4 w-4" />, label: 'Purity', value: '99%+ verified via HPLC' },
@@ -123,14 +162,14 @@ export default function Library() {
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <Text variant="caption" muted>
-            {loading ? '\u00A0' : `${filteredPeptides.length} ${filteredPeptides.length === 1 ? 'compound' : 'compounds'} found`}
+            {loading || collectionLoading ? '\u00A0' : `${filteredPeptides.length} ${filteredPeptides.length === 1 ? 'compound' : 'compounds'} found`}
           </Text>
           <TextLink to="/coa" className="shrink-0 self-start sm:self-auto">
             View all certificates →
           </TextLink>
         </div>
 
-        {loading ? (
+        {loading || collectionLoading ? (
           <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex flex-col gap-3">
@@ -152,7 +191,7 @@ export default function Library() {
           </>
         )}
 
-        {!loading && filteredPeptides.length === 0 && (
+        {!loading && !collectionLoading && filteredPeptides.length === 0 && (
           <div className="mx-auto max-w-md py-12 text-center sm:py-16">
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-platinum">
               <svg

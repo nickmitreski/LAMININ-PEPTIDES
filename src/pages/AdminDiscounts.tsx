@@ -16,6 +16,7 @@ import {
   Percent,
   DollarSign,
   Users,
+  Download,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -26,6 +27,7 @@ import {
   updateDiscountCode,
   deleteDiscountCode,
   getRedemptionsForCode,
+  getRedemptionsInRange,
   type DiscountCode,
   type DiscountRedemption,
 } from '../services/discountService';
@@ -54,6 +56,20 @@ function formatDateTime(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function utcMonthBounds(ym: string): { startIso: string; endIsoExclusive: string } {
+  const [y, m] = ym.split('-').map(Number);
+  return {
+    startIso: new Date(Date.UTC(y, m - 1, 1)).toISOString(),
+    endIsoExclusive: new Date(Date.UTC(y, m, 1)).toISOString(),
+  };
+}
+
+function csvEscape(cell: string | number | null | undefined): string {
+  const s = cell == null ? '' : String(cell);
+  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
 }
 
 type ModalMode = 'create' | 'edit' | null;
@@ -100,6 +116,12 @@ export default function AdminDiscounts() {
   // Clipboard
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  const [exportMonth, setExportMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [exportingCsv, setExportingCsv] = useState(false);
+
   const loadCodes = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
       if (silent) setRefreshing(true);
@@ -131,6 +153,53 @@ export default function AdminDiscounts() {
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
+  };
+
+  const handleExportRedemptionsCsv = async () => {
+    setExportingCsv(true);
+    try {
+      const db = getAdminSupabase();
+      const { startIso, endIsoExclusive } = utcMonthBounds(exportMonth);
+      const rows = await getRedemptionsInRange(startIso, endIsoExclusive, db);
+      const lines: string[] = [
+        [
+          'created_at',
+          'order_reference',
+          'customer_email',
+          'discount_code',
+          'discount_type',
+          'discount_value',
+          'discount_amount',
+        ].join(','),
+      ];
+      for (const r of rows) {
+        lines.push(
+          [
+            csvEscape(r.created_at),
+            csvEscape(r.order_reference),
+            csvEscape(r.customer_email),
+            csvEscape(r.discount_code?.code),
+            csvEscape(r.discount_code?.discount_type),
+            csvEscape(r.discount_code?.discount_value),
+            csvEscape(r.discount_amount),
+          ].join(',')
+        );
+      }
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `discount-redemptions-${exportMonth}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${rows.length} redemption row(s)`, 'success');
+    } catch {
+      showToast('CSV export failed', 'error');
+    } finally {
+      setExportingCsv(false);
+    }
   };
 
   const openCreate = () => {
@@ -292,6 +361,44 @@ export default function AdminDiscounts() {
             <Text variant="body" weight="semibold" className="text-2xl text-neutral-500">{codes.length - activeCount}</Text>
           </Card>
         </div>
+
+        <Card padding="md" className="mb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <Heading level={4} className="mb-1 text-base">
+                Redemption export
+              </Heading>
+              <Text variant="caption" muted>
+                Download all discount redemptions for a calendar month (UTC boundaries).
+              </Text>
+            </div>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label htmlFor="export-month" className="mb-1 block text-xs font-medium text-carbon-600">
+                  Month
+                </label>
+                <input
+                  id="export-month"
+                  type="month"
+                  value={exportMonth}
+                  onChange={(e) => setExportMonth(e.target.value)}
+                  className="min-h-11 rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                disabled={exportingCsv}
+                onClick={() => void handleExportRedemptionsCsv()}
+                className="touch-manipulation inline-flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {exportingCsv ? 'Exporting…' : 'Download CSV'}
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* Codes table */}
         <Card padding="none">

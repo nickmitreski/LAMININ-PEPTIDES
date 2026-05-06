@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Activity,
   AlertCircle,
@@ -17,6 +17,7 @@ import Card from '../components/ui/Card';
 import { Heading, Label, Text } from '../components/ui/Typography';
 import { PEPTIDE_PROFILES, CATEGORY_FILTERS } from '../data/peptideData';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { fetchResearchProfileOverrides, type ResearchProfileOverrideRow } from '../services/supabaseService';
 
 type CategoryTheme = {
   id: string;
@@ -110,6 +111,31 @@ export default function ResearchLibrary() {
     'Curated peptide research summaries with credible references — covering metabolic, regenerative, healing, and longevity research.'
   );
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [overrides, setOverrides] = useState<Record<string, ResearchProfileOverrideRow>>({});
+
+  useEffect(() => {
+    let c = false;
+    void (async () => {
+      const m = await fetchResearchProfileOverrides();
+      if (!c) setOverrides(m);
+    })();
+    return () => {
+      c = true;
+    };
+  }, []);
+
+  const mergedProfiles = useMemo(() => {
+    return PEPTIDE_PROFILES.map((p) => {
+      const o = overrides[p.id];
+      if (!o) return p;
+      return {
+        ...p,
+        overview: o.overview?.trim() ? o.overview : p.overview,
+        mechanism: o.mechanism?.trim() ? o.mechanism : p.mechanism,
+        highlights: o.highlights?.trim() ? o.highlights : p.highlights,
+      };
+    });
+  }, [overrides]);
 
   const toggleFilter = (filterId: string) => {
     setActiveFilters((prev) =>
@@ -123,8 +149,8 @@ export default function ResearchLibrary() {
 
   const filteredPeptides =
     activeFilters.length === 0
-      ? PEPTIDE_PROFILES
-      : PEPTIDE_PROFILES.filter((peptide) =>
+      ? mergedProfiles
+      : mergedProfiles.filter((peptide) =>
           peptide.categories.some((cat) => activeFilters.includes(cat))
         );
 
@@ -295,6 +321,16 @@ export default function ResearchLibrary() {
                         {peptide.mechanism}
                       </Text>
                     </div>
+
+                    {/* Highlights */}
+                    {peptide.highlights?.trim() ? (
+                      <div className="mb-3">
+                        <Label className="mb-1.5 block text-carbon-600">Highlights</Label>
+                        <Text variant="caption" className="leading-relaxed text-carbon-700">
+                          {peptide.highlights}
+                        </Text>
+                      </div>
+                    ) : null}
 
                     {/* Evidence Note */}
                     <div className="mb-5 flex items-start gap-2 rounded-lg border border-carbon-900/10 bg-neutral-50 p-3">

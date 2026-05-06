@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Tag,
   TrendingDown,
+  Copy,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -20,6 +21,7 @@ import {
   getAllProductMappings,
   deleteProduct,
   updateProduct,
+  duplicateProduct,
 } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import ProductEditor from '../components/admin/ProductEditor';
@@ -65,6 +67,7 @@ export default function AdminProducts() {
   const [deleteTarget, setDeleteTarget] = useState<ProductMapping | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [bulkToggling, setBulkToggling] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -216,6 +219,23 @@ export default function AdminProducts() {
       );
     }
     void loadProducts();
+  };
+
+  const handleDuplicate = async (productId: string) => {
+    setDuplicatingId(productId);
+    try {
+      const r = await duplicateProduct(productId, getAdminSupabase());
+      if (r.success) {
+        showToast(`Duplicated as ${r.cfg_code ?? 'new product'} (inactive copy)`, 'success');
+        void loadProducts();
+      } else {
+        showToast(r.error || 'Duplicate failed', 'error');
+      }
+    } catch {
+      showToast('Duplicate failed', 'error');
+    } finally {
+      setDuplicatingId(null);
+    }
   };
 
   return (
@@ -531,6 +551,17 @@ export default function AdminProducts() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicate(product.id)}
+                              disabled={duplicatingId === product.id}
+                              className="inline-flex items-center gap-1"
+                              title="Duplicate product"
+                            >
+                              <Copy className="h-3 w-3" />
+                              Copy
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"

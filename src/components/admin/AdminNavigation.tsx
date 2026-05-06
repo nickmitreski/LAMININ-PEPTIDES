@@ -8,6 +8,8 @@ import {
   Tag,
   Wrench,
   LogOut,
+  BookOpen,
+  FolderOpen,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -40,6 +42,18 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Products',
     icon: LayoutDashboard,
     description: 'Manage products',
+  },
+  {
+    path: '/admin/collections',
+    label: 'Collections',
+    icon: FolderOpen,
+    description: 'Curated library groupings',
+  },
+  {
+    path: '/admin/research',
+    label: 'Research',
+    icon: BookOpen,
+    description: 'Peptide science copy overrides',
   },
   {
     path: '/admin/discounts',

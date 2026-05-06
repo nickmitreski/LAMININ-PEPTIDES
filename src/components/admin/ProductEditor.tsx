@@ -18,7 +18,13 @@ import {
   saveProductImage,
   setPrimaryProductImage,
   deleteProductImageRecord,
+  adminListAllCollections,
+  getCollectionIdsForProduct,
+  setProductCollections,
+  type Collection,
 } from '../../services/supabaseService';
+import { CFG_CODE_TO_PEPTIDE_ID } from '../../data/productMappings';
+import { getProductSlug } from '../../data/productContent';
 import {
   uploadProductImage,
   deleteProductImage,
@@ -53,6 +59,12 @@ interface Product {
   sale_label?: string | null;
   sort_order?: number;
   images?: ProductImage[];
+  overview_text?: string | null;
+  specifications_text?: string | null;
+  analytical_text?: string | null;
+  coa_link_url?: string | null;
+  product_type?: string | null;
+  bundle_items?: unknown;
 }
 
 interface ProductEditorProps {
@@ -88,6 +100,14 @@ export default function ProductEditor({
   const [sortOrder, setSortOrder] = useState('0');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [overviewText, setOverviewText] = useState('');
+  const [specificationsText, setSpecificationsText] = useState('');
+  const [analyticalText, setAnalyticalText] = useState('');
+  const [coaLinkUrl, setCoaLinkUrl] = useState('');
+  const [productType, setProductType] = useState<'standard' | 'bundle'>('standard');
+  const [bundleItemsJson, setBundleItemsJson] = useState('[]');
+  const [allCollections, setAllCollections] = useState<Collection[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
 
   const loadProduct = useCallback(async () => {
     setLoading(true);
@@ -127,6 +147,27 @@ export default function ProductEditor({
         setCompareAtPrice(prod.compare_at_price?.toString() || '');
         setSaleLabel(prod.sale_label || '');
         setSortOrder(prod.sort_order?.toString() || '0');
+        setOverviewText((result.product.overview_text as string | null) ?? '');
+        setSpecificationsText((result.product.specifications_text as string | null) ?? '');
+        setAnalyticalText((result.product.analytical_text as string | null) ?? '');
+        setCoaLinkUrl((result.product.coa_link_url as string | null) ?? '');
+        const pt =
+          result.product.product_type === 'bundle' ? 'bundle' : 'standard';
+        setProductType(pt);
+        const bi = result.product.bundle_items;
+        setBundleItemsJson(
+          bi != null ? JSON.stringify(bi, null, 2) : '[]'
+        );
+
+        const db = getAdminSupabase();
+        if (db) {
+          const [cols, mids] = await Promise.all([
+            adminListAllCollections(db),
+            getCollectionIdsForProduct(productId, db),
+          ]);
+          setAllCollections(cols);
+          setSelectedCollectionIds(mids);
+        }
       } else {
         setError(result.error || 'Failed to load product');
       }
@@ -157,6 +198,17 @@ export default function ProductEditor({
       const newStock = stockQuantity ? parseInt(stockQuantity) : undefined;
       const currentStock = product?.stock_quantity ?? 0;
       const stockChanged = newStock !== undefined && newStock !== currentStock;
+
+      let bundleParsed: unknown = [];
+      if (productType === 'bundle') {
+        try {
+          bundleParsed = JSON.parse(bundleItemsJson.trim() || '[]');
+        } catch {
+          setError('Bundle items must be valid JSON (array of {cfg_code, qty})');
+          setSaving(false);
+          return;
+        }
+      }
 
       // If stock changed, use adjust_inventory RPC for audit trail
       if (stockChanged && product?.cfg_code) {
@@ -194,11 +246,24 @@ export default function ProductEditor({
           sort_order: sortOrder ? parseInt(sortOrder) : 0,
           clear_compare_at_price: !compareAtPrice,
           clear_sale_label: !saleLabel,
+          overview_text: overviewText.trim() || null,
+          specifications_text: specificationsText.trim() || null,
+          analytical_text: analyticalText.trim() || null,
+          coa_link_url: coaLinkUrl.trim() || null,
+          clear_coa_link_url: !coaLinkUrl.trim(),
+          product_type: productType,
+          bundle_items: productType === 'bundle' ? bundleParsed : [],
         },
         db
       );
 
       if (result.success) {
+        const coll = await setProductCollections(productId, selectedCollectionIds, db);
+        if (!coll.success) {
+          setError(coll.error || 'Product saved but collections failed to update');
+          setSaving(false);
+          return;
+        }
         setSuccess('Product updated successfully!');
         setTimeout(() => {
           onSave();
@@ -326,7 +391,10 @@ export default function ProductEditor({
               </Text>
               {product?.peptide_name && (
                 <a
-                  href={`/products/${product.peptide_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                  href={`/products/${getProductSlug(
+                    CFG_CODE_TO_PEPTIDE_ID[product.cfg_code] ??
+                      product.cfg_code.toLowerCase()
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-accent-600 hover:text-accent-800 transition-colors"
@@ -564,6 +632,137 @@ export default function ProductEditor({
                     Track inventory
                   </span>
                 </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Storefront copy (PDP) */}
+          <div>
+            <Heading level={3} className="mb-4">
+              Storefront copy
+            </Heading>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Overview (plain text, line breaks preserved)
+                </label>
+                <textarea
+                  value={overviewText}
+                  onChange={(e) => setOverviewText(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm"
+                  placeholder="Shown in product overview when set"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Specifications (optional override)
+                </label>
+                <textarea
+                  value={specificationsText}
+                  onChange={(e) => setSpecificationsText(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Analytical verification copy
+                </label>
+                <textarea
+                  value={analyticalText}
+                  onChange={(e) => setAnalyticalText(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  External COA URL (optional)
+                </label>
+                <input
+                  type="url"
+                  value={coaLinkUrl}
+                  onChange={(e) => setCoaLinkUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm min-h-11"
+                  placeholder="https://…"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Bundle + collections */}
+          <div>
+            <Heading level={3} className="mb-4">
+              Product type &amp; collections
+            </Heading>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-carbon-700 mb-1">
+                  Type
+                </label>
+                <select
+                  value={productType}
+                  onChange={(e) =>
+                    setProductType(e.target.value as 'standard' | 'bundle')
+                  }
+                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent-500 min-h-11 text-base md:text-sm"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="bundle">Bundle</option>
+                </select>
+              </div>
+              {productType === 'bundle' ? (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-carbon-700 mb-1">
+                    Bundle items (JSON array)
+                  </label>
+                  <textarea
+                    value={bundleItemsJson}
+                    onChange={(e) => setBundleItemsJson(e.target.value)}
+                    rows={4}
+                    className="w-full font-mono text-sm px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    placeholder='[{"cfg_code":"CFG-031","qty":1}]'
+                  />
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-4">
+              <Text variant="small" weight="medium" className="mb-2 block text-carbon-700">
+                Collections
+              </Text>
+              <div className="max-h-40 overflow-y-auto rounded-sm border border-carbon-200 p-3 space-y-2">
+                {allCollections.length === 0 ? (
+                  <Text variant="caption" muted>
+                    No collections yet — create them under Admin → Collections.
+                  </Text>
+                ) : (
+                  allCollections.map((c) => (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 cursor-pointer text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCollectionIds.includes(c.id)}
+                        onChange={() =>
+                          setSelectedCollectionIds((prev) =>
+                            prev.includes(c.id)
+                              ? prev.filter((x) => x !== c.id)
+                              : [...prev, c.id]
+                          )
+                        }
+                        className="rounded border-carbon-300 text-accent-600"
+                      />
+                      <span>
+                        {c.name}{' '}
+                        <span className="text-carbon-500 font-mono text-xs">
+                          ({c.slug})
+                        </span>
+                      </span>
+                    </label>
+                  ))
+                )}
               </div>
             </div>
           </div>
