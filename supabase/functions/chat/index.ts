@@ -121,9 +121,25 @@ serve(async (req: Request) => {
     });
   }
 
-  // Throttle per IP to protect the OpenAI quota from abuse via the anon key.
+  let parsedBody: ChatRequest;
+  try {
+    parsedBody = (await req.json()) as ChatRequest;
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Throttle using IP + session when possible. Many edge paths report IP as
+  // "unknown", so a single shared bucket would 429 everyone at once.
   const clientIp = getClientIp(req);
-  if (!chatLimiter.check(clientIp)) {
+  const sid =
+    typeof parsedBody.sessionId === 'string' && parsedBody.sessionId.trim().length > 0
+      ? parsedBody.sessionId.trim()
+      : '';
+  const rateKey = sid ? `${clientIp}|${sid}` : clientIp;
+  if (!chatLimiter.check(rateKey)) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please slow down.' }),
       {
@@ -138,7 +154,7 @@ serve(async (req: Request) => {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    const { messages }: ChatRequest = await req.json();
+    const { messages } = parsedBody;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new Error('Invalid request: messages array required');
@@ -179,7 +195,7 @@ serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o-mini',
         messages: openAIMessages,
         max_tokens: 500, // Cap for concise responses
         temperature: 0.7,
@@ -188,7 +204,7 @@ serve(async (req: Request) => {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
+      console.error('OpenAI API error:', response.status, error);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 

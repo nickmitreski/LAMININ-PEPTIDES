@@ -20,6 +20,24 @@ export interface ChatResponse {
 }
 
 /**
+ * OpenAI chat completions expect alternating user/assistant turns; the first
+ * message after `system` must be from the user. Our UI injects a local-only
+ * welcome bubble — never forward that to the API.
+ */
+function toApiMessages(messages: ChatMessage[]): { role: 'user' | 'assistant'; content: string }[] {
+  const trimmed = messages.filter(
+    m =>
+      (m.role === 'user' || m.role === 'assistant') &&
+      typeof m.content === 'string' &&
+      m.content.trim().length > 0
+  );
+  while (trimmed.length > 0 && trimmed[0].role === 'assistant') {
+    trimmed.shift();
+  }
+  return trimmed.map(m => ({ role: m.role, content: m.content.trim() }));
+}
+
+/**
  * Send a chat message to the Laminin peptide assistant
  */
 export async function sendChatMessage(
@@ -31,9 +49,14 @@ export async function sendChatMessage(
       return { success: false, error: 'Supabase client not initialized' };
     }
 
+    const apiMessages = toApiMessages(messages);
+    if (apiMessages.length === 0) {
+      return { success: false, error: 'No message to send' };
+    }
+
     const { data, error } = await supabase.functions.invoke('chat', {
       body: {
-        messages: messages.map(m => ({ role: m.role, content: m.content })),
+        messages: apiMessages,
         sessionId,
       },
     });
