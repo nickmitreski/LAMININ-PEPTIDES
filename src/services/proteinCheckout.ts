@@ -80,8 +80,7 @@ function saveOrderReferenceLocal(payload: CheckoutPayload): void {
 export async function createOrderReferenceRecord(
   payload: CheckoutPayload
 ): Promise<{ supabaseRowId: string | null }> {
-  saveOrderReferenceLocal(payload);
-
+  // Persist to DB first — localStorage is a secondary cache.
   await createCustomer({
     email: payload.customer.email,
     first_name: payload.customer.first_name,
@@ -106,6 +105,9 @@ export async function createOrderReferenceRecord(
     protein_items: payload.protein_items,
     status: 'pending',
   });
+
+  // Save to localStorage after DB succeeds so we don't have local-only orders.
+  saveOrderReferenceLocal(payload);
 
   return { supabaseRowId: row?.id ?? null };
 }
@@ -268,8 +270,19 @@ export async function completeProteinCheckoutRedirect(
       } | null;
       const fromBody =
         json?.redirect_url ?? json?.checkout_url ?? json?.url;
+      // Validate the URL before using it — reject non-http(s) schemes and
+      // URLs that don't look like a real checkout page.
       if (fromBody && typeof fromBody === 'string') {
-        redirectUrl = fromBody;
+        try {
+          const parsed = new URL(fromBody);
+          if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+            redirectUrl = fromBody;
+          } else {
+            checkoutLog('Partner API returned non-HTTP URL, ignoring', fromBody);
+          }
+        } catch {
+          checkoutLog('Partner API returned invalid URL, ignoring', fromBody);
+        }
       }
     } else {
       checkoutLog('Protein API non-OK', res.status);

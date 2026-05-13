@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, Plus, RefreshCw } from 'lucide-react';
+import { FolderOpen, Plus, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
-import { adminListAllCollections, createCollectionRow, type Collection } from '../services/supabaseService';
+import { adminListAllCollections, createCollectionRow, updateCollectionRow, type Collection } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
@@ -23,6 +23,7 @@ export default function AdminCollections() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,11 +52,17 @@ export default function AdminCollections() {
       showToast('Name is required', 'error');
       return;
     }
+    const resolvedSlug = (slug.trim() || name.trim()).replace(/\s+/g, '-').toLowerCase();
+    // Check for duplicate slug before creating
+    if (list.some((c) => c.slug === resolvedSlug)) {
+      showToast(`A collection with slug "${resolvedSlug}" already exists`, 'error');
+      return;
+    }
     setCreating(true);
     try {
       const db = getAdminSupabase();
       const r = await createCollectionRow(db, {
-        slug: (slug.trim() || name.trim()).replace(/\s+/g, '-').toLowerCase(),
+        slug: resolvedSlug,
         name: name.trim(),
         description: description.trim() || undefined,
       });
@@ -72,6 +79,24 @@ export default function AdminCollections() {
       showToast('Failed', 'error');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleToggleActive = async (c: Collection) => {
+    setTogglingId(c.id);
+    try {
+      const db = getAdminSupabase();
+      const r = await updateCollectionRow(db, c.id, { is_active: !c.is_active });
+      if (r.success) {
+        showToast(`Collection ${c.is_active ? 'deactivated' : 'activated'}`, 'success');
+        void load();
+      } else {
+        showToast(r.error || 'Failed to update', 'error');
+      }
+    } catch {
+      showToast('Failed to update', 'error');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -149,20 +174,32 @@ export default function AdminCollections() {
                 {list.map((c) => (
                   <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                     <div>
-                      <span className="font-medium text-carbon-900">{c.name}</span>
+                      <span className={`font-medium ${c.is_active ? 'text-carbon-900' : 'text-carbon-400'}`}>{c.name}</span>
                       <span className="ml-2 font-mono text-xs text-carbon-500">{c.slug}</span>
                       {!c.is_active && (
                         <span className="ml-2 rounded-full bg-warning-muted px-2 py-0.5 text-xs">inactive</span>
                       )}
                     </div>
-                    <a
-                      href={`/collections/${encodeURIComponent(c.slug)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-accent-700 underline-offset-2 hover:underline"
-                    >
-                      View →
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(c)}
+                        disabled={togglingId === c.id}
+                        className="inline-flex items-center gap-1 rounded-sm border border-carbon-200 px-2 py-1 text-xs text-carbon-600 hover:bg-grey/30 disabled:opacity-50"
+                        title={c.is_active ? 'Deactivate' : 'Activate'}
+                      >
+                        {c.is_active ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        {c.is_active ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <a
+                        href={`/collections/${encodeURIComponent(c.slug)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-accent-700 underline-offset-2 hover:underline"
+                      >
+                        View →
+                      </a>
+                    </div>
                   </li>
                 ))}
               </ul>

@@ -341,6 +341,10 @@ deno_version = 2
 [functions.secure-checkout-init]
 verify_jwt = false
 
+# Public peptide chat: invoked from the storefront with anon key only (no logged-in user).
+[functions.chat]
+verify_jwt = false
+
 [functions.partner-payment-ready]
 verify_jwt = false
 

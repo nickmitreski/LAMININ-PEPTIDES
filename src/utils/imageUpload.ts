@@ -11,6 +11,8 @@ export interface UploadedImage {
 /**
  * Compress and resize image before upload
  */
+const COMPRESS_TIMEOUT_MS = 15_000;
+
 export async function compressImage(
   file: File,
   maxWidth: number = 1200,
@@ -18,6 +20,10 @@ export async function compressImage(
   quality: number = 0.8
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('Image compression timed out. Try a smaller image.'));
+    }, COMPRESS_TIMEOUT_MS);
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
@@ -46,6 +52,7 @@ export async function compressImage(
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
+          clearTimeout(timeout);
           reject(new Error('Could not get canvas context'));
           return;
         }
@@ -54,6 +61,7 @@ export async function compressImage(
 
         canvas.toBlob(
           (blob) => {
+            clearTimeout(timeout);
             if (blob) {
               resolve(blob);
             } else {
@@ -64,9 +72,15 @@ export async function compressImage(
           quality
         );
       };
-      img.onerror = () => reject(new Error('Could not load image'));
+      img.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error('Could not load image'));
+      };
     };
-    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onerror = () => {
+      clearTimeout(timeout);
+      reject(new Error('Could not read file'));
+    };
   });
 }
 
@@ -158,20 +172,21 @@ export async function deleteProductImage(storagePath: string): Promise<void> {
 export async function uploadMultipleImages(
   files: File[],
   productId: string,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number, failedNames?: string[]) => void
 ): Promise<UploadedImage[]> {
   const results: UploadedImage[] = [];
+  const failedNames: string[] = [];
 
   for (let i = 0; i < files.length; i++) {
     try {
       const result = await uploadProductImage(files[i], productId);
       results.push(result);
-      if (onProgress) {
-        onProgress(i + 1, files.length);
-      }
     } catch (error) {
       console.error(`Failed to upload ${files[i].name}:`, error);
-      // Continue with other files
+      failedNames.push(files[i].name);
+    }
+    if (onProgress) {
+      onProgress(i + 1, files.length, failedNames.length > 0 ? failedNames : undefined);
     }
   }
 

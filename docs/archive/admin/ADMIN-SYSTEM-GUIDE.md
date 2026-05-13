@@ -602,7 +602,7 @@ localStorage.getItem('laminin-admin-supabase-auth');
 
 ### Contact:
 
-- **Email:** info@lamininpeptab.com.au
+- **Email:** info@lamininpeplab.com.au
 - **Supabase Support:** https://supabase.com/dashboard/support
 
 ---

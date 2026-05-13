@@ -4,6 +4,8 @@
 // resolve dynamically based on the incoming request origin.
 
 const ALLOWED_ORIGINS = new Set([
+  'https://lamininpeplab.com.au',
+  'https://www.lamininpeplab.com.au',
   'https://laminpeptides.com.au',
   'https://www.laminpeptides.com.au',
   'https://lamininpeptab.com.au',

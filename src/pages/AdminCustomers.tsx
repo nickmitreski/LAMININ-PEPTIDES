@@ -21,7 +21,6 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import {
   getAllCustomers,
-  getAllOrders,
   deleteCustomerAndOrders,
   adminUpdateCustomer,
   type OrderReferenceRow,
@@ -105,11 +104,53 @@ export default function AdminCustomers() {
     setOrdersLoading(true);
     try {
       const db = getAdminSupabase();
-      const allOrders = await getAllOrders(500, 0, db);
-      const filtered = allOrders.filter(
-        (o) => o.customer_email?.toLowerCase() === email.toLowerCase()
-      );
-      setCustomerOrders(filtered);
+      if (!db) {
+        showToast('Database not configured', 'error');
+        return;
+      }
+      // Query orders for this specific customer directly instead of loading all
+      const { data, error } = await db
+        .from('payment_tracking')
+        .select('*')
+        .eq('customer_email', email)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const mapped: OrderReferenceRow[] = (data ?? []).map((row: Record<string, unknown>) => ({
+        id: String(row.id),
+        peptide_order_id: String(row.order_reference ?? ''),
+        protein_store_order_id: null,
+        status: String(row.payment_status ?? 'pending') as OrderReferenceRow['status'],
+        customer_email: String(row.customer_email ?? ''),
+        customer_name: String(row.customer_name ?? ''),
+        customer_first_name: null,
+        customer_last_name: null,
+        customer_phone: (row.customer_phone as string) ?? null,
+        customer_address: null,
+        customer_city: null,
+        customer_state: null,
+        customer_postcode: null,
+        customer_country: null,
+        total_price: Number(row.total_amount ?? 0),
+        peptide_items: row.cart_items,
+        protein_items: null,
+        discount_code: (row.discount_code as string) ?? null,
+        discount_amount: Number(row.discount_amount ?? 0),
+        notes: (row.admin_notes as string) ?? null,
+        payment_status: String(row.payment_status ?? 'pending'),
+        payment_viewed_at: (row.payment_viewed_at as string) ?? null,
+        payment_completed_at: (row.payment_completed_at as string) ?? null,
+        cart_items: Array.isArray(row.cart_items) ? row.cart_items as OrderReferenceRow['cart_items'] : [],
+        subtotal: Number(row.subtotal ?? 0),
+        shipping: Number(row.shipping ?? 0),
+        tax: Number(row.tax ?? 0),
+        currency: String(row.currency ?? 'AUD'),
+        created_at: String(row.created_at),
+        updated_at: String(row.updated_at),
+      }));
+      setCustomerOrders(mapped);
     } catch {
       showToast('Failed to load customer orders', 'error');
     } finally {

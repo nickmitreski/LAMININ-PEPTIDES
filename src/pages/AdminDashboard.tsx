@@ -183,6 +183,7 @@ export default function AdminDashboard() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   // Payment data is now embedded in order rows (from payment_tracking table)
   const isMountedRef = useRef(true);
 
@@ -196,7 +197,7 @@ export default function AdminDashboard() {
       try {
         const db = getAdminSupabase();
         const [data, freshCounts] = await Promise.all([
-          getAllOrders(ORDERS_PAGE_SIZE, 0, db),
+          getAllOrders(ORDERS_PAGE_SIZE, page * ORDERS_PAGE_SIZE, db),
           getOrderCounts(db),
         ]);
         if (!isMountedRef.current) return;
@@ -213,7 +214,8 @@ export default function AdminDashboard() {
         }
       }
     },
-    [showToast]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [showToast, page]
   );
 
   useEffect(() => {
@@ -226,23 +228,57 @@ export default function AdminDashboard() {
     };
   }, [loadOrders, authReady]);
 
-  // Auto-refresh: every 60s + when the tab regains focus.
+  // Realtime subscription: listen for any changes to payment_tracking table.
+  // Falls back to periodic polling if realtime is unavailable.
   useEffect(() => {
+    const db = getAdminSupabase();
+    let channel: ReturnType<NonNullable<typeof db>['channel']> | null = null;
+    let interval: number | undefined;
+
+    if (db) {
+      channel = db
+        .channel('admin-orders-realtime')
+        .on(
+          'postgres_changes' as 'system',
+          { event: '*', schema: 'public', table: 'payment_tracking' } as Record<string, unknown>,
+          () => {
+            void loadOrders({ silent: true });
+          }
+        )
+        .subscribe((status: string) => {
+          if (status !== 'SUBSCRIBED') {
+            // Realtime not available — fall back to polling
+            if (!interval) {
+              interval = window.setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                  void loadOrders({ silent: true });
+                }
+              }, AUTO_REFRESH_INTERVAL_MS);
+            }
+          }
+        });
+    } else {
+      // No DB — poll only
+      interval = window.setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          void loadOrders({ silent: true });
+        }
+      }, AUTO_REFRESH_INTERVAL_MS);
+    }
+
+    // Also refresh on tab focus
     const onFocus = () => {
       if (document.visibilityState === 'visible') {
         void loadOrders({ silent: true });
       }
     };
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        void loadOrders({ silent: true });
-      }
-    }, AUTO_REFRESH_INTERVAL_MS);
-    window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onFocus);
+
     return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
+      if (channel) {
+        void db?.removeChannel(channel);
+      }
+      if (interval) window.clearInterval(interval);
       document.removeEventListener('visibilitychange', onFocus);
     };
   }, [loadOrders]);
@@ -260,8 +296,29 @@ export default function AdminDashboard() {
         return;
       }
 
+      // Conflict detection: re-fetch the row to check if another admin changed it
+      const { data: freshRow, error: fetchErr } = await db
+        .from('payment_tracking')
+        .select('updated_at, payment_status')
+        .eq('id', order.id)
+        .single();
+
+      if (fetchErr || !freshRow) {
+        showToast('Could not verify order state. Please refresh.', 'error');
+        return;
+      }
+
+      if (freshRow.updated_at !== order.updated_at) {
+        showToast(
+          `This order was modified by another admin (status is now "${freshRow.payment_status}"). Refreshing…`,
+          'error',
+          5000
+        );
+        void loadOrders({ silent: true });
+        return;
+      }
+
       // "Paid" must go through mark_payment_received + notify-payment-received (SMS).
-      // The row dropdown used to call updateOrderStatus only, which skipped SMS.
       if (newStatus === 'payment_received') {
         const m = await markPaymentReceived(order.id, adminUser?.email ?? 'admin', null, db);
         if (!m.success) {
@@ -481,7 +538,8 @@ export default function AdminDashboard() {
   };
 
   const loadedShown = orders.length;
-  const hasMore = counts.total > loadedShown;
+  const totalPages = Math.max(1, Math.ceil(counts.total / ORDERS_PAGE_SIZE));
+  const hasMore = page + 1 < totalPages;
   const selectedCount = selectedIds.size;
 
   return (
@@ -507,9 +565,9 @@ export default function AdminDashboard() {
               </span>
             )}
             <span className="text-xs text-carbon-600">
-              Showing <strong>{loadedShown}</strong> of{' '}
-              <strong>{counts.total}</strong>
-              {hasMore && ' (paginated)'}
+              Page <strong>{page + 1}</strong> of{' '}
+              <strong>{totalPages}</strong>{' '}
+              ({counts.total} total)
             </span>
             <Button
               variant="outline"
@@ -817,6 +875,31 @@ export default function AdminDashboard() {
             </div>
           )}
         </Card>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0 || loading}
+            >
+              Previous
+            </Button>
+            <Text variant="small" muted>
+              Page {page + 1} of {totalPages}
+            </Text>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={!hasMore || loading}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </Section>
 
       {selectedOrder && (

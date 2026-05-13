@@ -53,8 +53,8 @@ export async function validateDiscountCode(
   });
 
   if (error) {
-    console.error('[discount] validate error', error);
-    return { valid: false, error: 'Could not validate code' };
+    console.error('[discount] validate error', error.message, error.code);
+    return { valid: false, error: `Could not validate code (${error.code ?? 'network'})` };
   }
 
   return data as DiscountValidation;
@@ -77,8 +77,8 @@ export async function redeemDiscountCode(params: {
   });
 
   if (error) {
-    console.error('[discount] redeem error', error);
-    return { success: false, error: 'Could not redeem discount' };
+    console.error('[discount] redeem error', error.message, error.code);
+    return { success: false, error: `Could not redeem discount (${error.code ?? 'network'})` };
   }
 
   const result = data as { success?: boolean; error?: string };
@@ -97,19 +97,22 @@ export async function redeemDiscountCode(params: {
 export async function getAllDiscountCodes(
   client: SupabaseClient | null = supabase
 ): Promise<DiscountCode[]> {
-  if (!client) return [];
+  if (!client) {
+    console.error('[discount] getAllDiscountCodes: no client');
+    return [];
+  }
 
   const { data, error } = await client
     .from('discount_codes')
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (error || !data) {
-    console.error('[discount] getAllDiscountCodes', error);
+  if (error) {
+    console.error('[discount] getAllDiscountCodes failed:', error.message, error.code);
     return [];
   }
 
-  return data as DiscountCode[];
+  return (data ?? []) as DiscountCode[];
 }
 
 /** Admin: Create a new discount code */

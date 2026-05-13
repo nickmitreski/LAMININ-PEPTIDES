@@ -112,12 +112,20 @@ export default function ResearchLibrary() {
   );
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [overrides, setOverrides] = useState<Record<string, ResearchProfileOverrideRow>>({});
+  const [overrideError, setOverrideError] = useState(false);
 
   useEffect(() => {
     let c = false;
     void (async () => {
-      const m = await fetchResearchProfileOverrides();
-      if (!c) setOverrides(m);
+      try {
+        const m = await fetchResearchProfileOverrides();
+        if (!c) {
+          setOverrides(m);
+          setOverrideError(false);
+        }
+      } catch {
+        if (!c) setOverrideError(true);
+      }
     })();
     return () => {
       c = true;
@@ -170,6 +178,17 @@ export default function ResearchLibrary() {
           ]}
         />
       </Section>
+
+      {overrideError && (
+        <Section background="white" spacing="sm" className="!pt-2 !pb-0">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex items-center gap-2 rounded-sm border border-warning-border bg-warning-light px-4 py-2 text-sm text-warning-text">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              Some research data could not be loaded. You may be seeing default profiles.
+            </div>
+          </div>
+        </Section>
+      )}
 
       {/* Research Notice */}
       <Section background="white" spacing="sm" className="!pt-2">

@@ -127,9 +127,12 @@ export default function ProductPage() {
   const staticPriceLine = variants?.length && effectiveVariantId
     ? getDisplayPriceForVariant(peptide.id, effectiveVariantId)
     : getDisplayPriceForPeptide(peptide.id);
-  // Fall back to DB price for products created via admin (not in static pricing files)
+  // DB price is authoritative (admin can change it); fall back to static only
+  // when the product hasn't been onboarded to the database yet.
   const dbPrice = getDbPrice(peptide.id);
-  const priceLine = staticPriceLine ?? (dbPrice ? `$${dbPrice.toFixed(2)}` : null);
+  const priceLine = dbPrice != null
+    ? `$${dbPrice.toFixed(2)}`
+    : staticPriceLine ?? null;
 
   const coaDownload = getCoaDownload(
     peptide.id,
@@ -137,10 +140,10 @@ export default function ProductPage() {
   );
   const headline = getProductHeadline(peptide.id, peptide.name);
   const liquidAncillary = isLiquidAncillaryPeptide(peptide.id);
-  const price = getNumericPriceForVariantOrPeptide(
+  const price = dbPrice ?? getNumericPriceForVariantOrPeptide(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined
-  ) ?? dbPrice;
+  );
   const displayImage = resolveDisplayImage(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined,

@@ -41,10 +41,13 @@ function userToAdminUser(user: User): AdminUser {
   return { email: user.email ?? '', name };
 }
 
+const LOGIN_COOLDOWN_MS = 2_000;
+
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AdminUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [lastLoginAttempt, setLastLoginAttempt] = useState(0);
 
   const applySessionUser = useCallback(async (sessionUser: User | null) => {
     if (sessionUser && isSupabaseAdminUser(sessionUser)) {
@@ -96,6 +99,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [applySessionUser]);
 
   const login = async (email: string, password: string): Promise<AdminLoginResult> => {
+    // Basic client-side rate limit to prevent rapid-fire attempts
+    const now = Date.now();
+    if (now - lastLoginAttempt < LOGIN_COOLDOWN_MS) {
+      return { ok: false, code: 'invalid_credentials' };
+    }
+    setLastLoginAttempt(now);
+
     const sb = getAdminSupabase();
     if (!sb) {
       return { ok: false, code: 'not_configured' };

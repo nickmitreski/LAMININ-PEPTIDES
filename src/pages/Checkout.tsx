@@ -193,7 +193,23 @@ export default function Checkout() {
       const grandTotal = state.total + shipping + tax - discountAmount;
       const orderRef = generateOrderReference();
 
-      // Create payment tracking record (includes discount info)
+      // --- Step 1: Redeem discount FIRST (if applied) so the code is locked
+      // before the order is created. If redemption fails, we stop here.
+      if (appliedDiscount?.valid && appliedDiscount.discount_code_id) {
+        const redeemResult = await redeemDiscountCode({
+          discountCodeId: appliedDiscount.discount_code_id,
+          orderReference: orderRef,
+          customerEmail: formData.email.trim() || undefined,
+          discountAmount,
+        });
+        if (!redeemResult.success) {
+          throw new Error(
+            `Discount code could not be applied: ${redeemResult.error || 'unknown error'}. Please try again or remove the discount.`
+          );
+        }
+      }
+
+      // --- Step 2: Create payment tracking record (includes discount info)
       const result = await createPaymentTracking({
         orderReference: orderRef,
         customerEmail: formData.email.trim() || '',
@@ -226,11 +242,12 @@ export default function Checkout() {
         throw new Error(result.error || 'Failed to create order');
       }
 
-      // Create/update customer record (non-blocking — don't fail checkout).
-      // PostgrestBuilder is a PromiseLike (no .catch), so use .then with the result envelope.
+      // --- Step 3: Non-critical operations (don't block checkout on failure)
+
+      // Create/update customer record
       if (supabase && formData.email.trim()) {
-        void supabase
-          .rpc('upsert_checkout_customer', {
+        try {
+          const { error } = await supabase.rpc('upsert_checkout_customer', {
             p_email: formData.email.trim(),
             p_first_name: formData.firstName.trim(),
             p_last_name: formData.lastName.trim(),
@@ -241,34 +258,19 @@ export default function Checkout() {
             p_postcode: formData.postcode,
             p_country: formData.country,
             p_order_total: grandTotal,
-          })
-          .then(({ error }) => {
-            if (error) console.error('Customer upsert failed:', error);
           });
-      }
-
-      // Redeem discount code if one was applied (must succeed or we surface it — count stays in sync)
-      if (appliedDiscount?.valid && appliedDiscount.discount_code_id) {
-        const redeemResult = await redeemDiscountCode({
-          discountCodeId: appliedDiscount.discount_code_id,
-          orderReference: orderRef,
-          customerEmail: formData.email.trim() || undefined,
-          discountAmount,
-        });
-        if (!redeemResult.success) {
-          console.error('Discount redemption failed:', redeemResult.error);
-          showToast(
-            `Order created, but we could not register your discount (${redeemResult.error || 'unknown'}). Note your order reference ${orderRef} — contact us if needed.`,
-            'error',
-            10000
-          );
+          if (error) console.error('Customer upsert failed:', error);
+        } catch (err) {
+          console.error('Customer upsert exception:', err);
         }
       }
 
-      // Mark that customer will view payment instructions
-      await markPaymentInstructionsViewed(orderRef);
+      // Mark that customer will view payment instructions (non-blocking)
+      markPaymentInstructionsViewed(orderRef).catch((err) =>
+        console.error('Mark instructions viewed failed:', err)
+      );
 
-      // Payment instructions email + optional admin WhatsApp (via Edge Function — don't fail checkout)
+      // Payment instructions email + optional admin WhatsApp (non-blocking)
       sendOrderEmail({
         orderReference: orderRef,
         customerEmail: formData.email.trim() || undefined,

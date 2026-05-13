@@ -312,14 +312,14 @@ Currently not implemented. See "Rate Limiting (TODO)" above.
 ## Support
 
 For questions or issues:
-- Email: info@lamininpeptab.com.au
-- Phone: +61 4 1234 5678
+- Email: info@lamininpeplab.com.au
+- Prefer the website **Contact** page for operational questions; do not publish a support phone in docs unless it is a real, monitored number.
 
 ---
 
 **Deployment Checklist:**
 
-- [ ] Edge function deployed: `supabase functions deploy chat`
+- [ ] Edge function deployed: `supabase functions deploy chat --no-verify-jwt --project-ref YOUR_PROJECT_REF`
 - [ ] OpenAI API key set: `supabase secrets set OPENAI_API_KEY=...`
 - [ ] Site deployed to Vercel/hosting
 - [ ] Chat launcher visible on all pages

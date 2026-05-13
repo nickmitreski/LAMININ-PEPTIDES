@@ -42,44 +42,58 @@ async function extractEdgeFunctionDetail(error: unknown): Promise<string | null>
  * Send payment instruction email via the send-order-email edge function.
  * Non-blocking — checkout succeeds even if the email fails.
  */
-export async function sendOrderEmail(params: SendOrderEmailParams): Promise<{
+export async function sendOrderEmail(
+  params: SendOrderEmailParams,
+  maxAttempts = 2
+): Promise<{
   success: boolean;
   error?: string;
 }> {
-  try {
-    if (!supabase) {
-      console.warn('Supabase not configured — skipping order email');
-      return { success: false, error: 'Supabase not configured' };
-    }
-
-    const { data, error } = await supabase.functions.invoke('send-order-email', {
-      body: {
-        order_reference: params.orderReference,
-        customer_email: params.customerEmail ?? '',
-        customer_name: params.customerName,
-        customer_phone: params.customerPhone ?? '',
-        total_amount: params.totalAmount,
-        currency: params.currency || 'AUD',
-      },
-    });
-
-    if (error) {
-      const detail = await extractEdgeFunctionDetail(error);
-      console.error('Edge function error (send-order-email):', error.message, { detail });
-      return { success: false, error: detail || error.message };
-    }
-
-    return {
-      success: data?.ok === true,
-      error: data?.error || undefined,
-    };
-  } catch (err) {
-    console.error('Failed to send order email:', err);
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Unknown error',
-    };
+  if (!supabase) {
+    console.warn('Supabase not configured — skipping order email');
+    return { success: false, error: 'Supabase not configured' };
   }
+
+  let lastError: string | undefined;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-order-email', {
+        body: {
+          order_reference: params.orderReference,
+          customer_email: params.customerEmail ?? '',
+          customer_name: params.customerName,
+          customer_phone: params.customerPhone ?? '',
+          total_amount: params.totalAmount,
+          currency: params.currency || 'AUD',
+        },
+      });
+
+      if (error) {
+        const detail = await extractEdgeFunctionDetail(error);
+        lastError = detail || error.message;
+        console.error(`Edge function error (send-order-email) attempt ${attempt + 1}:`, error.message, { detail });
+        // Retry on transient failures
+        if (attempt < maxAttempts - 1) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return { success: false, error: lastError };
+      }
+
+      return {
+        success: data?.ok === true,
+        error: data?.error || undefined,
+      };
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : 'Unknown error';
+      console.error(`Failed to send order email attempt ${attempt + 1}:`, err);
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+    }
+  }
+  return { success: false, error: lastError };
 }
 
 /**

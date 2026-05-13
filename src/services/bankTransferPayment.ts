@@ -38,6 +38,22 @@ export async function createPaymentTracking(
     if (!supabase) {
       return { success: false, error: 'Supabase client not initialized' };
     }
+
+    // Guard against accidental overwrites: if a record with this order reference
+    // already exists and is past the pending state, don't upsert over it.
+    const { data: existing } = await supabase
+      .from('payment_tracking')
+      .select('id, payment_status')
+      .eq('order_reference', data.orderReference)
+      .maybeSingle();
+
+    if (existing && existing.payment_status !== 'pending') {
+      return {
+        success: false,
+        error: `Order ${data.orderReference} already exists with status "${existing.payment_status}".`,
+      };
+    }
+
     const { data: result, error } = await supabase.rpc('upsert_payment_tracking', {
       p_order_reference: data.orderReference,
       p_customer_email: data.customerEmail,

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -35,7 +36,7 @@ type ShopImagesContextValue = {
   ) => string;
   /** Resolve sale info for a given peptide, or null if not on sale. */
   resolveSaleInfo: (peptideId: string) => SaleInfo | null;
-  /** Check if a product is active in the database (defaults true if not found). */
+  /** Check if a product is active in the database. */
   isProductActive: (peptideId: string) => boolean;
   /** Get live DB price for a product, or null if not available. */
   getDbPrice: (peptideId: string) => number | null;
@@ -55,67 +56,91 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   const [saleInfoMap, setSaleInfoMap] = useState<Record<string, SaleInfo>>({});
   const [liveProductMap, setLiveProductMap] = useState<Record<string, LiveProductInfo>>({});
   const [dbOnlyProducts, setDbOnlyProducts] = useState<Peptide[]>([]);
+  /** True once the live catalog has been fetched at least once — before that we
+   *  fall back to showing all static products so the page isn't blank. */
+  const [catalogLoaded, setCatalogLoaded] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const [imageMap, saleByCfg, catalogByCfg] = await Promise.all([
-          fetchShopPrimaryImageOverrides(),
-          fetchProductSaleInfo(),
-          fetchLiveProductCatalog(),
-        ]);
-        if (!cancelled) {
-          setOverrideByPeptideId(imageMap);
+  const cancelRef = useRef(false);
 
-          // Map CFG-code-keyed sale data to peptide IDs
-          const mappedSale: Record<string, SaleInfo> = {};
-          for (const [cfgCode, info] of Object.entries(saleByCfg)) {
-            const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
-            if (pid) mappedSale[pid] = info;
-          }
-          setSaleInfoMap(mappedSale);
+  /** Fetch all product data from Supabase and update state.
+   *  `showLoading` controls whether the loading spinner appears (false for
+   *  silent background refreshes on tab-focus). */
+  const loadCatalog = useCallback(async (showLoading: boolean) => {
+    cancelRef.current = false;
+    if (showLoading) setLoading(true);
+    try {
+      const [imageMap, saleByCfg, catalogByCfg] = await Promise.all([
+        fetchShopPrimaryImageOverrides(),
+        fetchProductSaleInfo(),
+        fetchLiveProductCatalog(),
+      ]);
+      if (cancelRef.current) return;
 
-          // Map CFG-code-keyed live product data to peptide IDs
-          const mappedLive: Record<string, LiveProductInfo> = {};
-          const staticPeptideIds = new Set(allPeptides.map((p) => p.id));
-          const knownCfgCodes = new Set(Object.values(PEPTIDE_ID_TO_CFG));
-          const newDbProducts: Peptide[] = [];
+      setOverrideByPeptideId(imageMap);
 
-          for (const [cfgCode, info] of Object.entries(catalogByCfg)) {
-            const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
-            if (pid) {
-              mappedLive[pid] = info;
-            } else if (!knownCfgCodes.has(cfgCode) && info.isActive) {
-              // DB-only product — not in static catalog. Create a Peptide entry.
-              const syntheticId = cfgCode.toLowerCase();
-              if (!staticPeptideIds.has(syntheticId)) {
-                const primaryImage = imageMap[syntheticId] ?? '/images/products/purity.png';
-                newDbProducts.push({
-                  id: syntheticId,
-                  name: info.name,
-                  category: 'Healing' as LibraryTheme,
-                  libraryFilters: ['Healing'] as LibraryTheme[],
-                  purity: '99%+',
-                  coaVerified: false,
-                  image: primaryImage,
-                });
-                mappedLive[syntheticId] = info;
-              }
-            }
-          }
-          setLiveProductMap(mappedLive);
-          setDbOnlyProducts(newDbProducts);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+      // Map CFG-code-keyed sale data to peptide IDs
+      const mappedSale: Record<string, SaleInfo> = {};
+      for (const [cfgCode, info] of Object.entries(saleByCfg)) {
+        const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
+        if (pid) mappedSale[pid] = info;
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      setSaleInfoMap(mappedSale);
+
+      // Map CFG-code-keyed live product data to peptide IDs
+      const mappedLive: Record<string, LiveProductInfo> = {};
+      const staticPeptideIds = new Set(allPeptides.map((p) => p.id));
+      const knownCfgCodes = new Set(Object.values(PEPTIDE_ID_TO_CFG));
+      const newDbProducts: Peptide[] = [];
+
+      for (const [cfgCode, info] of Object.entries(catalogByCfg)) {
+        const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
+        if (pid) {
+          mappedLive[pid] = info;
+        } else if (!knownCfgCodes.has(cfgCode) && info.isActive) {
+          // DB-only product — not in static catalog. Create a Peptide entry.
+          const syntheticId = cfgCode.toLowerCase();
+          if (!staticPeptideIds.has(syntheticId)) {
+            const primaryImage = imageMap[syntheticId] ?? '/images/products/purity.png';
+            newDbProducts.push({
+              id: syntheticId,
+              name: info.name,
+              category: 'Healing' as LibraryTheme,
+              libraryFilters: ['Healing'] as LibraryTheme[],
+              purity: '99%+',
+              coaVerified: false,
+              image: primaryImage,
+            });
+            mappedLive[syntheticId] = info;
+          }
+        }
+      }
+      setLiveProductMap(mappedLive);
+      setDbOnlyProducts(newDbProducts);
+      setCatalogLoaded(true);
+    } finally {
+      if (!cancelRef.current) setLoading(false);
+    }
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    void loadCatalog(true);
+    return () => {
+      cancelRef.current = true;
+    };
+  }, [loadCatalog]);
+
+  // Re-fetch silently when the tab regains focus (picks up admin changes like
+  // product deletions, price edits, or new products).
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && catalogLoaded) {
+        void loadCatalog(false);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [loadCatalog, catalogLoaded]);
 
   const resolveDisplayImage = useCallback(
     (
@@ -144,10 +169,13 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   const isProductActive = useCallback(
     (peptideId: string): boolean => {
       const info = liveProductMap[peptideId];
-      // Default to true if not found in DB (fallback to static catalog)
-      return info ? info.isActive : true;
+      if (info) return info.isActive;
+      // Before the catalog loads, show all static products so the page isn't
+      // blank. After the catalog loads, a missing entry means the product was
+      // deleted or never created in the DB — treat as inactive.
+      return !catalogLoaded;
     },
-    [liveProductMap]
+    [liveProductMap, catalogLoaded]
   );
 
   const getDbPrice = useCallback(

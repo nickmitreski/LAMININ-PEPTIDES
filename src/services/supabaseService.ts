@@ -1272,6 +1272,25 @@ export async function createCollectionRow(
   return { success: true, id: data.id as string };
 }
 
+export async function updateCollectionRow(
+  client: SupabaseClient | null,
+  id: string,
+  updates: { name?: string; description?: string | null; is_active?: boolean; sort_order?: number }
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+  const payload: Record<string, unknown> = {};
+  if (updates.name !== undefined) payload.name = updates.name.trim();
+  if (updates.description !== undefined) payload.description = updates.description;
+  if (updates.is_active !== undefined) payload.is_active = updates.is_active;
+  if (updates.sort_order !== undefined) payload.sort_order = updates.sort_order;
+  const { error } = await client.from('collections').update(payload).eq('id', id);
+  if (error) {
+    console.error('[supabase] updateCollectionRow', error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
 export async function setProductCollections(
   productId: string,
   collectionIds: string[],

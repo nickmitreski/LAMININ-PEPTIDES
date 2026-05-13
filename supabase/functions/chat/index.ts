@@ -7,6 +7,10 @@ import { createRateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
+/** Canonical public storefront (must match live DNS / index.html). */
+const PUBLIC_SITE_ORIGIN = 'https://lamininpeplab.com.au';
+const CONTACT_EMAIL = 'info@lamininpeplab.com.au';
+
 // Per-IP throttle so a stolen anon key can't burn the OpenAI quota in a loop.
 // Tuned for a real chatbot user: a burst of a few questions, then a pause.
 const chatLimiter = createRateLimiter({
@@ -55,7 +59,7 @@ ${profiles}
 
 - **Shipping:** Express Australia-wide with tracking; orders dispatch next business day
 - **COA:** Certificate of Analysis available for all products on the COA page
-- **Contact:** Website contact form at /contact and email info@lamininpeptab.com.au — do not invent phone numbers or alternate contacts
+- **Contact:** Website contact form at /contact and email ${CONTACT_EMAIL} — do not invent phone numbers or alternate contacts
 - **Products:** Research-grade peptides for laboratory use only
 - **Purity Guarantee:** All products meet strict quality standards with third-party verification
 `.trim();
@@ -68,12 +72,13 @@ ${profiles}
 const SYSTEM_PROMPT = `You are a helpful research assistant for Laminin Peptide Lab, an Australian peptide supplier.
 
 ## ORDERING (STRICT)
+- The live storefront is ${PUBLIC_SITE_ORIGIN}. Do not mention other domain spellings (e.g. old typos); if unsure, say to use the site’s Contact page.
 - Describe ordering ONLY as: browse the compound library or product pages → add items to cart → open checkout → follow the on-screen payment / bank-transfer instructions.
 - For questions like “how do I order from Laminin”, give those steps. Do NOT invent phone order lines, retail store addresses, SMS ordering, or third-party marketplaces.
-- If operational detail is not explicitly in the knowledge base or brand facts, say you are not certain and direct the user to https://lamininpeptab.com.au/contact (or “the site’s Contact page”) and FAQ instead of guessing.
+- If operational detail is not explicitly in the knowledge base or brand facts, say you are not certain and direct the user to ${PUBLIC_SITE_ORIGIN}/contact (or “the site’s Contact page”) and FAQ instead of guessing.
 
 ## CONTACT (STRICT)
-- Primary human contact paths: the website Contact page and email info@lamininpeptab.com.au.
+- Primary human contact paths: the website Contact page and email ${CONTACT_EMAIL}.
 - Never provide a phone number unless it appears verbatim in the knowledge base below (there is no public phone placeholder).
 
 ## YOUR ROLE

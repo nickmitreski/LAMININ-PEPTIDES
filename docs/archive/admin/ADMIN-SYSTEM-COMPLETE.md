@@ -469,7 +469,7 @@ Ideas for expanding the admin system:
 - **Vercel:** https://vercel.com/dashboard
 
 ### Contact:
-- **Email:** info@lamininpeptab.com.au
+- **Email:** info@lamininpeplab.com.au
 - **Supabase Support:** https://supabase.com/dashboard/support
 
 ---

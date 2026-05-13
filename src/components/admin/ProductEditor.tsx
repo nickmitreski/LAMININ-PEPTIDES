@@ -30,6 +30,7 @@ import {
   deleteProductImage,
   validateImageFile,
 } from '../../utils/imageUpload';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import Button from '../ui/Button';
 import { Heading, Text } from '../ui/Typography';
 import Card from '../ui/Card';
@@ -78,6 +79,7 @@ export default function ProductEditor({
   onClose,
   onSave,
 }: ProductEditorProps) {
+  const { user: adminUser } = useAdminAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -202,7 +204,31 @@ export default function ProductEditor({
       let bundleParsed: unknown = [];
       if (productType === 'bundle') {
         try {
-          bundleParsed = JSON.parse(bundleItemsJson.trim() || '[]');
+          const parsed = JSON.parse(bundleItemsJson.trim() || '[]');
+          if (!Array.isArray(parsed)) {
+            setError('Bundle items must be a JSON array');
+            setSaving(false);
+            return;
+          }
+          for (let i = 0; i < parsed.length; i++) {
+            const item = parsed[i];
+            if (!item || typeof item !== 'object') {
+              setError(`Bundle item ${i + 1}: must be an object`);
+              setSaving(false);
+              return;
+            }
+            if (typeof item.cfg_code !== 'string' || !item.cfg_code.trim()) {
+              setError(`Bundle item ${i + 1}: missing or invalid "cfg_code" (string required)`);
+              setSaving(false);
+              return;
+            }
+            if (item.qty !== undefined && (typeof item.qty !== 'number' || item.qty < 1)) {
+              setError(`Bundle item ${i + 1}: "qty" must be a positive number`);
+              setSaving(false);
+              return;
+            }
+          }
+          bundleParsed = parsed;
         } catch {
           setError('Bundle items must be valid JSON (array of {cfg_code, qty})');
           setSaving(false);
@@ -218,7 +244,7 @@ export default function ProductEditor({
           p_quantity_change: delta,
           p_transaction_type: 'adjustment',
           p_notes: `Stock set to ${newStock} via Product Editor`,
-          p_admin_email: null,
+          p_admin_email: adminUser?.email ?? null,
         });
         if (invError) {
           setError(`Inventory adjustment failed: ${invError.message}`);
@@ -349,17 +375,27 @@ export default function ProductEditor({
     if (!confirm('Delete this image? This cannot be undone.')) return;
 
     try {
-      // Delete from database
+      // Delete from storage first — if this fails we still have the DB record
+      // to retry later. The reverse (DB first) orphans the storage file.
+      try {
+        await deleteProductImage(storagePath);
+      } catch (storageErr) {
+        console.error('Storage delete failed, aborting image removal:', storageErr);
+        setError('Could not delete image file from storage. Please try again.');
+        return;
+      }
+
+      // Storage succeeded — now remove the DB record
       const result = await deleteProductImageRecord(imageId, getAdminSupabase());
 
       if (result.success) {
-        // Delete from storage
-        await deleteProductImage(storagePath);
         await loadProduct();
         setSuccess('Image deleted!');
         setTimeout(() => setSuccess(null), 2000);
       } else {
-        setError(result.error || 'Failed to delete image');
+        // Storage file gone but DB record remains — log for manual cleanup
+        console.error('DB image record delete failed after storage delete:', result.error);
+        setError('Image file deleted but record removal failed. Refresh to retry.');
       }
     } catch (err) {
       setError('An error occurred');

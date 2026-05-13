@@ -15,6 +15,7 @@ import { AdminAuthProvider } from './context/AdminAuthContext';
 import EntryGate from './components/entry/EntryGate';
 import ChatLauncher from './components/chat/ChatLauncher';
 import { ShopImagesProvider } from './context/ShopImagesContext';
+import AdminErrorBoundary from './components/admin/AdminErrorBoundary';
 
 const Home = lazy(() => import('./pages/Home'));
 const Library = lazy(() => import('./pages/Library'));
@@ -62,7 +63,9 @@ function App() {
                   path="/admin/dashboard"
                   element={
                     <ProtectedRoute>
-                      <AdminDashboard />
+                      <AdminErrorBoundary pageName="Orders">
+                        <AdminDashboard />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -70,7 +73,9 @@ function App() {
                   path="/admin/products"
                   element={
                     <ProtectedRoute>
-                      <AdminProducts />
+                      <AdminErrorBoundary pageName="Products">
+                        <AdminProducts />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -79,7 +84,9 @@ function App() {
                   path="/admin/inventory"
                   element={
                     <ProtectedRoute>
-                      <AdminInventory />
+                      <AdminErrorBoundary pageName="Inventory">
+                        <AdminInventory />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -87,7 +94,9 @@ function App() {
                   path="/admin/discounts"
                   element={
                     <ProtectedRoute>
-                      <AdminDiscounts />
+                      <AdminErrorBoundary pageName="Discounts">
+                        <AdminDiscounts />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -95,7 +104,9 @@ function App() {
                   path="/admin/customers"
                   element={
                     <ProtectedRoute>
-                      <AdminCustomers />
+                      <AdminErrorBoundary pageName="Customers">
+                        <AdminCustomers />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -103,7 +114,9 @@ function App() {
                   path="/admin/emails"
                   element={
                     <ProtectedRoute>
-                      <AdminEmails />
+                      <AdminErrorBoundary pageName="Emails">
+                        <AdminEmails />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -111,7 +124,9 @@ function App() {
                   path="/admin/tools"
                   element={
                     <ProtectedRoute>
-                      <AdminTools />
+                      <AdminErrorBoundary pageName="Tools">
+                        <AdminTools />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -119,7 +134,9 @@ function App() {
                   path="/admin/research"
                   element={
                     <ProtectedRoute>
-                      <AdminResearch />
+                      <AdminErrorBoundary pageName="Research">
+                        <AdminResearch />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -127,7 +144,9 @@ function App() {
                   path="/admin/collections"
                   element={
                     <ProtectedRoute>
-                      <AdminCollections />
+                      <AdminErrorBoundary pageName="Collections">
+                        <AdminCollections />
+                      </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
                 />

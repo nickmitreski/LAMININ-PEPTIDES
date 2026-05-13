@@ -32,6 +32,7 @@ export default function CreateProductModal({
   const [category, setCategory] = useState('');
   const [stockQuantity, setStockQuantity] = useState('0');
   const [isActive, setIsActive] = useState(true);
+  const [cfgSuggestionFailed, setCfgSuggestionFailed] = useState(false);
 
   // Auto-suggest CFG code
   useEffect(() => {
@@ -39,8 +40,10 @@ export default function CreateProductModal({
       try {
         const suggested = await suggestNextCfgCode(getAdminSupabase());
         setCfgCode(suggested);
+        setCfgSuggestionFailed(false);
       } catch {
         setCfgCode('CFG-001');
+        setCfgSuggestionFailed(true);
       }
     };
     void loadSuggestion();
@@ -146,6 +149,12 @@ export default function CreateProductModal({
                   className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 font-mono"
                   placeholder="CFG-001"
                 />
+                {cfgSuggestionFailed && (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-warning-text">
+                    <AlertCircle className="h-3 w-3" />
+                    Auto-suggest unavailable — verify this code isn't already in use.
+                  </p>
+                )}
               </div>
 
               <div>

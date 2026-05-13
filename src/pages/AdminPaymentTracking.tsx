@@ -9,7 +9,8 @@ import Section from '../components/layout/Section';
 import { Heading, Text } from '../components/ui/Typography';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import { CheckCircle2, Clock, Eye, Package, RefreshCw, Trash2, Archive } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { CheckCircle2, Clock, Eye, Package, RefreshCw, Trash2, Archive, AlertTriangle } from 'lucide-react';
 
 interface PaymentTracking {
   id: string;
@@ -39,6 +40,8 @@ export default function AdminPaymentTracking() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ id: string; type: 'archive' | 'delete' } | null>(null);
+  const { showToast } = useToast();
 
   const handleLogout = () => {
     logout();
@@ -77,7 +80,7 @@ export default function AdminPaymentTracking() {
       setProcessingId(id);
       const supabase = getAdminSupabase();
       if (!supabase) {
-        alert('Supabase client not initialized');
+        showToast('Supabase client not initialized', 'error');
         return;
       }
       const m = await markPaymentReceived(id, adminUser?.email ?? 'admin', null, supabase);
@@ -86,66 +89,49 @@ export default function AdminPaymentTracking() {
       }
       await fetchPayments();
       if (m.notifySmsError) {
-        alert(`Payment marked as received. SMS was not sent: ${m.notifySmsError}`);
+        showToast(`Payment saved. SMS not sent: ${m.notifySmsError}`, 'error');
       } else if (m.notifySmsSkipped && m.notifySmsSkipReason === 'no_phone') {
-        alert('Payment marked as received. No customer phone on file — SMS skipped.');
+        showToast('Marked paid. No customer phone — SMS skipped.', 'success');
+      } else {
+        showToast('Payment marked as received.', 'success');
       }
     } catch (err) {
       console.error('Error marking as paid:', err);
-      alert('Failed to mark as paid: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      showToast('Failed to mark as paid: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
     } finally {
       setProcessingId(null);
     }
   };
 
-  const archivePayment = async (id: string) => {
-    if (!confirm('Archive this completed payment? It will be moved to the payment records archive.')) {
-      return;
-    }
-
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+    const { id, type } = confirmAction;
     try {
       setProcessingId(id);
       const supabase = getAdminSupabase();
       if (!supabase) {
-        alert('Supabase client not initialized');
+        showToast('Supabase client not initialized', 'error');
         return;
       }
-      const { error } = await supabase.rpc('archive_payment', {
-        p_tracking_id: id,
-        p_admin_email: 'admin@laminin.com', // TODO: Get from auth context
-      });
-
-      if (error) throw error;
-      await fetchPayments();
-    } catch (err) {
-      console.error('Error archiving payment:', err);
-      alert('Failed to archive: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const deletePayment = async (id: string) => {
-    if (!confirm('Delete this payment tracking record? This cannot be undone.')) {
-      return;
-    }
-
-    try {
-      setProcessingId(id);
-      const supabase = getAdminSupabase();
-      if (!supabase) {
-        alert('Supabase client not initialized');
-        return;
+      if (type === 'archive') {
+        const { error } = await supabase.rpc('archive_payment', {
+          p_tracking_id: id,
+          p_admin_email: adminUser?.email ?? 'admin',
+        });
+        if (error) throw error;
+        showToast('Payment archived', 'success');
+      } else {
+        const { error } = await supabase.rpc('admin_delete_payment_tracking', {
+          p_tracking_id: id,
+        });
+        if (error) throw error;
+        showToast('Payment deleted', 'success');
       }
-      const { error } = await supabase.rpc('admin_delete_payment_tracking', {
-        p_tracking_id: id,
-      });
-
-      if (error) throw error;
+      setConfirmAction(null);
       await fetchPayments();
     } catch (err) {
-      console.error('Error deleting payment:', err);
-      alert('Failed to delete: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      console.error(`Error ${confirmAction.type} payment:`, err);
+      showToast(`Failed to ${confirmAction.type}: ` + (err instanceof Error ? err.message : 'Unknown error'), 'error');
     } finally {
       setProcessingId(null);
     }
@@ -395,7 +381,7 @@ export default function AdminPaymentTracking() {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => archivePayment(payment.id)}
+                        onClick={() => setConfirmAction({ id: payment.id, type: 'archive' })}
                         disabled={processingId === payment.id}
                         className="inline-flex items-center gap-1.5"
                       >
@@ -407,7 +393,7 @@ export default function AdminPaymentTracking() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deletePayment(payment.id)}
+                      onClick={() => setConfirmAction({ id: payment.id, type: 'delete' })}
                       disabled={processingId === payment.id}
                       className="inline-flex items-center gap-1.5 text-error hover:bg-error-light"
                     >
@@ -421,6 +407,70 @@ export default function AdminPaymentTracking() {
           </div>
         )}
       </Section>
+
+      {/* Confirm archive/delete modal */}
+      {confirmAction && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => !processingId && setConfirmAction(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-error-muted">
+                <AlertTriangle className="h-5 w-5 text-error" />
+              </div>
+              <div>
+                <Heading level={3} className="mb-1">
+                  {confirmAction.type === 'archive' ? 'Archive this payment?' : 'Delete this payment?'}
+                </Heading>
+                <Text variant="small" className="text-carbon-600">
+                  {confirmAction.type === 'archive'
+                    ? 'This payment will be moved to the archive.'
+                    : 'This will permanently remove the payment tracking record. This cannot be undone.'}
+                </Text>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmAction(null)}
+                disabled={!!processingId}
+              >
+                Cancel
+              </Button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmAction()}
+                disabled={!!processingId}
+                className="inline-flex items-center justify-center rounded-sm bg-error px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-error-dark disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {processingId ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Processing…
+                  </>
+                ) : confirmAction.type === 'archive' ? (
+                  <>
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

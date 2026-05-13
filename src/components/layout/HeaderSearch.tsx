@@ -48,7 +48,7 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
   const runSearch = () => {
     const trimmed = query.trim();
     if (!trimmed) {
-      navigate('/library');
+      navigate('/search');
       onClose();
       return;
     }
@@ -106,8 +106,8 @@ export default function HeaderSearch({ isOpen, onClose }: HeaderSearchProps) {
             />
           </div>
           <Text variant="caption" muted className="block text-center leading-snug">
-            Press Enter to search the full site — or jump straight to a product
-            if only one name matches.
+            Press Enter for site-wide search (library, COA, research, pages) — or
+            jump straight to a product if only one name matches.
           </Text>
         </form>
       </div>

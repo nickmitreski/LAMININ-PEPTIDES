@@ -48,3 +48,4 @@ DOCUMENTATION-*.md
 DOCUMENTATION/
 credentials.md
 design-notes/
+.vercel
