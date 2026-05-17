@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import usePaymentTrackingRealtime from '../hooks/usePaymentTrackingRealtime';
 import { useNavigate } from 'react-router-dom';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -48,9 +49,9 @@ export default function AdminPaymentTracking() {
     navigate('/admin/login');
   };
 
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async (opts?: { silent?: boolean }) => {
     try {
-      setLoading(true);
+      if (!opts?.silent) setLoading(true);
       const supabase = getAdminSupabase();
       if (!supabase) {
         console.error('Supabase client not initialized');
@@ -67,13 +68,18 @@ export default function AdminPaymentTracking() {
     } catch (err) {
       console.error('Error fetching payments:', err);
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchPayments();
-  }, []);
+    void fetchPayments();
+  }, [fetchPayments]);
+
+  // Live updates so when one admin marks an order paid, the other sees it instantly.
+  usePaymentTrackingRealtime(
+    useCallback(() => fetchPayments({ silent: true }), [fetchPayments])
+  );
 
   const markAsPaid = async (id: string) => {
     try {

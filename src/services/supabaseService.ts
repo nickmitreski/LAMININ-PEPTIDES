@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { appendImageCacheVersion } from '../lib/imageUrl';
 import { supabase } from '../lib/supabase';
+import { logAdminAction } from './auditLog';
 import {
   PRODUCT_MAPPINGS,
   type ProductMapping,
@@ -24,7 +25,6 @@ export interface OrderReferenceRow {
   id: string;
   /** Order reference string e.g. "LM-8Q7PBP" */
   peptide_order_id: string;
-  protein_store_order_id: string | null;
   status: OrderStatus;
   customer_email: string | null;
   customer_name: string | null;
@@ -88,7 +88,7 @@ function normalizeCartItems(raw: unknown): CartLine[] {
 }
 
 /** Shape of a raw row from the payment_tracking table (admin list / map helpers). */
-interface PaymentTrackingDbRow {
+export interface PaymentTrackingDbRow {
   id: string;
   order_reference: string;
   payment_status: string;
@@ -111,14 +111,14 @@ interface PaymentTrackingDbRow {
   updated_at: string;
 }
 
-/** Map a raw payment_tracking DB row to the normalised OrderReferenceRow shape. */
-function paymentRowToOrder(row: PaymentTrackingDbRow): OrderReferenceRow {
+/** Map a raw payment_tracking DB row to the normalised OrderReferenceRow shape.
+ *  Exported for unit testing — also used internally by getAllOrders / getOrderById. */
+export function paymentRowToOrder(row: PaymentTrackingDbRow): OrderReferenceRow {
   const addr = row.customer_address as Record<string, string> | null;
   const cartItems = normalizeCartItems(row.cart_items);
   return {
     id: row.id,
     peptide_order_id: row.order_reference,
-    protein_store_order_id: null,
     status: row.payment_status as OrderStatus,
     customer_email: row.customer_email,
     customer_name: row.customer_name,
@@ -131,7 +131,26 @@ function paymentRowToOrder(row: PaymentTrackingDbRow): OrderReferenceRow {
     customer_postcode: addr?.postcode ?? null,
     customer_country: addr?.country ?? null,
     total_price: row.total_amount,
-    peptide_items: row.cart_items,
+    // Normalise items to the field shape OrderDetailsModal reads
+    // (cfg_code, peptide_display_name, unit_price, line_total) while keeping
+    // the original {id,name,price,quantity} keys for back-compat.
+    peptide_items: Array.isArray(row.cart_items)
+      ? (row.cart_items as Array<Record<string, unknown>>).map((o) => {
+          const quantity = Number(o.quantity) || 0;
+          const unit_price = Number(o.price) || 0;
+          return {
+            cfg_code: String(o.id ?? ''),
+            peptide_display_name: String(o.name ?? ''),
+            quantity,
+            unit_price,
+            line_total: unit_price * quantity,
+            image: typeof o.image === 'string' ? o.image : undefined,
+            id: o.id,
+            name: o.name,
+            price: o.price,
+          };
+        })
+      : row.cart_items,
     protein_items: null,
     discount_code: row.discount_code ?? null,
     discount_amount: row.discount_amount ?? null,
@@ -260,9 +279,19 @@ export async function getOrderStatus(
 export async function updateOrderStatus(
   orderReference: string,
   status: OrderStatus,
-  client: SupabaseClient | null = supabase
+  client: SupabaseClient | null = supabase,
+  opts?: { note?: string }
 ): Promise<boolean> {
   if (!client) return false;
+
+  // Snapshot previous status for the audit log. Failure to snapshot doesn't
+  // block the update — the order_status_history trigger still logs the
+  // from→to transition independently.
+  const { data: existing } = await client
+    .from('payment_tracking')
+    .select('id, payment_status')
+    .eq('order_reference', orderReference)
+    .maybeSingle();
 
   const updates: Record<string, unknown> = {
     payment_status: status,
@@ -278,7 +307,21 @@ export async function updateOrderStatus(
     .update(updates)
     .eq('order_reference', orderReference);
 
-  return !error;
+  if (error) return false;
+
+  await logAdminAction(
+    {
+      action: `order.status.${status}`,
+      target_table: 'payment_tracking',
+      target_id: existing?.id ?? orderReference,
+      before: existing ? { payment_status: existing.payment_status } : null,
+      after: { payment_status: status },
+      note: opts?.note,
+    },
+    client
+  );
+
+  return true;
 }
 
 export async function createCustomer(
@@ -308,6 +351,79 @@ export async function createCustomer(
   return data.id as string;
 }
 
+/**
+ * Admin: cancel an order. Sets status → cancelled and writes an audit row
+ * carrying the operator's reason. Optionally records refund intent via the
+ * `refunded` flag in the audit `after` payload (we don't yet have a dedicated
+ * payments/refunds table — see SUPABASE_SCHEMA_AUDIT.md for the long-term
+ * plan). The order_status_history trigger logs the transition independently.
+ *
+ * Returns { success } so callers can show a toast. Never throws.
+ */
+export async function cancelOrder(
+  orderId: string,
+  opts: { reason: string; refunded?: boolean },
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No client' };
+  const reason = opts.reason.trim();
+  if (!reason) return { success: false, error: 'A reason is required.' };
+
+  const { data: existing, error: readErr } = await client
+    .from('payment_tracking')
+    .select('id, order_reference, payment_status, admin_notes')
+    .eq('id', orderId)
+    .maybeSingle();
+  if (readErr || !existing) {
+    return { success: false, error: readErr?.message ?? 'Order not found.' };
+  }
+  if (existing.payment_status === 'cancelled') {
+    return { success: false, error: 'Order is already cancelled.' };
+  }
+
+  // Append the cancellation reason to admin_notes so it surfaces in the modal
+  // without needing a new column.
+  const tag = opts.refunded ? 'CANCELLED + REFUND' : 'CANCELLED';
+  const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const noteLine = `[${stamp}] ${tag}: ${reason}`;
+  const nextNotes = existing.admin_notes
+    ? `${existing.admin_notes}\n${noteLine}`
+    : noteLine;
+
+  const { error: updErr } = await client
+    .from('payment_tracking')
+    .update({
+      payment_status: 'cancelled',
+      admin_notes: nextNotes,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId);
+
+  if (updErr) {
+    console.error('[supabase] cancelOrder', updErr);
+    return { success: false, error: updErr.message };
+  }
+
+  await logAdminAction(
+    {
+      action: opts.refunded ? 'order.refund' : 'order.cancel',
+      target_table: 'payment_tracking',
+      target_id: orderId,
+      before: {
+        payment_status: existing.payment_status,
+      },
+      after: {
+        payment_status: 'cancelled',
+        refunded: !!opts.refunded,
+      },
+      note: reason,
+    },
+    client
+  );
+
+  return { success: true };
+}
+
 /** Admin: Get all orders from payment_tracking (paginated). */
 export async function getAllOrders(
   limit = 50,
@@ -328,6 +444,122 @@ export async function getAllOrders(
   }
 
   return (data as PaymentTrackingDbRow[]).map(paymentRowToOrder);
+}
+
+/** Admin: Get a single order by its payment_tracking row id. */
+export async function getOrderById(
+  id: string,
+  client: SupabaseClient | null = supabase
+): Promise<OrderReferenceRow | null> {
+  if (!client) return null;
+  const { data, error } = await client
+    .from('payment_tracking')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error || !data) {
+    if (error) console.error('[supabase] getOrderById', error);
+    return null;
+  }
+  return paymentRowToOrder(data as PaymentTrackingDbRow);
+}
+
+/** Admin: Get a single order by its order_reference (e.g. "LM-ABC123"). */
+export async function getOrderByReference(
+  reference: string,
+  client: SupabaseClient | null = supabase
+): Promise<OrderReferenceRow | null> {
+  if (!client) return null;
+  const { data, error } = await client
+    .from('payment_tracking')
+    .select('*')
+    .eq('order_reference', reference)
+    .maybeSingle();
+  if (error || !data) {
+    if (error) console.error('[supabase] getOrderByReference', error);
+    return null;
+  }
+  return paymentRowToOrder(data as PaymentTrackingDbRow);
+}
+
+export interface RecentEmailFailure {
+  id: string;
+  order_reference: string | null;
+  recipient_email: string | null;
+  email_type: string | null;
+  status: string;
+  error_message: string | null;
+  created_at: string;
+}
+
+/**
+ * Count + return the most recent failed email_logs rows so the admin
+ * dashboard can flag silent send failures. Returns empty list / 0 when the
+ * table doesn't exist or RLS denies access.
+ *
+ * `hours` defines the lookback window (default 72 — covers a long weekend).
+ */
+export async function getRecentEmailFailures(
+  hours = 72,
+  client: SupabaseClient | null = supabase,
+  limit = 10
+): Promise<{ rows: RecentEmailFailure[]; count: number }> {
+  if (!client) return { rows: [], count: 0 };
+  const sinceIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+  const { data, error, count } = await client
+    .from('email_logs')
+    .select(
+      'id, order_reference, recipient_email, email_type, status, error_message, created_at',
+      { count: 'exact' }
+    )
+    .eq('status', 'failed')
+    .gte('created_at', sinceIso)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) {
+    if (error.code === '42P01' || /relation .* does not exist/.test(error.message ?? '')) {
+      return { rows: [], count: 0 };
+    }
+    console.warn('[supabase] getRecentEmailFailures', error);
+    return { rows: [], count: 0 };
+  }
+  return { rows: (data as RecentEmailFailure[]) ?? [], count: count ?? data?.length ?? 0 };
+}
+
+export interface OrderStatusHistoryRow {
+  id: string;
+  order_id: string;
+  from_status: string | null;
+  to_status: string;
+  actor: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+/**
+ * Admin: status timeline for a single order. Returns [] gracefully if the
+ * `order_status_history` table doesn't yet exist on the live project (i.e.
+ * the 20260517120000 migration hasn't been applied yet).
+ */
+export async function getOrderStatusHistory(
+  orderId: string,
+  client: SupabaseClient | null = supabase
+): Promise<OrderStatusHistoryRow[]> {
+  if (!client) return [];
+  const { data, error } = await client
+    .from('order_status_history')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    // PostgREST returns "PGRST205"/42P01-ish when the relation is missing.
+    if (error.code === '42P01' || /relation .* does not exist/.test(error.message ?? '')) {
+      return [];
+    }
+    console.error('[supabase] getOrderStatusHistory', error);
+    return [];
+  }
+  return (data as OrderStatusHistoryRow[]) ?? [];
 }
 
 export interface OrderCounts {
@@ -490,6 +722,17 @@ export async function adminUpdateCustomer(
   if (r?.success === false) {
     return { success: false, error: r.error || 'Update failed' };
   }
+
+  await logAdminAction(
+    {
+      action: 'customer.edit',
+      target_table: 'customers',
+      target_id: customerId,
+      after: patch,
+    },
+    client
+  );
+
   return { success: true };
 }
 
@@ -511,12 +754,25 @@ export async function deleteCustomerAndOrders(
   });
 
   if (!error && data) {
-    return data as {
+    const result = data as {
       success: boolean;
       error?: string;
       orders_deleted?: number;
       notes_deleted?: number;
     };
+    if (result.success) {
+      await logAdminAction(
+        {
+          action: 'customer.delete',
+          target_table: 'customers',
+          target_id: customerEmail,
+          before: { email: customerEmail },
+          note: `Deleted customer and ${result.orders_deleted ?? 0} orders`,
+        },
+        client
+      );
+    }
+    return result;
   }
 
   // Fallback: direct table deletes (handles 404 when RPC function is missing)
@@ -546,6 +802,17 @@ export async function deleteCustomerAndOrders(
       return { success: false, error: custErr.message };
     }
 
+    await logAdminAction(
+      {
+        action: 'customer.delete',
+        target_table: 'customers',
+        target_id: customerEmail,
+        before: { email: customerEmail },
+        note: `Direct fallback delete; ${ptCount ?? 0} payment_tracking rows removed`,
+      },
+      client
+    );
+
     return {
       success: true,
       orders_deleted: ptCount ?? 0,
@@ -567,6 +834,14 @@ export async function deleteOrder(
 }> {
   if (!client) return { success: false, error: 'No database client' };
 
+  // Snapshot the order so the audit log has the "before" state — DELETE
+  // wipes the row irrecoverably, so this is the only chance to capture it.
+  const { data: existing } = await client
+    .from('payment_tracking')
+    .select('id, order_reference, customer_email, customer_name, payment_status, total_amount, currency')
+    .eq('id', orderId)
+    .maybeSingle();
+
   const { error } = await client
     .from('payment_tracking')
     .delete()
@@ -576,6 +851,17 @@ export async function deleteOrder(
     console.error('[supabase] deleteOrder', error);
     return { success: false, error: error.message };
   }
+
+  await logAdminAction(
+    {
+      action: 'order.delete',
+      target_table: 'payment_tracking',
+      target_id: orderId,
+      before: existing ?? null,
+      after: null,
+    },
+    client
+  );
 
   return { success: true };
 }
@@ -727,7 +1013,19 @@ export async function updateProduct(
     return { success: false, error: error.message };
   }
 
-  return data as { success: boolean; error?: string };
+  const result = data as { success: boolean; error?: string };
+  if (result.success) {
+    await logAdminAction(
+      {
+        action: 'product.edit',
+        target_table: 'product_mappings',
+        target_id: productId,
+        after: updates,
+      },
+      client
+    );
+  }
+  return result;
 }
 
 /** Admin: Save product image record */
@@ -965,6 +1263,17 @@ export async function markPaymentReceived(
     return { success: false, error: error.message };
   }
 
+  await logAdminAction(
+    {
+      action: 'order.mark_paid',
+      target_table: 'payment_tracking',
+      target_id: trackingId,
+      after: { payment_status: 'payment_received' },
+      note: notes ?? `via ${adminEmail}`,
+    },
+    client
+  );
+
   try {
     const { data, error: fnError } = await client.functions.invoke('notify-payment-received', {
       body: { tracking_id: trackingId },
@@ -1076,6 +1385,17 @@ export async function createProduct(
   }
 
   const r = result as { success: boolean; product_id?: string; cfg_code?: string; error?: string };
+  if (r.success && r.product_id) {
+    await logAdminAction(
+      {
+        action: 'product.create',
+        target_table: 'product_mappings',
+        target_id: r.product_id,
+        after: { cfg_code: data.cfg_code, peptide_name: data.peptide_name, price: data.price },
+      },
+      client
+    );
+  }
   return r;
 }
 
@@ -1084,6 +1404,13 @@ export async function deleteProduct(
   client: SupabaseClient | null
 ): Promise<{ success: boolean; error?: string }> {
   if (!client) return { success: false, error: 'No client' };
+
+  // Snapshot product for audit log before the RPC wipes it.
+  const { data: existing } = await client
+    .from('product_mappings')
+    .select('cfg_code, peptide_name, protein_name, price, is_active')
+    .eq('id', productId)
+    .maybeSingle();
 
   const { data: result, error } = await client.rpc('delete_product', {
     p_product_id: productId,
@@ -1095,6 +1422,20 @@ export async function deleteProduct(
   }
 
   const r = result as { success: boolean; error?: string };
+
+  if (r.success) {
+    await logAdminAction(
+      {
+        action: 'product.delete',
+        target_table: 'product_mappings',
+        target_id: productId,
+        before: existing ?? null,
+        after: null,
+      },
+      client
+    );
+  }
+
   return r;
 }
 

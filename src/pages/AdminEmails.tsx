@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useToast } from '../context/ToastContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
 import { Heading, Text } from '../components/ui/Typography';
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 import Card from '../components/ui/Card';
 import Skeleton from '../components/ui/Skeleton';
 import {
@@ -101,6 +103,7 @@ export default function AdminEmails() {
   useDocumentTitle("Email Management", "View email logs and manage templates.");
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
+  const { showToast } = useToast();
 
   /* ---- state ---- */
   const [tab, setTab] = useState<Tab>('logs');
@@ -202,7 +205,7 @@ export default function AdminEmails() {
       fetchTemplates();
     } catch (err) {
       console.error('Error saving template:', err);
-      alert('Failed to save template');
+      showToast('Failed to save template', 'error');
     } finally {
       setSavingTemplate(false);
     }
@@ -231,7 +234,7 @@ export default function AdminEmails() {
       }
     } catch (err) {
       console.error('Error creating template:', err);
-      alert('Failed to create template');
+      showToast('Failed to create template', 'error');
     } finally {
       setSavingTemplate(false);
     }
@@ -640,31 +643,30 @@ export default function AdminEmails() {
       </Section>
 
       {/* ============== TEMPLATE EDITOR MODAL ============== */}
-      {editingTemplate && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-carbon-900/60 px-4"
-          role="presentation"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setEditingTemplate(null);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-sm border border-carbon-900/15 bg-white p-6 shadow-xl sm:p-8"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <Heading level={4}>Edit template</Heading>
+      <Modal
+        open={!!editingTemplate}
+        onClose={() => !savingTemplate && setEditingTemplate(null)}
+        aria-label="Edit email template"
+        disableBackdropClose={savingTemplate}
+        disableEscClose={savingTemplate}
+        backdropClassName="bg-carbon-900/60 px-4"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col rounded-sm border border-carbon-900/15 bg-white shadow-xl"
+      >
+        {editingTemplate && (
+          <>
+            <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-carbon-900/10 bg-white px-4 py-3 sm:px-6 sm:py-4">
+              <Heading level={4} className="truncate">Edit template</Heading>
               <button
                 type="button"
                 onClick={() => setEditingTemplate(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-sm text-carbon-900 hover:bg-neutral-100"
+                className="shrink-0 flex h-8 w-8 items-center justify-center rounded-sm text-carbon-900 hover:bg-neutral-100"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
             <div className="space-y-4">
               {/* Template name */}
               <div>
@@ -740,25 +742,28 @@ export default function AdminEmails() {
               )}
             </div>
 
-            {/* Actions */}
-            <div className="mt-6 flex items-center justify-end gap-3 border-t border-carbon-900/10 pt-6">
-              <Button variant="outline" size="sm" onClick={() => setEditingTemplate(null)}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={saveTemplate}
-                disabled={savingTemplate}
-                className="flex items-center gap-2"
-              >
-                <Save className="h-4 w-4" />
-                {savingTemplate ? 'Saving...' : 'Save template'}
-              </Button>
             </div>
-          </div>
-        </div>
-      )}
+            {/* Actions */}
+            <div className="shrink-0 border-t border-carbon-900/10 bg-carbon-50 px-4 py-3 sm:px-6 sm:py-4">
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Button variant="outline" size="sm" onClick={() => setEditingTemplate(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={saveTemplate}
+                  disabled={savingTemplate}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {savingTemplate ? 'Saving...' : 'Save template'}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

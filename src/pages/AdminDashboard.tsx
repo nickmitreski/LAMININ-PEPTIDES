@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import usePersistedState from '../hooks/usePersistedState';
+import usePaymentTrackingRealtime from '../hooks/usePaymentTrackingRealtime';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Package,
   ShoppingCart,
@@ -18,13 +20,17 @@ import {
   ArrowDown,
   Download,
   Check,
+  ExternalLink,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
+import { resendOrderInstructionsEmail } from '../services/emailService';
 import {
+  cancelOrder,
   getAllOrders,
   getOrderCounts,
+  getRecentEmailFailures,
   markPaymentReceived,
   updateOrderStatus,
   deleteOrder,
@@ -70,14 +76,26 @@ const EMPTY_COUNTS: OrderCounts = {
   cancelled: 0,
 };
 
+// Each status pairs colour + a leading dot tone so paid/delivered (both green)
+// remain visually distinct.
 const STATUS_BADGE_COLORS: Record<OrderStatus, string> = {
   pending: 'bg-warning-muted text-warning-text border-warning-border',
   viewed_instructions: 'bg-blue-100 text-blue-800 border-blue-200',
   payment_received: 'bg-success-muted text-success-text border-success-border',
   processing: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   shipped: 'bg-purple-100 text-purple-800 border-purple-200',
-  delivered: 'bg-success-muted text-success-text border-success-border',
+  delivered: 'bg-emerald-100 text-emerald-900 border-emerald-300',
   cancelled: 'bg-error-muted text-error-text border-error-border',
+};
+
+const STATUS_DOT_COLORS: Record<OrderStatus, string> = {
+  pending: 'bg-warning',
+  viewed_instructions: 'bg-blue-600',
+  payment_received: 'bg-success',
+  processing: 'bg-indigo-600',
+  shipped: 'bg-purple-600',
+  delivered: 'bg-emerald-700',
+  cancelled: 'bg-error',
 };
 
 /** Human-readable labels for status values */
@@ -94,8 +112,12 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 function StatusBadge({ status }: { status: OrderStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${STATUS_BADGE_COLORS[status]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${STATUS_BADGE_COLORS[status]}`}
     >
+      <span
+        aria-hidden="true"
+        className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT_COLORS[status]}`}
+      />
       {STATUS_LABELS[status] ?? status}
     </span>
   );
@@ -174,12 +196,21 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<StatusFilter>('all');
-  const [sortKey, setSortKey] = useState<SortKey>('date');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  // Filter/sort preferences persist across reloads so admins don't lose context.
+  const [filterStatus, setFilterStatus] = usePersistedState<StatusFilter>(
+    'admin.orders.filterStatus',
+    'all'
+  );
+  const [sortKey, setSortKey] = usePersistedState<SortKey>('admin.orders.sortKey', 'date');
+  const [sortDir, setSortDir] = usePersistedState<SortDir>('admin.orders.sortDir', 'desc');
   const [selectedOrder, setSelectedOrder] = useState<OrderReferenceRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<OrderReferenceRow | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkMarkPaidOpen, setBulkMarkPaidOpen] = useState(false);
+  const [bulkMarking, setBulkMarking] = useState(false);
+  const [emailFailureCount, setEmailFailureCount] = useState<number>(0);
+  // Banner can be dismissed for the rest of the session.
+  const [emailBannerDismissed, setEmailBannerDismissed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -214,7 +245,6 @@ export default function AdminDashboard() {
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [showToast, page]
   );
 
@@ -222,66 +252,22 @@ export default function AdminDashboard() {
     isMountedRef.current = true;
     if (authReady) {
       void loadOrders();
+      // Side fetch — count recent email failures so we can surface a banner.
+      void (async () => {
+        const { count } = await getRecentEmailFailures(72, getAdminSupabase());
+        if (isMountedRef.current) setEmailFailureCount(count);
+      })();
     }
     return () => {
       isMountedRef.current = false;
     };
   }, [loadOrders, authReady]);
 
-  // Realtime subscription: listen for any changes to payment_tracking table.
-  // Falls back to periodic polling if realtime is unavailable.
-  useEffect(() => {
-    const db = getAdminSupabase();
-    let channel: ReturnType<NonNullable<typeof db>['channel']> | null = null;
-    let interval: number | undefined;
-
-    if (db) {
-      channel = db
-        .channel('admin-orders-realtime')
-        .on(
-          'postgres_changes' as 'system',
-          { event: '*', schema: 'public', table: 'payment_tracking' } as Record<string, unknown>,
-          () => {
-            void loadOrders({ silent: true });
-          }
-        )
-        .subscribe((status: string) => {
-          if (status !== 'SUBSCRIBED') {
-            // Realtime not available — fall back to polling
-            if (!interval) {
-              interval = window.setInterval(() => {
-                if (document.visibilityState === 'visible') {
-                  void loadOrders({ silent: true });
-                }
-              }, AUTO_REFRESH_INTERVAL_MS);
-            }
-          }
-        });
-    } else {
-      // No DB — poll only
-      interval = window.setInterval(() => {
-        if (document.visibilityState === 'visible') {
-          void loadOrders({ silent: true });
-        }
-      }, AUTO_REFRESH_INTERVAL_MS);
-    }
-
-    // Also refresh on tab focus
-    const onFocus = () => {
-      if (document.visibilityState === 'visible') {
-        void loadOrders({ silent: true });
-      }
-    };
-    document.addEventListener('visibilitychange', onFocus);
-
-    return () => {
-      if (channel) {
-        void db?.removeChannel(channel);
-      }
-      if (interval) window.clearInterval(interval);
-      document.removeEventListener('visibilitychange', onFocus);
-    };
-  }, [loadOrders]);
+  // Realtime subscription: payment_tracking table-wide.
+  usePaymentTrackingRealtime(
+    useCallback(() => loadOrders({ silent: true }), [loadOrders]),
+    { pollIntervalMs: AUTO_REFRESH_INTERVAL_MS, enabled: authReady }
+  );
 
   const handleLogout = () => {
     logout();
@@ -405,6 +391,39 @@ export default function AdminDashboard() {
     void loadOrders({ silent: true });
   };
 
+  const handleBulkMarkPaidConfirm = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkMarking(true);
+    const db = getAdminSupabase();
+    // Resolve ids → order objects from current page so we can skip already-paid
+    // rows and skip cancelled ones. Cuts down on confusing toasts.
+    const candidates = orders.filter(
+      (o) => selectedIds.has(o.id) && o.payment_status !== 'payment_received' && o.payment_status !== 'cancelled'
+    );
+    const adminEmail = adminUser?.email ?? 'admin';
+    let success = 0;
+    let failed = 0;
+    const skipped = selectedIds.size - candidates.length;
+    for (const order of candidates) {
+      try {
+        const r = await markPaymentReceived(order.id, adminEmail, null, db);
+        if (r.success) success += 1; else failed += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+    setBulkMarking(false);
+    setBulkMarkPaidOpen(false);
+    setSelectedIds(new Set());
+    const parts: string[] = [];
+    if (success > 0) parts.push(`${success} marked paid`);
+    if (skipped > 0) parts.push(`${skipped} skipped`);
+    if (failed > 0) parts.push(`${failed} failed`);
+    const summary = parts.join(', ') || 'No changes';
+    showToast(summary, failed > 0 ? 'error' : 'success', 4000);
+    void loadOrders({ silent: true });
+  };
+
   const handleCopyId = async (id: string) => {
     try {
       await navigator.clipboard.writeText(id);
@@ -429,13 +448,28 @@ export default function AdminDashboard() {
   const filteredOrders = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const filtered = orders.filter((order) => {
+      if (!term) {
+        // skip search check
+      }
+      // Search across order ref, customer fields, AND product names inside the cart.
+      // The cart-item match lets operators answer "who ordered BPC-157 this week?"
+      // without leaving the dashboard.
+      const cartMatches =
+        Array.isArray(order.cart_items) &&
+        order.cart_items.some((it) => {
+          const item = it as { name?: unknown; id?: unknown };
+          const n = typeof item.name === 'string' ? item.name.toLowerCase() : '';
+          const i = typeof item.id === 'string' ? item.id.toLowerCase() : '';
+          return n.includes(term) || i.includes(term);
+        });
       const matchesSearch =
         !term ||
         order.peptide_order_id.toLowerCase().includes(term) ||
         order.customer_email?.toLowerCase().includes(term) ||
         order.customer_name?.toLowerCase().includes(term) ||
         order.customer_phone?.toLowerCase().includes(term) ||
-        order.customer_city?.toLowerCase().includes(term);
+        order.customer_city?.toLowerCase().includes(term) ||
+        cartMatches;
 
       const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
       return matchesSearch && matchesStatus;
@@ -537,7 +571,6 @@ export default function AdminDashboard() {
     );
   };
 
-  const loadedShown = orders.length;
   const totalPages = Math.max(1, Math.ceil(counts.total / ORDERS_PAGE_SIZE));
   const hasMore = page + 1 < totalPages;
   const selectedCount = selectedIds.size;
@@ -592,6 +625,33 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Recent email failures banner — surfaces silent send errors */}
+        {emailFailureCount > 0 && !emailBannerDismissed && (
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-sm border border-warning-border bg-warning-light px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              <div>
+                <Text variant="small" weight="medium" className="text-warning-text">
+                  {emailFailureCount} email{emailFailureCount === 1 ? '' : 's'} failed to send in the last 72 hours
+                </Text>
+                <Text variant="caption" className="text-warning-text">
+                  Customers on those orders may not have received payment instructions.{' '}
+                  <Link to="/admin/emails" className="font-medium underline">
+                    Review and resend
+                  </Link>
+                </Text>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEmailBannerDismissed(true)}
+              className="text-xs text-warning-text hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Status tabs (Shopify-style) */}
         <div className="mb-4 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <div
@@ -635,7 +695,7 @@ export default function AdminDashboard() {
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search by order ID, email, customer name, phone, or city…"
+              placeholder="Search by order ref (LM-…), email, name, phone, city, or product name…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-sm border border-carbon-900/20 py-2 pl-10 pr-4 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
@@ -649,7 +709,7 @@ export default function AdminDashboard() {
             <Text variant="small" weight="medium" className="text-accent-800">
               {selectedCount} selected
             </Text>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -657,6 +717,15 @@ export default function AdminDashboard() {
               >
                 Clear selection
               </Button>
+              <button
+                type="button"
+                onClick={() => setBulkMarkPaidOpen(true)}
+                disabled={bulkMarking}
+                className="inline-flex items-center gap-2 rounded-sm bg-success px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-success-dark disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <CheckCircle className="h-4 w-4" />
+                {bulkMarking ? 'Marking…' : 'Mark selected paid'}
+              </button>
               <button
                 type="button"
                 onClick={() => setBulkDeleteOpen(true)}
@@ -845,6 +914,16 @@ export default function AdminDashboard() {
                             >
                               <Eye className="h-4 w-4" />
                             </button>
+                            <Link
+                              to={`/admin/orders/${encodeURIComponent(order.peptide_order_id)}`}
+                              target="_blank"
+                              rel="noopener"
+                              className="hidden items-center rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900 sm:inline-flex"
+                              title="Open in new tab"
+                              aria-label="Open in new tab"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Link>
                             <select
                               value={order.status}
                               onChange={(e) =>
@@ -925,13 +1004,36 @@ export default function AdminDashboard() {
             created_at: selectedOrder.created_at,
             updated_at: selectedOrder.updated_at,
           }}
-          onPaymentAction={async (action, trackingId) => {
+          onPaymentAction={async (action, trackingId, reason) => {
+            const client = getAdminSupabase();
+            if (action === 'resend_email') {
+              if (!selectedOrder) return;
+              if (!selectedOrder.customer_email) {
+                showToast('No customer email on this order.', 'error');
+                return;
+              }
+              const r = await resendOrderInstructionsEmail({
+                trackingId,
+                orderReference: selectedOrder.peptide_order_id,
+                customerEmail: selectedOrder.customer_email,
+                customerName: selectedOrder.customer_name ?? 'Customer',
+                customerPhone: selectedOrder.customer_phone ?? undefined,
+                totalAmount: selectedOrder.total_price ?? 0,
+                currency: selectedOrder.currency ?? 'AUD',
+              });
+              if (r.success) {
+                showToast(`Instructions resent to ${selectedOrder.customer_email}`, 'success');
+              } else {
+                showToast(r.error ?? 'Could not resend email.', 'error');
+              }
+              return;
+            }
             if (action === 'mark_paid') {
               const m = await markPaymentReceived(
                 trackingId,
                 adminUser?.email ?? 'admin',
                 null,
-                getAdminSupabase()
+                client
               );
               await loadOrders({ silent: true });
               if (!m.success) {
@@ -945,6 +1047,31 @@ export default function AdminDashboard() {
               } else {
                 showToast('Payment marked as received. Confirmation SMS sent.', 'success');
               }
+              return;
+            }
+
+            if (action === 'cancel' || action === 'refund') {
+              if (!reason?.trim()) {
+                showToast('A reason is required.', 'error');
+                return;
+              }
+              const r = await cancelOrder(
+                trackingId,
+                { reason, refunded: action === 'refund' },
+                client
+              );
+              if (!r.success) {
+                showToast(r.error ?? 'Could not cancel order', 'error');
+                return;
+              }
+              showToast(
+                action === 'refund'
+                  ? 'Order refunded and cancelled.'
+                  : 'Order cancelled.',
+                'success'
+              );
+              await loadOrders({ silent: true });
+              setSelectedOrder(null);
             }
           }}
           onClose={() => setSelectedOrder(null)}
@@ -1083,6 +1210,79 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Bulk mark-paid modal */}
+      {bulkMarkPaidOpen && (() => {
+        const eligible = orders.filter(
+          (o) => selectedIds.has(o.id) && o.payment_status !== 'payment_received' && o.payment_status !== 'cancelled'
+        );
+        const skipped = selectedCount - eligible.length;
+        const totalAmount = eligible.reduce((sum, o) => sum + (o.total_price ?? 0), 0);
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bulk-mark-paid-title"
+            onClick={() => !bulkMarking && setBulkMarkPaidOpen(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 flex items-start gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-success-muted">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                </div>
+                <div>
+                  <Heading level={3} id="bulk-mark-paid-title" className="mb-1">
+                    Mark {eligible.length} order{eligible.length === 1 ? '' : 's'} paid?
+                  </Heading>
+                  <Text variant="small" className="text-carbon-600">
+                    Will send the payment-received SMS/email for each one and stamp the audit log.
+                    {skipped > 0 ? (
+                      <> {skipped} already paid or cancelled will be skipped.</>
+                    ) : null}
+                  </Text>
+                  {totalAmount > 0 && (
+                    <Text variant="caption" muted className="mt-2 block">
+                      Combined total: <strong>{formatPrice(totalAmount)}</strong>
+                    </Text>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBulkMarkPaidOpen(false)}
+                  disabled={bulkMarking}
+                >
+                  Cancel
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => void handleBulkMarkPaidConfirm()}
+                  disabled={bulkMarking || eligible.length === 0}
+                  className="inline-flex items-center justify-center rounded-sm bg-success px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-success-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {bulkMarking ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Marking…
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Mark {eligible.length} paid
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

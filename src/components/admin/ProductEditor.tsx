@@ -34,6 +34,8 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import Button from '../ui/Button';
 import { Heading, Text } from '../ui/Typography';
 import Card from '../ui/Card';
+import Modal from '../ui/Modal';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface ProductImage {
   id: string;
@@ -86,6 +88,8 @@ export default function ProductEditor({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [imageDeleteTarget, setImageDeleteTarget] = useState<{ imageId: string; storagePath: string } | null>(null);
+  const [imageDeleting, setImageDeleting] = useState(false);
 
   // Form fields
   const [peptideName, setPeptideName] = useState('');
@@ -371,22 +375,29 @@ export default function ProductEditor({
     }
   };
 
-  const handleDeleteImage = async (imageId: string, storagePath: string) => {
-    if (!confirm('Delete this image? This cannot be undone.')) return;
+  const handleDeleteImage = (imageId: string, storagePath: string) => {
+    setImageDeleteTarget({ imageId, storagePath });
+  };
 
+  const performDeleteImage = async () => {
+    const target = imageDeleteTarget;
+    if (!target) return;
+    setImageDeleting(true);
     try {
       // Delete from storage first — if this fails we still have the DB record
       // to retry later. The reverse (DB first) orphans the storage file.
       try {
-        await deleteProductImage(storagePath);
+        await deleteProductImage(target.storagePath);
       } catch (storageErr) {
         console.error('Storage delete failed, aborting image removal:', storageErr);
         setError('Could not delete image file from storage. Please try again.');
+        setImageDeleting(false);
+        setImageDeleteTarget(null);
         return;
       }
 
       // Storage succeeded — now remove the DB record
-      const result = await deleteProductImageRecord(imageId, getAdminSupabase());
+      const result = await deleteProductImageRecord(target.imageId, getAdminSupabase());
 
       if (result.success) {
         await loadProduct();
@@ -400,6 +411,9 @@ export default function ProductEditor({
     } catch (err) {
       setError('An error occurred');
       console.error(err);
+    } finally {
+      setImageDeleting(false);
+      setImageDeleteTarget(null);
     }
   };
 
@@ -415,14 +429,25 @@ export default function ProductEditor({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <Card className="w-full max-w-4xl my-8">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-carbon-200">
-          <div>
-            <Heading level={2}>Edit product</Heading>
-            <div className="flex items-center gap-3 mt-1">
-              <Text className="text-carbon-600">
+    <>
+    <Modal
+      open={true}
+      onClose={() => !saving && !deleting && onClose()}
+      aria-label="Edit product"
+      disableBackdropClose={saving || deleting}
+      disableEscClose={saving || deleting}
+      backdropClassName="bg-black/50 sm:p-4"
+      className=""
+    >
+      <Card
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col"
+      >
+        {/* Sticky header */}
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-carbon-200 bg-white p-4 sm:p-6 rounded-t-lg">
+          <div className="min-w-0">
+            <Heading level={2} className="truncate">Edit product</Heading>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <Text className="truncate text-carbon-600">
                 {product?.cfg_code} - {product?.peptide_name}
               </Text>
               {product?.peptide_name && (
@@ -433,7 +458,7 @@ export default function ProductEditor({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-accent-600 hover:text-accent-800 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs text-accent-600 transition-colors hover:text-accent-800"
                 >
                   <ExternalLink className="w-3 h-3" />
                   Preview on site
@@ -442,15 +467,17 @@ export default function ProductEditor({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-carbon-600 hover:text-carbon-900 transition-colors"
+            aria-label="Close"
+            className="shrink-0 rounded-sm p-1 text-carbon-600 transition-colors hover:bg-carbon-100 hover:text-carbon-900"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Scrolling body */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Alerts */}
           {error && (
             <div className="flex items-center gap-2 p-4 bg-error-light border border-error-border rounded-sm text-error-text">
@@ -963,8 +990,8 @@ export default function ProductEditor({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-carbon-200 bg-carbon-50">
+        {/* Sticky footer */}
+        <div className="sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-carbon-200 bg-carbon-50 p-4 sm:p-6 rounded-b-lg">
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
@@ -980,6 +1007,17 @@ export default function ProductEditor({
           </Button>
         </div>
       </Card>
-    </div>
+    </Modal>
+    <ConfirmDialog
+      open={!!imageDeleteTarget}
+      title="Delete this image?"
+      message="The image file and its DB record will be permanently removed. This cannot be undone."
+      confirmLabel="Delete image"
+      tone="danger"
+      loading={imageDeleting}
+      onConfirm={() => void performDeleteImage()}
+      onCancel={() => setImageDeleteTarget(null)}
+    />
+    </>
   );
 }

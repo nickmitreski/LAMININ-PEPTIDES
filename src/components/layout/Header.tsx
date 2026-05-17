@@ -5,6 +5,7 @@ import Container from './Container';
 import CartDrawer from '../cart/CartDrawer';
 import HeaderSearch from './HeaderSearch';
 import { useCart } from '../../context/CartContext';
+import { imgFetchPriorityProps } from '../../lib/imgFetchPriority';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function Header() {
                 src="/images/brand/logo-reverse.png"
                 alt="Laminin Peptide Lab"
                 decoding="async"
-                fetchPriority="high"
+                {...imgFetchPriorityProps('high')}
                 className="h-11 w-auto max-h-[2.75rem] transition-opacity group-hover:opacity-90 sm:h-[3.47875rem] sm:max-h-none md:h-[4.1745rem]"
               />
             </Link>

@@ -1,7 +1,7 @@
 /**
  * PDP hero — catalogue vial render from /images/products/ (peptide.image).
- * For better LCP on slow networks, add optional `.webp` alongside PNG and use `<picture>` + `srcset`
- * (no WebP is bundled here so filenames stay predictable for static hosting).
+ * ShopProductImage emits a `<picture>` element with AVIF/WebP/PNG srcset when
+ * the source lives under /images/products/ (see scripts/optimize-product-images.sh).
  */
 import ShopProductImage from '../ui/ShopProductImage';
 
@@ -33,6 +33,9 @@ export default function ProductHeroVisual({
           imgClassName="h-auto w-full max-h-[min(28rem,58vh)] object-contain object-center drop-shadow-[0_24px_40px_rgba(15,15,15,0.08)] transition-transform duration-500 ease-out motion-safe:hover:-translate-y-1 motion-reduce:transition-none"
           loading="eager"
           fetchPriority="high"
+          width={800}
+          height={800}
+          sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, (max-width: 1024px) 384px, (max-width: 1280px) 448px, 512px"
         />
       </div>
     </div>

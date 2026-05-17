@@ -871,30 +871,32 @@ export default function AdminDiscounts() {
                 <Text muted>No redemptions yet</Text>
               </div>
             ) : (
-              <table className="w-full">
-                <thead className="border-b border-carbon-900/10">
-                  <tr>
-                    <th className="px-3 py-2 text-left th-label">Order</th>
-                    <th className="px-3 py-2 text-left th-label">Customer</th>
-                    <th className="px-3 py-2 text-left th-label">Saved</th>
-                    <th className="px-3 py-2 text-left th-label">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-carbon-900/10">
-                  {redemptions.map((r) => (
-                    <tr key={r.id}>
-                      <td className="whitespace-nowrap px-3 py-3 font-mono text-sm">{r.order_reference}</td>
-                      <td className="px-3 py-3 text-sm text-carbon-700">{r.customer_email || '—'}</td>
-                      <td className="whitespace-nowrap px-3 py-3 text-sm font-medium text-success-dark">
-                        &minus;{formatPrice(r.discount_amount)}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3 text-sm text-carbon-700">
-                        {formatDateTime(r.created_at)}
-                      </td>
+              <div className="-mx-3 overflow-x-auto">
+                <table className="w-full min-w-[520px]">
+                  <thead className="border-b border-carbon-900/10">
+                    <tr>
+                      <th className="px-3 py-2 text-left th-label">Order</th>
+                      <th className="px-3 py-2 text-left th-label">Customer</th>
+                      <th className="px-3 py-2 text-left th-label">Saved</th>
+                      <th className="px-3 py-2 text-left th-label">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-carbon-900/10">
+                    {redemptions.map((r) => (
+                      <tr key={r.id}>
+                        <td className="whitespace-nowrap px-3 py-3 font-mono text-sm">{r.order_reference}</td>
+                        <td className="px-3 py-3 text-sm text-carbon-700">{r.customer_email || '—'}</td>
+                        <td className="whitespace-nowrap px-3 py-3 text-sm font-medium text-success-dark">
+                          &minus;{formatPrice(r.discount_amount)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 text-sm text-carbon-700">
+                          {formatDateTime(r.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>

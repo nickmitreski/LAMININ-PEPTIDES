@@ -7,6 +7,7 @@ import Skeleton from '../components/ui/Skeleton';
 import { Heading, Text } from '../components/ui/Typography';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useToast } from '../context/ToastContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import AdminNavigation from '../components/admin/AdminNavigation';
 import { formatPrice } from '../lib/formatCurrency';
@@ -40,6 +41,7 @@ export default function AdminInventory() {
   useDocumentTitle("Inventory", "Track stock levels and transactions.");
   const navigate = useNavigate();
   const { logout, user: adminUser } = useAdminAuth();
+  const { showToast } = useToast();
 
   const handleLogout = () => {
     logout();
@@ -61,6 +63,7 @@ export default function AdminInventory() {
   // Adjustment form
   const [adjustmentMode, setAdjustmentMode] = useState<AdjustmentMode>('add');
   const [adjustmentQuantity, setAdjustmentQuantity] = useState<string>('');
+  const [adjustmentReason, setAdjustmentReason] = useState<string>('');
   const [adjustmentNotes, setAdjustmentNotes] = useState<string>('');
 
   // Load all products with inventory data
@@ -144,7 +147,7 @@ export default function AdminInventory() {
 
     const qty = parseInt(adjustmentQuantity, 10);
     if (isNaN(qty) || qty <= 0) {
-      alert('Please enter a valid quantity greater than 0');
+      showToast('Please enter a valid quantity greater than 0', 'error');
       return;
     }
 
@@ -168,17 +171,25 @@ export default function AdminInventory() {
 
     setSaving(true);
 
+    // Compose the audit note: structured reason + optional free text, so the
+    // transaction history is filterable by reason in the future and grep-able now.
+    const reasonTag = adjustmentReason ? `[${adjustmentReason}]` : '';
+    const composedNotes = [reasonTag, adjustmentNotes.trim()]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || null;
+
     const { error } = await db.rpc('adjust_inventory', {
       p_cfg_code: selectedProduct.cfg_code,
       p_quantity_change: quantityChange,
       p_transaction_type: transactionType,
-      p_notes: adjustmentNotes.trim() || null,
+      p_notes: composedNotes,
       p_admin_email: adminUser?.email ?? 'admin'
     });
 
     if (error) {
       console.error('Error adjusting inventory:', error);
-      alert('❌ Failed to adjust inventory: ' + error.message);
+      showToast(`Failed to adjust inventory: ${error.message}`, 'error');
     } else {
       // Reload data
       await loadProducts();
@@ -202,8 +213,9 @@ export default function AdminInventory() {
       // Reset form
       setAdjustmentQuantity('');
       setAdjustmentNotes('');
+      setAdjustmentReason('');
 
-      alert('✅ Inventory updated successfully');
+      showToast('Inventory updated', 'success');
     }
 
     setSaving(false);
@@ -437,6 +449,31 @@ export default function AdminInventory() {
                       )}
                     </div>
 
+                    {/* Reason dropdown */}
+                    <div className="mb-3">
+                      <label className="mb-2 block">
+                        <Text variant="small" className="font-medium text-carbon-900">
+                          Reason
+                        </Text>
+                      </label>
+                      <select
+                        value={adjustmentReason}
+                        onChange={(e) => setAdjustmentReason(e.target.value)}
+                        className="w-full rounded-lg border border-carbon-900/15 bg-white px-4 py-2.5 text-sm text-carbon-900"
+                      >
+                        <option value="">— Select a reason —</option>
+                        <option value="initial_stock">Initial stock</option>
+                        <option value="restock">Restock / new shipment</option>
+                        <option value="counting_correction">Counting correction</option>
+                        <option value="damage">Damage</option>
+                        <option value="spoilage">Spoilage / expiry</option>
+                        <option value="return">Customer return</option>
+                        <option value="theft_or_loss">Theft / loss</option>
+                        <option value="manual_set">Manual set (audit)</option>
+                        <option value="other">Other (see notes)</option>
+                      </select>
+                    </div>
+
                     {/* Notes Input */}
                     <div className="mb-4">
                       <label className="block mb-2">
@@ -448,7 +485,7 @@ export default function AdminInventory() {
                         rows={2}
                         className="w-full rounded-lg border border-carbon-900/15 bg-white px-4 py-2.5 text-carbon-900 text-sm"
                         value={adjustmentNotes}
-                        placeholder="e.g., New shipment arrived, Damaged inventory removed, etc."
+                        placeholder="e.g., Damaged in transit, PO #1234, etc."
                         onChange={(e) => setAdjustmentNotes(e.target.value)}
                       />
                     </div>

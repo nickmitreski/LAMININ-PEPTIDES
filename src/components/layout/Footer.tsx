@@ -25,6 +25,7 @@ export default function Footer() {
       { label: 'Certificate of analysis', path: '/coa' },
       { label: 'FAQ', path: '/faq' },
       { label: 'Shipping', path: '/shipping' },
+      { label: 'Track order', path: '/order-status' },
       { label: 'Contact', path: '/contact' },
     ],
   };

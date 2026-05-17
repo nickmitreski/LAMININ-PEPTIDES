@@ -5,6 +5,7 @@ import { createProduct, suggestNextCfgCode } from '../../services/supabaseServic
 import Button from '../ui/Button';
 import { Heading, Text } from '../ui/Typography';
 import Card from '../ui/Card';
+import Modal from '../ui/Modal';
 
 interface CreateProductModalProps {
   onClose: () => void;
@@ -97,26 +98,38 @@ export default function CreateProductModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <Card className="w-full max-w-2xl my-8">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-carbon-200">
-          <div>
-            <Heading level={2}>Add new product</Heading>
-            <Text className="text-carbon-600 mt-1">
+    <Modal
+      open={true}
+      onClose={() => !saving && onClose()}
+      aria-label="Add new product"
+      disableBackdropClose={saving}
+      disableEscClose={saving}
+      backdropClassName="bg-black/50 sm:p-4"
+      className=""
+    >
+      <Card
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col"
+      >
+        {/* Sticky header */}
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-carbon-200 bg-white p-4 sm:p-6 rounded-t-lg">
+          <div className="min-w-0">
+            <Heading level={2} className="truncate">Add new product</Heading>
+            <Text className="text-carbon-600 mt-1 hidden sm:block">
               Create a new product mapping
             </Text>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-carbon-600 hover:text-carbon-900 transition-colors"
+            aria-label="Close"
+            className="shrink-0 rounded-sm p-1 text-carbon-600 transition-colors hover:bg-carbon-100 hover:text-carbon-900"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Scrolling body */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Alerts */}
           {error && (
             <div className="flex items-center gap-2 p-4 bg-error-light border border-error-border rounded-sm text-error-text">
@@ -311,8 +324,8 @@ export default function CreateProductModal({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-carbon-200 bg-carbon-50">
+        {/* Sticky footer */}
+        <div className="sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-carbon-200 bg-carbon-50 p-4 sm:p-6 rounded-b-lg">
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
@@ -334,6 +347,6 @@ export default function CreateProductModal({
           </Button>
         </div>
       </Card>
-    </div>
+    </Modal>
   );
 }

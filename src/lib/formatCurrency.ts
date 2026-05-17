@@ -1,7 +1,7 @@
 /**
  * Shared currency formatting helpers.
  *
- * Storefront prices are displayed in AUD inc. GST. Use these helpers instead of
+ * Storefront prices are displayed in AUD. Use these helpers instead of
  * raw `${value.toFixed(2)}` to keep formatting consistent across the site
  * (cart, checkout, admin, emails, schema metadata).
  */

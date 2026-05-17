@@ -47,7 +47,9 @@ describe('redeemDiscountCode', () => {
       });
 
       expect(out.success).toBe(false);
-      expect(out.error).toBe('Could not redeem discount');
+      // Production code appends the RPC error code (or 'network' when missing)
+      // to aid debugging — see services/discountService.ts:81.
+      expect(out.error).toMatch(/^Could not redeem discount \(.+\)$/);
     } finally {
       errSpy.mockRestore();
     }

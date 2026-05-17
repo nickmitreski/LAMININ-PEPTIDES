@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '../ui/Button';
+import { imgFetchPriorityProps } from '../../lib/imgFetchPriority';
 
 type AgeChoice = 'unset' | 'minor' | 'adult';
 
@@ -24,7 +25,7 @@ export default function EntryScreen({
             src="/images/brand/logo-white.png"
             alt="Laminin Peptide Lab"
             decoding="async"
-            fetchPriority="high"
+            {...imgFetchPriorityProps('high')}
             className="mx-auto h-14 w-auto sm:h-[4.25rem] md:h-[4.75rem]"
           />
         </header>

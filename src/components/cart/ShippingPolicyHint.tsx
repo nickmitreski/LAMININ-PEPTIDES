@@ -17,7 +17,7 @@ export default function ShippingPolicyHint({
       className={`block leading-relaxed ${centered ? 'text-center' : 'text-left'} ${className}`}
     >
       Express shipping Australia-wide: complimentary over ${FREE_SHIPPING_THRESHOLD_AUD}, otherwise $
-      {FLAT_EXPRESS_SHIPPING_AUD.toFixed(2)} flat. GST shown at checkout.{' '}
+      {FLAT_EXPRESS_SHIPPING_AUD.toFixed(2)} flat.{' '}
       <Link
         to="/shipping"
         className="font-medium text-carbon-900 underline underline-offset-2 transition-opacity hover:opacity-90 touch-manipulation"

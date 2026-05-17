@@ -97,7 +97,7 @@ export const RETATRUTIDE_CFG_CODE = 'CFG-023' as const;
 
 /**
  * PDP/cart hero filenames in `/public/images/products/`.
- * Pattern: `CFG-023_{listPrice} — Retatrutide {strength}.png` (aligned with `productPricing` AUD inc. GST).
+ * Pattern: `CFG-023_{listPrice} — Retatrutide {strength}.png` (aligned with `productPricing` AUD).
  */
 export const RETATRUTIDE_VARIANT_IMAGE_FILES: Record<string, string> = {
   '10mg': 'CFG-023_149 — Retatrutide 10mg.png',

@@ -1,11 +1,15 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { CheckCircle2, Copy, Mail } from 'lucide-react';
+import { CheckCircle2, Clock, Copy, Mail, Search } from 'lucide-react';
 import { useState } from 'react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import {
+  formatPaymentDeadlineLocal,
+  PAYMENT_DEADLINE_HOURS,
+} from '../lib/shippingPolicy';
 
 export default function OrderConfirmation() {
   useDocumentTitle(
@@ -99,6 +103,20 @@ export default function OrderConfirmation() {
               </Text>
               <Text variant="caption" className="text-warning-text">
                 Your order is reserved pending payment. Please check your email for payment instructions.
+              </Text>
+            </div>
+
+            {/* Deadline */}
+            <div className="mt-3 rounded-sm border border-carbon-900/10 bg-white p-4">
+              <div className="mb-1 flex items-center gap-2 text-carbon-900">
+                <Clock className="h-4 w-4 text-accent" />
+                <Text variant="small" weight="medium">
+                  Please complete payment within {PAYMENT_DEADLINE_HOURS} hours
+                </Text>
+              </div>
+              <Text variant="caption" muted>
+                Due by <strong className="text-carbon-900">{formatPaymentDeadlineLocal()}</strong>.{' '}
+                If you need more time, just reply to your confirmation email and we'll hold your order.
               </Text>
             </div>
           </Card>
@@ -196,6 +214,19 @@ export default function OrderConfirmation() {
                 className="min-h-12 w-full touch-manipulation sm:min-h-0"
               >
                 Continue shopping
+              </Button>
+            </Link>
+            <Link
+              to={`/order-status?ref=${encodeURIComponent(orderRef)}`}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                variant="outline"
+                size="md"
+                className="min-h-12 w-full touch-manipulation sm:min-h-0"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                Track order
               </Button>
             </Link>
             <Link to="/contact" className="w-full sm:w-auto">

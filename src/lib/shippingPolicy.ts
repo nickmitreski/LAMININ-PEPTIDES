@@ -1,5 +1,8 @@
 /**
  * Express shipping (AUD) — must stay aligned with `/shipping` policy copy.
+ *
+ * Total formula at checkout is `subtotal + shipping - discount`. No GST,
+ * no other tax — prices on the storefront are the final price the customer pays.
  */
 export const FREE_SHIPPING_THRESHOLD_AUD = 250;
 export const FLAT_EXPRESS_SHIPPING_AUD = 11.9;
@@ -9,18 +12,40 @@ export function expressShippingAud(subtotal: number): number {
 }
 
 /**
- * Tax rate applied to cart subtotal at checkout.
- * Prices are tax-inclusive so the default is 0 (no additional tax).
- * Override with `VITE_CHECKOUT_GST_RATE` if needed.
+ * Bank-transfer payment deadline policy.
+ * Customers have this many hours from order creation to complete the wire
+ * before the order is treated as abandoned. Must stay aligned with
+ * PAYMENT_DEADLINE_HOURS in supabase/functions/send-order-email/index.ts.
  */
-export function checkoutGstRate(): number {
-  const raw = import.meta.env.VITE_CHECKOUT_GST_RATE as string | undefined;
-  if (raw === undefined || raw === '') return 0;
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n < 0 || n > 1) return 0;
-  return n;
+export const PAYMENT_DEADLINE_HOURS = 48;
+
+/**
+ * Compute the absolute payment deadline as a Date.
+ * Pass the order's `created_at` ISO string; falls back to "now" when omitted
+ * (useful at the moment of order creation when the row isn't visible yet).
+ */
+export function paymentDeadlineDate(fromIso?: string | null): Date {
+  const base = fromIso ? new Date(fromIso) : new Date();
+  return new Date(base.getTime() + PAYMENT_DEADLINE_HOURS * 60 * 60 * 1000);
 }
 
-export function checkoutGstAmount(subtotal: number, rate: number = checkoutGstRate()): number {
-  return Math.round(subtotal * rate * 100) / 100;
+/**
+ * Format the deadline in the visitor's LOCAL time so they don't miscount
+ * across time zones. The email template uses AEST instead because that's where
+ * the bank is — the discrepancy is intentional, not a bug.
+ */
+export function formatPaymentDeadlineLocal(fromIso?: string | null): string {
+  const due = paymentDeadlineDate(fromIso);
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    }).format(due);
+  } catch {
+    return due.toISOString();
+  }
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ShippingPolicyHint from '../components/cart/ShippingPolicyHint';
 import { ShoppingBag } from 'lucide-react';
@@ -6,6 +7,7 @@ import CartItem from '../components/cart/CartItem';
 import CartSummary from '../components/cart/CartSummary';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { Heading, Text } from '../components/ui/Typography';
 import { useCart } from '../context/CartContext';
 import { cartLineKey } from '../types/cart';
@@ -18,12 +20,9 @@ export default function Cart() {
   );
   const { state, updateQuantity, removeItem, clearCart } = useCart();
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
+  const [clearOpen, setClearOpen] = useState(false);
 
-  const handleClearCart = () => {
-    if (window.confirm('Remove all items from your cart? This cannot be undone.')) {
-      clearCart();
-    }
-  };
+  const handleClearCart = () => setClearOpen(true);
 
   if (state.items.length === 0) {
     return (
@@ -123,6 +122,18 @@ export default function Cart() {
           </div>
         </div>
       </Section>
+      <ConfirmDialog
+        open={clearOpen}
+        title="Clear your cart?"
+        message="This removes every item from your cart. It can't be undone."
+        confirmLabel="Clear cart"
+        tone="danger"
+        onConfirm={() => {
+          clearCart();
+          setClearOpen(false);
+        }}
+        onCancel={() => setClearOpen(false)}
+      />
     </div>
   );
 }

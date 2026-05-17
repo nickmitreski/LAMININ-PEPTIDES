@@ -28,6 +28,8 @@ type LiveProductInfo = LiveCatalogEntry;
 
 type ShopImagesContextValue = {
   loading: boolean;
+  /** True once the live catalog fetch has resolved at least once. */
+  catalogLoaded: boolean;
   /** Resolved hero/card image: Supabase override when present, otherwise static catalogue. */
   resolveDisplayImage: (
     peptideId: string,
@@ -100,7 +102,7 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
           // DB-only product — not in static catalog. Create a Peptide entry.
           const syntheticId = cfgCode.toLowerCase();
           if (!staticPeptideIds.has(syntheticId)) {
-            const primaryImage = imageMap[syntheticId] ?? '/images/products/purity.png';
+            const primaryImage = imageMap[syntheticId] ?? '/images/purity.png';
             newDbProducts.push({
               id: syntheticId,
               name: info.name,
@@ -131,12 +133,17 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   }, [loadCatalog]);
 
   // Re-fetch silently when the tab regains focus (picks up admin changes like
-  // product deletions, price edits, or new products).
+  // product deletions, price edits, or new products). Throttled so quick
+  // tab flips don't hammer Supabase — minimum 60s between background refreshes.
+  const lastRefreshRef = useRef<number>(0);
+  const VISIBILITY_REFRESH_MIN_MS = 60_000;
   useEffect(() => {
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && catalogLoaded) {
-        void loadCatalog(false);
-      }
+      if (document.visibilityState !== 'visible' || !catalogLoaded) return;
+      const now = Date.now();
+      if (now - lastRefreshRef.current < VISIBILITY_REFRESH_MIN_MS) return;
+      lastRefreshRef.current = now;
+      void loadCatalog(false);
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -166,16 +173,24 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
     [saleInfoMap]
   );
 
+  const staticPeptideIdSet = useMemo(
+    () => new Set(allPeptides.map((p) => p.id)),
+    []
+  );
+
   const isProductActive = useCallback(
     (peptideId: string): boolean => {
       const info = liveProductMap[peptideId];
       if (info) return info.isActive;
-      // Before the catalog loads, show all static products so the page isn't
-      // blank. After the catalog loads, a missing entry means the product was
-      // deleted or never created in the DB — treat as inactive.
+      // Static catalog peptides are always shown when the DB has no opinion —
+      // the hard-coded catalog is the source of truth, the DB only overrides.
+      // This prevents the Library's "All" tab from hiding products that exist
+      // in the static list but have no row in product_mappings.
+      if (staticPeptideIdSet.has(peptideId)) return true;
+      // Synthetic DB-only products with no live entry only happen mid-fetch.
       return !catalogLoaded;
     },
-    [liveProductMap, catalogLoaded]
+    [liveProductMap, catalogLoaded, staticPeptideIdSet]
   );
 
   const getDbPrice = useCallback(
@@ -199,6 +214,7 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     (): ShopImagesContextValue => ({
       loading,
+      catalogLoaded,
       resolveDisplayImage,
       resolveSaleInfo,
       isProductActive,
@@ -208,6 +224,7 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
     }),
     [
       loading,
+      catalogLoaded,
       resolveDisplayImage,
       resolveSaleInfo,
       isProductActive,

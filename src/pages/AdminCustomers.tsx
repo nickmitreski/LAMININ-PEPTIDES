@@ -30,6 +30,7 @@ import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Skeleton from '../components/ui/Skeleton';
 import Button from '../components/ui/Button';
+import { ModalShell } from '../components/ui/Modal';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
 import { formatPrice } from '../lib/formatCurrency';
@@ -121,7 +122,6 @@ export default function AdminCustomers() {
       const mapped: OrderReferenceRow[] = (data ?? []).map((row: Record<string, unknown>) => ({
         id: String(row.id),
         peptide_order_id: String(row.order_reference ?? ''),
-        protein_store_order_id: null,
         status: String(row.payment_status ?? 'pending') as OrderReferenceRow['status'],
         customer_email: String(row.customer_email ?? ''),
         customer_name: String(row.customer_name ?? ''),
@@ -526,12 +526,24 @@ export default function AdminCustomers() {
           )}
         </Card>
 
-        {editingCustomer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
-              <Heading level={3} className="mb-4">
-                Edit customer
-              </Heading>
+        <ModalShell
+          open={!!editingCustomer}
+          onClose={() => !editSaving && setEditingCustomer(null)}
+          title="Edit customer"
+          size="lg"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setEditingCustomer(null)} disabled={editSaving}>
+                Cancel
+              </Button>
+              <Button onClick={() => void handleSaveCustomer()} disabled={editSaving || !editForm.email.trim()}>
+                {editSaving ? 'Saving…' : 'Save'}
+              </Button>
+            </>
+          }
+        >
+          {editingCustomer && (
+            <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="mb-1 block text-sm font-medium text-carbon-700">Email</label>
@@ -607,17 +619,9 @@ export default function AdminCustomers() {
                   />
                 </div>
               </div>
-              <div className="mt-6 flex flex-wrap justify-end gap-2">
-                <Button variant="outline" onClick={() => setEditingCustomer(null)} disabled={editSaving}>
-                  Cancel
-                </Button>
-                <Button onClick={() => void handleSaveCustomer()} disabled={editSaving || !editForm.email.trim()}>
-                  {editSaving ? 'Saving…' : 'Save'}
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+            </>
+          )}
+        </ModalShell>
 
         {/* Warning */}
         <Card className="mt-6 p-4 bg-warning-light border-warning-border">

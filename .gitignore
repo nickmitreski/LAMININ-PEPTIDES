@@ -49,3 +49,6 @@ DOCUMENTATION/
 credentials.md
 design-notes/
 .vercel
+
+# Playwright inspector screenshots
+tmp/

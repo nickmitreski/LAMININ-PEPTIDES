@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import { Label, Text } from '../ui/Typography';
@@ -12,13 +13,16 @@ import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { useShopImages } from '../../context/ShopImagesContext';
 import ShopProductImage from '../ui/ShopProductImage';
+import { formatPrice } from '../../lib/formatCurrency';
 import { ArrowRight, Plus, ShoppingCart, Check } from 'lucide-react';
 
 interface PeptideCardProps {
   peptide: Peptide;
+  /** Above-the-fold cards (first 4 on Library grid) get eager load + high priority. */
+  priority?: boolean;
 }
 
-export default function PeptideCard({ peptide }: PeptideCardProps) {
+function PeptideCard({ peptide, priority = false }: PeptideCardProps) {
   const title = peptide.name.toUpperCase();
   // DB-only products use their id as the slug (e.g. "cfg-036")
   const productPath = `/products/${getProductSlug(peptide.id) ?? peptide.id}`;
@@ -36,7 +40,7 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
   // Price: static first, fall back to DB price for admin-created products
   const staticPriceLabel = getDisplayPriceForPeptide(peptide.id);
   const dbPrice = getDbPrice(peptide.id);
-  const priceLabel = staticPriceLabel ?? (dbPrice ? `$${dbPrice.toFixed(2)}` : null);
+  const priceLabel = staticPriceLabel ?? (dbPrice ? formatPrice(dbPrice) : null);
 
   const { addItem, isInCart } = useCart();
   const { showToast } = useToast();
@@ -77,6 +81,10 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
             alt={`${peptide.name} — laboratory vial`}
             className="relative block h-full w-full"
             imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
+            width={400}
+            height={400}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
           />
           {saleInfo && (
             <span className="absolute left-2 top-2 z-10 rounded bg-error px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
@@ -147,3 +155,5 @@ export default function PeptideCard({ peptide }: PeptideCardProps) {
     </div>
   );
 }
+
+export default memo(PeptideCard);

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { imgFetchPriorityProps } from '@/lib/imgFetchPriority';
 import Button from '@/components/ui/Button';
 
 export interface FinancialHeroProps {
@@ -206,7 +207,7 @@ export function FinancialHero({
             variants={v.cardItem}
             loading="eager"
             decoding="async"
-            fetchPriority="high"
+            {...imgFetchPriorityProps('high')}
             {...(!reduceMotion
               ? {
                   whileHover: {

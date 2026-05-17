@@ -10,6 +10,8 @@ import {
   LogOut,
   BookOpen,
   FolderOpen,
+  ShieldCheck,
+  Settings,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -78,6 +80,18 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Tools',
     icon: Wrench,
     description: 'Reconstitution calculator & tools',
+  },
+  {
+    path: '/admin/audit',
+    label: 'Audit',
+    icon: ShieldCheck,
+    description: 'Admin action history',
+  },
+  {
+    path: '/admin/settings',
+    label: 'Settings',
+    icon: Settings,
+    description: 'Bank details and operator settings',
   },
 ];
 

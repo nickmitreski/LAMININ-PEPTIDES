@@ -38,6 +38,31 @@ async function extractEdgeFunctionDetail(error: unknown): Promise<string | null>
   return null;
 }
 
+import { logAdminAction } from './auditLog';
+
+/**
+ * Admin-initiated resend of the payment-instructions email. Returns a result
+ * tuple the caller can show as a toast. Audit-logs the resend regardless of
+ * whether the email succeeded so the operator's intent is captured.
+ */
+export async function resendOrderInstructionsEmail(
+  params: SendOrderEmailParams & { trackingId: string }
+): Promise<{ success: boolean; error?: string }> {
+  const { trackingId, ...rest } = params;
+  const result = await sendOrderEmail(rest);
+  await logAdminAction({
+    action: 'order.resend_email',
+    target_table: 'payment_tracking',
+    target_id: trackingId,
+    after: {
+      recipient: rest.customerEmail ?? null,
+      success: result.success,
+    },
+    note: result.success ? null : (result.error ?? 'send failed'),
+  });
+  return result;
+}
+
 /**
  * Send payment instruction email via the send-order-email edge function.
  * Non-blocking — checkout succeeds even if the email fails.

@@ -4,7 +4,6 @@ import { formatPrice } from '../../lib/formatCurrency';
 interface CartSummaryProps {
   subtotal: number;
   shipping?: number;
-  tax?: number;
   discount?: number;
   discountCode?: string;
   onRemoveDiscount?: () => void;
@@ -14,13 +13,12 @@ interface CartSummaryProps {
 export default function CartSummary({
   subtotal,
   shipping = 0,
-  tax = 0,
   discount = 0,
   discountCode,
   onRemoveDiscount,
   className = ''
 }: CartSummaryProps) {
-  const total = subtotal + shipping + tax - discount;
+  const total = subtotal + shipping - discount;
 
   return (
     <div className={`space-y-3 ${className}`}>
@@ -55,13 +53,6 @@ export default function CartSummary({
         <div className="flex justify-between items-center">
           <Text variant="small" muted>Shipping</Text>
           <Text variant="small" weight="medium">{formatPrice(shipping)}</Text>
-        </div>
-      )}
-
-      {tax > 0 && (
-        <div className="flex justify-between items-center">
-          <Text variant="small" muted>Tax (GST)</Text>
-          <Text variant="small" weight="medium">{formatPrice(tax)}</Text>
         </div>
       )}
 

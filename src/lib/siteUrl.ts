@@ -27,7 +27,7 @@ export function absoluteUrl(path: string): string {
   return `${base}${p}`;
 }
 
-/** Product schema `priceCurrency` — storefront lists AUD inc. GST. */
+/** Product schema `priceCurrency` — storefront lists AUD. */
 export function listingPriceCurrency(): string {
   return (
     (import.meta.env.VITE_LISTING_PRICE_CURRENCY as string | undefined)?.trim() || 'AUD'

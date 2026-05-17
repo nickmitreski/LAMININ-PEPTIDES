@@ -57,7 +57,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
               type="button"
               onClick={() => onUpdateQuantity(lineKey, item.quantity - 1)}
               disabled={item.quantity <= 1}
-              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-30 touch-manipulation sm:h-9 sm:w-9"
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-30 touch-manipulation sm:h-10 sm:w-10"
               aria-label="Decrease quantity"
             >
               <span className="text-base font-medium sm:text-sm">−</span>
@@ -70,7 +70,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
             <button
               type="button"
               onClick={() => onUpdateQuantity(lineKey, item.quantity + 1)}
-              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 touch-manipulation sm:h-9 sm:w-9"
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-carbon-900/20 transition-colors hover:bg-grey focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-900 focus-visible:ring-offset-2 touch-manipulation sm:h-10 sm:w-10"
               aria-label="Increase quantity"
             >
               <span className="text-base font-medium sm:text-sm">+</span>

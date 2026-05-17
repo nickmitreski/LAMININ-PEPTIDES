@@ -1,15 +1,23 @@
 import { useState } from 'react';
-import { X, Mail, Phone, MapPin, Package, DollarSign, CreditCard, Download, Beaker } from 'lucide-react';
-import type { OrderReferenceRow, PaymentTrackingRow } from '../../services/supabaseService';
+import { Link } from 'react-router-dom';
+import { X, Mail, Phone, MapPin, Package, DollarSign, CreditCard, Download, Beaker, ExternalLink, Clock, Send } from 'lucide-react';
+import type { OrderReferenceRow, OrderStatusHistoryRow, PaymentTrackingRow } from '../../services/supabaseService';
 import { Heading, Text } from '../ui/Typography';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import Modal from '../ui/Modal';
 import { formatPrice } from '../../lib/formatCurrency';
 
 interface OrderDetailsModalProps {
   order: OrderReferenceRow;
   paymentTracking?: PaymentTrackingRow | null;
-  onPaymentAction?: (action: 'mark_paid' | 'archive', trackingId: string) => void;
+  /** Optional timeline of status changes — only rendered when non-empty. */
+  statusHistory?: OrderStatusHistoryRow[];
+  onPaymentAction?: (
+    action: 'mark_paid' | 'archive' | 'cancel' | 'refund' | 'resend_email',
+    trackingId: string,
+    reason?: string
+  ) => void;
   onClose: () => void;
 }
 
@@ -70,28 +78,49 @@ function exportReconstitutionCsv(
   URL.revokeObjectURL(url);
 }
 
-export default function OrderDetailsModal({ order, paymentTracking, onPaymentAction, onClose }: OrderDetailsModalProps) {
+export default function OrderDetailsModal({ order, paymentTracking, statusHistory, onPaymentAction, onClose }: OrderDetailsModalProps) {
   const [showReconstitution, setShowReconstitution] = useState(false);
+  const [cancelMode, setCancelMode] = useState<null | 'cancel' | 'refund'>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   const peptideItems = Array.isArray(order.peptide_items)
     ? order.peptide_items
     : [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-carbon-900/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-sm bg-white shadow-xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-carbon-900/10 bg-white px-6 py-4">
-          <Heading level={4}>Order details</Heading>
-          <button
-            onClick={onClose}
-            className="rounded-sm p-2 text-neutral-500 hover:bg-grey/30 hover:text-carbon-900 transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <>
+    <Modal
+      open={true}
+      onClose={onClose}
+      aria-label="Order details"
+      backdropClassName="bg-carbon-900/50 sm:p-4"
+      className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col rounded-sm bg-white shadow-xl"
+    >
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-carbon-900/10 bg-white px-4 py-4 sm:px-6">
+          <Heading level={4} className="truncate">Order details</Heading>
+          <div className="flex shrink-0 items-center gap-1">
+            <Link
+              to={`/admin/orders/${encodeURIComponent(order.peptide_order_id)}`}
+              target="_blank"
+              rel="noopener"
+              className="hidden items-center gap-1 rounded-sm px-2 py-1.5 text-xs text-carbon-600 hover:bg-grey/30 hover:text-carbon-900 sm:inline-flex"
+              aria-label="Open in new tab"
+              title="Open in new tab"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Permalink
+            </Link>
+            <button
+              onClick={onClose}
+              className="rounded-sm p-2 text-neutral-500 hover:bg-grey/30 hover:text-carbon-900 transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Order Info */}
           <Card padding="md" className="border-l-4 border-l-accent">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -220,30 +249,48 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                 peptideItems.map((rawItem: Record<string, unknown>, idx: number) => {
                   const item = rawItem as {
                     peptide_display_name?: string;
+                    name?: string;
                     cfg_code?: string;
+                    id?: string;
                     quantity?: number | string;
                     line_total?: number;
                     unit_price?: number;
+                    price?: number;
+                    /** Set by the server when the canonical lookup missed and
+                     *  the client's price is the only signal we have. */
+                    client_price?: number | string;
                   };
+                  const displayName =
+                    item.peptide_display_name || item.name || item.cfg_code || item.id || '—';
+                  const code = item.cfg_code || item.id || '—';
+                  const qty = Number(item.quantity ?? 0) || 0;
+                  // Server-side recompute stamps price=0 when the lookup misses
+                  // (e.g. cart item id didn't match a cfg_code). Fall back to
+                  // client_price so legacy orders still show the customer-visible
+                  // total rather than a confusing $0.
+                  const serverPrice = Number(item.unit_price ?? item.price ?? 0) || 0;
+                  const clientPrice = Number(item.client_price ?? 0) || 0;
+                  const unit = serverPrice > 0 ? serverPrice : clientPrice;
+                  const lineTotal = Number(item.line_total ?? unit * qty) || 0;
                   return (
                   <div
                     key={idx}
                     className="flex items-center justify-between rounded-sm border border-carbon-900/10 p-3"
                   >
-                    <div className="flex-1">
-                      <Text variant="small" weight="medium" className="mb-1">
-                        {item.peptide_display_name || item.cfg_code || '—'}
+                    <div className="flex-1 min-w-0 pr-3">
+                      <Text variant="small" weight="medium" className="mb-1 break-words">
+                        {displayName}
                       </Text>
                       <Text variant="caption" muted>
-                        Code: {item.cfg_code ?? '—'} • Qty: {item.quantity ?? 0}
+                        Code: {code} • Qty: {qty}
                       </Text>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <Text variant="small" weight="medium">
-                        {formatPrice(item.line_total ?? 0)}
+                        {formatPrice(lineTotal)}
                       </Text>
                       <Text variant="caption" muted>
-                        {formatPrice(item.unit_price ?? 0)} each
+                        {formatPrice(unit)} each
                       </Text>
                     </div>
                   </div>
@@ -312,7 +359,7 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                 </div>
                 <div className="flex justify-between">
                   <span className="text-carbon-600">Amount</span>
-                  <span className="font-medium">${paymentTracking.total_amount.toFixed(2)} {paymentTracking.currency}</span>
+                  <span className="font-medium">{formatPrice(paymentTracking.total_amount)} {paymentTracking.currency}</span>
                 </div>
                 {paymentTracking.payment_viewed_at && (
                   <div className="flex justify-between">
@@ -331,20 +378,95 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
                     <strong>Notes:</strong> {paymentTracking.admin_notes}
                   </div>
                 )}
-                {paymentTracking.payment_status !== 'payment_received' && onPaymentAction && (
-                  <button
-                    type="button"
-                    onClick={() => onPaymentAction('mark_paid', paymentTracking.id)}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-sm bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-success-dark"
-                  >
-                    <DollarSign className="h-3.5 w-3.5" />
-                    Mark as Paid
-                  </button>
+                {onPaymentAction && paymentTracking.payment_status !== 'cancelled' && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {paymentTracking.payment_status !== 'payment_received' && (
+                      <button
+                        type="button"
+                        onClick={() => onPaymentAction('mark_paid', paymentTracking.id)}
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-success-dark"
+                      >
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Mark as Paid
+                      </button>
+                    )}
+                    {paymentTracking.customer_email && (
+                      <button
+                        type="button"
+                        onClick={() => onPaymentAction('resend_email', paymentTracking.id)}
+                        className="inline-flex items-center gap-1.5 rounded-sm border border-carbon-900/20 bg-white px-3 py-1.5 text-xs font-medium text-carbon-900 hover:bg-grey/30"
+                        title={`Resend instructions to ${paymentTracking.customer_email}`}
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        Resend instructions
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setCancelMode('cancel'); setCancelReason(''); }}
+                      className="inline-flex items-center gap-1.5 rounded-sm border border-error-border bg-white px-3 py-1.5 text-xs font-medium text-error hover:bg-error-light"
+                    >
+                      Cancel order
+                    </button>
+                    {paymentTracking.payment_status === 'payment_received' && (
+                      <button
+                        type="button"
+                        onClick={() => { setCancelMode('refund'); setCancelReason(''); }}
+                        className="inline-flex items-center gap-1.5 rounded-sm border border-warning-border bg-white px-3 py-1.5 text-xs font-medium text-warning-text hover:bg-warning-light"
+                      >
+                        Refund &amp; cancel
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
           )}
-        </div>
+
+        {/* Status History Section */}
+        {statusHistory && statusHistory.length > 0 && (
+          <Card padding="lg">
+            <Heading level={5} className="mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-accent" />
+              Status history ({statusHistory.length})
+            </Heading>
+            <ol className="space-y-3">
+              {statusHistory.map((h) => (
+                <li
+                  key={h.id}
+                  className="flex flex-wrap items-baseline justify-between gap-2 border-l-2 border-carbon-900/10 pl-3"
+                >
+                  <div className="min-w-0">
+                    <Text variant="small" weight="medium" className="break-words">
+                      {h.from_status ? `${h.from_status} → ` : ''}{h.to_status}
+                    </Text>
+                    {h.note && (
+                      <Text variant="caption" muted className="mt-0.5 break-words">
+                        {h.note}
+                      </Text>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Text variant="caption" muted>
+                      {new Date(h.created_at).toLocaleString('en-AU', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                    {h.actor && h.actor !== 'system' && (
+                      <Text variant="caption" muted className="block font-mono text-[0.65rem]">
+                        {h.actor.slice(0, 8)}
+                      </Text>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        )}
 
         {/* Reconstitution Guide Section */}
         {peptideItems.length > 0 && (
@@ -443,14 +565,82 @@ export default function OrderDetailsModal({ order, paymentTracking, onPaymentAct
           </div>
         )}
 
-        <div className="sticky bottom-0 border-t border-carbon-900/10 bg-white px-6 py-4">
+        </div>
+
+        <div className="shrink-0 border-t border-carbon-900/10 bg-white px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex justify-end">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
+
+    {/* Cancel / refund confirm sub-modal */}
+    {cancelMode && onPaymentAction && paymentTracking && (
+      <Modal
+        open={true}
+        onClose={() => setCancelMode(null)}
+        aria-label={cancelMode === 'refund' ? 'Confirm refund' : 'Confirm cancellation'}
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col rounded-lg bg-white shadow-xl"
+      >
+        <div className="border-b border-carbon-200 px-5 py-4">
+          <Heading level={4} className="truncate">
+            {cancelMode === 'refund' ? 'Refund and cancel' : 'Cancel order'}
+          </Heading>
+          <Text variant="caption" muted className="mt-1">
+            {cancelMode === 'refund'
+              ? 'Marks the order cancelled and records refund intent. Refund must still be processed in your payment provider.'
+              : 'Marks the order cancelled. Items will not be shipped.'}
+          </Text>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 space-y-3">
+          <label className="block">
+            <Text variant="caption" weight="medium" className="mb-1.5 block uppercase tracking-wide">
+              Reason (required)
+            </Text>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              rows={4}
+              autoFocus
+              placeholder={
+                cancelMode === 'refund'
+                  ? 'e.g. Customer requested refund within 24h; refund issued via Stripe…'
+                  : 'e.g. Out of stock; customer asked to cancel before payment…'
+              }
+              className="w-full rounded-sm border border-carbon-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40"
+            />
+          </label>
+          <Text variant="caption" muted>
+            This reason is appended to the order's internal notes and logged in the audit trail.
+          </Text>
+        </div>
+        <div className="shrink-0 border-t border-carbon-200 bg-carbon-50 px-5 py-3">
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCancelMode(null)}>
+              Back
+            </Button>
+            <Button
+              size="sm"
+              disabled={!cancelReason.trim()}
+              onClick={() => {
+                onPaymentAction(cancelMode, paymentTracking.id, cancelReason.trim());
+                setCancelMode(null);
+                setCancelReason('');
+              }}
+              className={
+                cancelMode === 'refund'
+                  ? 'bg-warning text-white hover:bg-warning-dark'
+                  : 'bg-error text-white hover:bg-error-dark'
+              }
+            >
+              {cancelMode === 'refund' ? 'Refund & cancel' : 'Cancel order'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    )}
+    </>
   );
 }

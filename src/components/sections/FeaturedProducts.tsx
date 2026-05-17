@@ -52,6 +52,8 @@ export default function FeaturedProducts() {
                   alt={product.name}
                   className="relative block h-full w-full"
                   imgClassName="h-full w-full object-contain p-2 transition-transform duration-300 motion-safe:group-hover:scale-105 sm:p-4"
+                  width={400}
+                  height={400}
                 />
               </div>
               <Label

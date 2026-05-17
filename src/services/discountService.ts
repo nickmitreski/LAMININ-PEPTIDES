@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logAdminAction } from './auditLog';
 
 export interface DiscountValidation {
   valid: boolean;
@@ -190,6 +191,12 @@ export async function deleteDiscountCode(
 ): Promise<{ success: boolean; error?: string }> {
   if (!client) return { success: false, error: 'No database client' };
 
+  const { data: existing } = await client
+    .from('discount_codes')
+    .select('code, discount_type, discount_value')
+    .eq('id', id)
+    .maybeSingle();
+
   const { error } = await client
     .from('discount_codes')
     .delete()
@@ -199,6 +206,16 @@ export async function deleteDiscountCode(
     console.error('[discount] deleteDiscountCode', error);
     return { success: false, error: error.message };
   }
+
+  await logAdminAction(
+    {
+      action: 'discount.delete',
+      target_table: 'discount_codes',
+      target_id: id,
+      before: existing ?? null,
+    },
+    client
+  );
 
   return { success: true };
 }

@@ -1,10 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useRef, useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  checkoutGstAmount,
-  checkoutGstRate,
-  expressShippingAud,
-} from '../lib/shippingPolicy';
+import { expressShippingAud } from '../lib/shippingPolicy';
+import { PEPTIDE_ID_TO_CFG } from '../data/productMappings';
 import { ArrowLeft, Tag, X, Loader2, Droplets, Plus } from 'lucide-react';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
@@ -23,6 +20,7 @@ import {
 } from '../services/bankTransferPayment';
 import { sendOrderEmail } from '../services/emailService';
 import { formatPrice } from '../lib/formatCurrency';
+import { imgFetchPriorityProps } from '../lib/imgFetchPriority';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
   validateDiscountCode,
@@ -108,6 +106,9 @@ export default function Checkout() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Idempotency key for the current submit attempt. Generated lazily inside
+  // handleSubmit; reset to null on success so the next click gets a fresh key.
+  const idempotencyKeyRef = useRef<string | null>(null);
   const [bankTransferModalOpen, setBankTransferModalOpen] = useState(false);
   const [currentOrderReference, setCurrentOrderReference] = useState<string>('');
   const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
@@ -189,9 +190,15 @@ export default function Checkout() {
 
     try {
       const shipping = expressShippingAud(state.total);
-      const tax = checkoutGstAmount(state.total, checkoutGstRate());
-      const grandTotal = state.total + shipping + tax - discountAmount;
+      const grandTotal = state.total + shipping - discountAmount;
       const orderRef = generateOrderReference();
+      // Reuse the key across retries of THIS submit attempt; generate a new
+      // one only on a fresh click.  `crypto.randomUUID` is available on every
+      // browser supported by Vite (no polyfill needed).
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = crypto.randomUUID();
+      }
+      const idempotencyKey = idempotencyKeyRef.current;
 
       // --- Step 1: Redeem discount FIRST (if applied) so the code is locked
       // before the order is created. If redemption fails, we stop here.
@@ -223,7 +230,11 @@ export default function Checkout() {
           country: formData.country,
         },
         cartItems: state.items.map(item => ({
-          id: item.peptideId,
+          // Server's recompute looks up canonical price by cfg_code on
+          // product_mappings — so we send the CFG code rather than the
+          // frontend's peptide_id slug. Falls back to peptide_id for
+          // products that don't have a CFG mapping (legacy / DB-only).
+          id: PEPTIDE_ID_TO_CFG[item.peptideId] ?? item.peptideId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -231,15 +242,38 @@ export default function Checkout() {
         })),
         subtotal: state.total,
         shipping,
-        tax,
+        tax: 0,
         totalAmount: grandTotal,
         currency: 'AUD',
         discountCode: appliedDiscount?.valid ? appliedDiscount.code : null,
         discountAmount: discountAmount > 0 ? discountAmount : 0,
+        idempotencyKey,
       });
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to create order');
+      }
+
+      // --- Server-authoritative totals — once migration 20260517140000 is
+      // applied, the RPC returns its own recomputed numbers. If the server's
+      // total differs from what the customer saw (e.g. they tampered with
+      // prices in devtools, or our shipping math drifted), surface the
+      // server number as the source of truth.
+      const server = result.serverTotals;
+      let authoritativeTotal = grandTotal;
+      if (server?.available && typeof server.serverTotal === 'number') {
+        authoritativeTotal = server.serverTotal;
+        if (server.tamperDetected) {
+          console.warn(
+            '[checkout] server total differed from client total',
+            { client: grandTotal, server: server.serverTotal }
+          );
+          showToast(
+            `Your order total was updated to ${formatPrice(server.serverTotal)} based on current pricing.`,
+            'info',
+            5000
+          );
+        }
       }
 
       // --- Step 3: Non-critical operations (don't block checkout on failure)
@@ -257,7 +291,7 @@ export default function Checkout() {
             p_state: formData.state,
             p_postcode: formData.postcode,
             p_country: formData.country,
-            p_order_total: grandTotal,
+            p_order_total: authoritativeTotal,
           });
           if (error) console.error('Customer upsert failed:', error);
         } catch (err) {
@@ -276,7 +310,7 @@ export default function Checkout() {
         customerEmail: formData.email.trim() || undefined,
         customerName: `${formData.firstName} ${formData.lastName}`,
         customerPhone: formData.phone.trim(),
-        totalAmount: grandTotal,
+        totalAmount: authoritativeTotal,
         currency: 'AUD',
       }).catch((err) => console.error('Post-checkout notifications failed:', err));
 
@@ -284,6 +318,9 @@ export default function Checkout() {
       setCurrentOrderReference(orderRef);
       setCurrentTotalAmount(grandTotal);
       setBankTransferModalOpen(true);
+      // Order placed — clear the idempotency key so the customer can place
+      // a SECOND order from the same browser tab if they want to.
+      idempotencyKeyRef.current = null;
 
       showToast(
         formData.email.trim()
@@ -337,7 +374,6 @@ export default function Checkout() {
   }
 
   const shipping = expressShippingAud(state.total);
-  const tax = checkoutGstAmount(state.total, checkoutGstRate());
 
   return (
     <div className="min-h-screen bg-platinum overscroll-contain">
@@ -598,7 +634,7 @@ export default function Checkout() {
                             aria-hidden="true"
                             decoding="async"
                             loading="lazy"
-                            fetchPriority="low"
+                            {...imgFetchPriorityProps('low')}
                             className="h-full w-full object-contain p-1"
                           />
                         </div>
@@ -655,7 +691,6 @@ export default function Checkout() {
                   <CartSummary
                     subtotal={state.total}
                     shipping={shipping}
-                    tax={tax}
                     discount={discountAmount}
                     discountCode={appliedDiscount?.code}
                     onRemoveDiscount={appliedDiscount ? handleRemoveDiscount : undefined}

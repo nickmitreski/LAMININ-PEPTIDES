@@ -1,10 +1,8 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   expressShippingAud,
   FREE_SHIPPING_THRESHOLD_AUD,
   FLAT_EXPRESS_SHIPPING_AUD,
-  checkoutGstRate,
-  checkoutGstAmount,
 } from './shippingPolicy';
 
 describe('expressShippingAud', () => {
@@ -16,35 +14,5 @@ describe('expressShippingAud', () => {
   it('is free at or above threshold', () => {
     expect(expressShippingAud(FREE_SHIPPING_THRESHOLD_AUD)).toBe(0);
     expect(expressShippingAud(500)).toBe(0);
-  });
-});
-
-describe('checkoutGstRate / checkoutGstAmount', () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
-  it('defaults to 0% (prices are tax-inclusive)', () => {
-    expect(checkoutGstRate()).toBe(0);
-    expect(checkoutGstAmount(100)).toBe(0);
-  });
-
-  it('respects VITE_CHECKOUT_GST_RATE when valid', () => {
-    vi.stubEnv('VITE_CHECKOUT_GST_RATE', '0');
-    expect(checkoutGstRate()).toBe(0);
-    expect(checkoutGstAmount(100)).toBe(0);
-
-    vi.stubEnv('VITE_CHECKOUT_GST_RATE', '0.15');
-    expect(checkoutGstRate()).toBe(0.15);
-    expect(checkoutGstAmount(100)).toBe(15);
-  });
-
-  it('ignores invalid env and falls back to 0%', () => {
-    vi.stubEnv('VITE_CHECKOUT_GST_RATE', 'not-a-number');
-    expect(checkoutGstRate()).toBe(0);
-    vi.stubEnv('VITE_CHECKOUT_GST_RATE', '2');
-    expect(checkoutGstRate()).toBe(0);
-    vi.stubEnv('VITE_CHECKOUT_GST_RATE', '-0.1');
-    expect(checkoutGstRate()).toBe(0);
   });
 });

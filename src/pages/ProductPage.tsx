@@ -131,7 +131,7 @@ export default function ProductPage() {
   // when the product hasn't been onboarded to the database yet.
   const dbPrice = getDbPrice(peptide.id);
   const priceLine = dbPrice != null
-    ? `$${dbPrice.toFixed(2)}`
+    ? formatPrice(dbPrice)
     : staticPriceLine ?? null;
 
   const coaDownload = getCoaDownload(

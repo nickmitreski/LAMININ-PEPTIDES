@@ -30,6 +30,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
+const OrderStatus = lazy(() => import('./pages/OrderStatus'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 const Shipping = lazy(() => import('./pages/Shipping'));
@@ -37,6 +38,9 @@ const ProductPage = lazy(() => import('./pages/ProductPage'));
 const AdminInventory = lazy(() => import('./pages/AdminInventory'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminOrderDetail = lazy(() => import('./pages/AdminOrderDetail'));
+const AdminAudit = lazy(() => import('./pages/AdminAudit'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminDiscounts = lazy(() => import('./pages/AdminDiscounts'));
@@ -65,6 +69,36 @@ function App() {
                     <ProtectedRoute>
                       <AdminErrorBoundary pageName="Orders">
                         <AdminDashboard />
+                      </AdminErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/orders/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AdminErrorBoundary pageName="Order detail">
+                        <AdminOrderDetail />
+                      </AdminErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/audit"
+                  element={
+                    <ProtectedRoute>
+                      <AdminErrorBoundary pageName="Audit log">
+                        <AdminAudit />
+                      </AdminErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings"
+                  element={
+                    <ProtectedRoute>
+                      <AdminErrorBoundary pageName="Settings">
+                        <AdminSettings />
                       </AdminErrorBoundary>
                     </ProtectedRoute>
                   }
@@ -194,6 +228,7 @@ function App() {
                               path="/order-confirmation"
                               element={<OrderConfirmation />}
                             />
+                            <Route path="/order-status" element={<OrderStatus />} />
                             <Route path="/oops" element={<ErrorPage />} />
                             <Route path="/privacy" element={<Privacy />} />
                             <Route

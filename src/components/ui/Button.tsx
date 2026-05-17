@@ -37,19 +37,28 @@ export default function Button({
   rel,
   target,
 }: ButtonProps) {
-  const baseStyles = 'btn focus-visible:ring-carbon-900';
+  // `disabled:hover:bg-*` overrides reset the hover background to the base
+  // variant colour when the button is disabled, killing the "looks clickable"
+  // illusion without changing per-variant CSS.
+  const baseStyles = 'btn focus-visible:ring-carbon-900 disabled:cursor-not-allowed';
 
   const variants = {
-    primary: 'bg-carbon-900 text-white hover:bg-carbon-900/85 active:bg-carbon-900/95',
-    secondary: 'bg-grey text-carbon-900 hover:bg-grey/70 active:bg-grey/50',
-    white: 'bg-white text-carbon-900 hover:bg-grey active:bg-grey/80',
-    outline: 'border border-carbon-900/15 text-carbon-900 hover:border-carbon-900 hover:bg-grey active:bg-grey/80',
-    ghost: 'text-carbon-900 hover:bg-grey active:bg-grey/70',
-    link: 'text-carbon-900 hover:text-carbon-900/70 underline-offset-4 hover:underline',
+    primary:
+      'bg-carbon-900 text-white hover:bg-carbon-900/85 active:bg-carbon-900/95 disabled:hover:bg-carbon-900',
+    secondary:
+      'bg-grey text-carbon-900 hover:bg-grey/70 active:bg-grey/50 disabled:hover:bg-grey',
+    white:
+      'bg-white text-carbon-900 hover:bg-grey active:bg-grey/80 disabled:hover:bg-white',
+    outline:
+      'border border-carbon-900/15 text-carbon-900 hover:border-carbon-900 hover:bg-grey active:bg-grey/80 disabled:hover:border-carbon-900/15 disabled:hover:bg-transparent',
+    ghost:
+      'text-carbon-900 hover:bg-grey active:bg-grey/70 disabled:hover:bg-transparent',
+    link:
+      'text-carbon-900 hover:text-carbon-900/70 underline-offset-4 hover:underline disabled:hover:text-carbon-900 disabled:hover:no-underline',
     accent:
-      'bg-accent text-carbon-900 border border-accent-dark/25 hover:bg-accent-dark active:bg-accent-dark/90',
+      'bg-accent text-carbon-900 border border-accent-dark/25 hover:bg-accent-dark active:bg-accent-dark/90 disabled:hover:bg-accent',
     danger:
-      'bg-error text-white border border-error-dark/30 hover:bg-error-dark active:bg-error-dark/90 focus-visible:ring-error',
+      'bg-error text-white border border-error-dark/30 hover:bg-error-dark active:bg-error-dark/90 focus-visible:ring-error disabled:hover:bg-error',
   };
 
   const sizes = {

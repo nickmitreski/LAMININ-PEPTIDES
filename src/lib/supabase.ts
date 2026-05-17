@@ -11,16 +11,18 @@ const globalLaminin = globalThis as typeof globalThis & {
   __LAMININ_STOREFRONT_SUPABASE__?: SupabaseClient;
 };
 
-function createStorefrontClient(): SupabaseClient {
+function createBrowserSupabase(): SupabaseClient {
   return createClient(url!, anonKey!, {
     auth: {
-      persistSession: false,
-      storageKey: 'laminin-storefront-supabase-v1',
+      /** Shared session for storefront + admin; avoids a second GoTrueClient (console warning). */
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'laminin-supabase-auth-v1',
     },
   });
 }
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? (globalLaminin.__LAMININ_STOREFRONT_SUPABASE__ ??=
-      createStorefrontClient())
+  ? (globalLaminin.__LAMININ_STOREFRONT_SUPABASE__ ??= createBrowserSupabase())
   : null;

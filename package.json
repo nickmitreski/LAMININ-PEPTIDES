@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "images:optimize": "bash scripts/optimize-product-images.sh",
+    "build:strip-originals": "vite build && bash scripts/postbuild-strip-originals.sh",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@playwright/test": "^1.60.0",
     "@types/dompurify": "^3.0.5",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",

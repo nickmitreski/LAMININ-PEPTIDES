@@ -1,5 +1,5 @@
 /**
- * Retail pricing (inc. GST) aligned with internal price lists.
+ * Retail pricing aligned with internal price lists.
  * Multi-SKU peptides use PRODUCT_VARIANTS; everything else uses PEPTIDE_BASE_PRICES.
  */
 

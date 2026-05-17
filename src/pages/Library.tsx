@@ -111,7 +111,8 @@ export default function Library() {
 
   const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
   const { ref: ctaRef, revealed: ctaRevealed } = useScrollReveal<HTMLDivElement>();
-  const { loading, isProductActive, allProducts } = useShopImages();
+  const { loading, catalogLoaded, isProductActive, allProducts } = useShopImages();
+  const showSkeleton = loading || collectionLoading || !catalogLoaded;
 
   // Use merged catalog (static + DB-only products), filtered by category and active status
   const categoryPeptides = activeCategory === 'All'
@@ -162,14 +163,14 @@ export default function Library() {
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <Text variant="caption" muted>
-            {loading || collectionLoading ? '\u00A0' : `${filteredPeptides.length} ${filteredPeptides.length === 1 ? 'compound' : 'compounds'} found`}
+            {showSkeleton ? '\u00A0' : `${filteredPeptides.length} ${filteredPeptides.length === 1 ? 'compound' : 'compounds'} found`}
           </Text>
           <TextLink to="/coa" className="shrink-0 self-start sm:self-auto">
             View all certificates →
           </TextLink>
         </div>
 
-        {loading || collectionLoading ? (
+        {showSkeleton ? (
           <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex flex-col gap-3">
@@ -184,14 +185,14 @@ export default function Library() {
         ) : (
           <>
             <div ref={gridRef} data-revealed={gridRevealed} className="reveal mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
-              {filteredPeptides.map((peptide) => (
-                <PeptideCard key={peptide.id} peptide={peptide} />
+              {filteredPeptides.map((peptide, idx) => (
+                <PeptideCard key={peptide.id} peptide={peptide} priority={idx < 4} />
               ))}
             </div>
           </>
         )}
 
-        {!loading && !collectionLoading && filteredPeptides.length === 0 && (
+        {!showSkeleton && filteredPeptides.length === 0 && (
           <div className="mx-auto max-w-md py-12 text-center sm:py-16">
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-platinum">
               <svg

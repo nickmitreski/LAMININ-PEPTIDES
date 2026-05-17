@@ -34,10 +34,61 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-/** Bank details — same values the email template uses */
-const BANK_BSB = '013402';
-const BANK_ACCOUNT = '807892935';
-const BANK_NAME = 'MJCA Group';
+/**
+ * Bank details — fallback values used when the public.bank_details row is
+ * missing (pre-migration) or when the supabase client init fails. The
+ * authoritative copy lives in the DB and is editable from /admin/settings.
+ */
+const FALLBACK_BANK_BSB = '013402';
+const FALLBACK_BANK_ACCOUNT = '807892935';
+const FALLBACK_BANK_NAME = 'MJCA Group';
+
+interface ResolvedBankDetails {
+  bsb: string;
+  account_number: string;
+  account_name: string;
+}
+
+async function loadBankDetails(
+  supabaseUrl: string | undefined,
+  serviceKey: string | undefined
+): Promise<ResolvedBankDetails> {
+  if (!supabaseUrl || !serviceKey) {
+    return {
+      bsb: FALLBACK_BANK_BSB,
+      account_number: FALLBACK_BANK_ACCOUNT,
+      account_name: FALLBACK_BANK_NAME,
+    };
+  }
+  try {
+    const sb = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false },
+    });
+    const { data, error } = await sb
+      .from('bank_details')
+      .select('bsb, account_number, account_name')
+      .eq('singleton', true)
+      .maybeSingle();
+    if (error || !data) {
+      return {
+        bsb: FALLBACK_BANK_BSB,
+        account_number: FALLBACK_BANK_ACCOUNT,
+        account_name: FALLBACK_BANK_NAME,
+      };
+    }
+    return {
+      bsb: String(data.bsb ?? FALLBACK_BANK_BSB),
+      account_number: String(data.account_number ?? FALLBACK_BANK_ACCOUNT),
+      account_name: String(data.account_name ?? FALLBACK_BANK_NAME),
+    };
+  } catch {
+    return {
+      bsb: FALLBACK_BANK_BSB,
+      account_number: FALLBACK_BANK_ACCOUNT,
+      account_name: FALLBACK_BANK_NAME,
+    };
+  }
+}
 
 interface OrderEmailRequest {
   order_reference: string;
@@ -58,6 +109,33 @@ function formatMoney(amount: number, currency: string): string {
   }
 }
 
+/**
+ * Payment deadline policy. Customers have 48 hours to complete the bank
+ * transfer; after that the order is treated as abandoned and admin can cancel.
+ * The deadline is shown in the customer's local time on the storefront, but in
+ * the email we display Australian Eastern time because that's where the bank
+ * is. Keep this in sync with `PAYMENT_DEADLINE_HOURS` in src/lib/shippingPolicy.ts.
+ */
+const PAYMENT_DEADLINE_HOURS = 48;
+
+function formatDeadlineAEST(fromIso: string | undefined): string {
+  const base = fromIso ? new Date(fromIso) : new Date();
+  const due = new Date(base.getTime() + PAYMENT_DEADLINE_HOURS * 60 * 60 * 1000);
+  try {
+    return new Intl.DateTimeFormat('en-AU', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'Australia/Sydney',
+      timeZoneName: 'short',
+    }).format(due);
+  } catch {
+    return due.toISOString();
+  }
+}
+
 function buildEmailHtml(vars: {
   customer_name: string;
   order_reference: string;
@@ -65,6 +143,7 @@ function buildEmailHtml(vars: {
   bsb: string;
   account_number: string;
   account_name: string;
+  payment_deadline: string;
 }): string {
   return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1a1a1a;">
   <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #1a1a1a;">
@@ -116,6 +195,14 @@ function buildEmailHtml(vars: {
     </p>
   </div>
 
+  <div style="background: #fffbeb; border: 2px solid #fcd34d; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #92400e;">Please complete payment within ${PAYMENT_DEADLINE_HOURS} hours</p>
+    <p style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.5;">
+      Payment due by <strong>${vars.payment_deadline}</strong>.<br>
+      Orders without payment by this time may be cancelled. If you need more time, reply to this email and we'll hold your order.
+    </p>
+  </div>
+
   <div style="background: #f8f8f8; border-radius: 8px; padding: 20px; margin: 20px 0;">
     <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600;">Processing</p>
     <p style="margin: 0; font-size: 13px; color: #555; line-height: 1.5;">
@@ -139,6 +226,7 @@ function buildEmailText(vars: {
   bsb: string;
   account_number: string;
   account_name: string;
+  payment_deadline: string;
 }): string {
   return `PAYMENT INSTRUCTIONS
 
@@ -158,6 +246,11 @@ Account Name: ${vars.account_name}
 
 REFERENCE REQUIREMENT
 When completing payment, include your invoice reference number only as the payment reference. No additional information is to be included.
+
+PAYMENT DEADLINE
+Please complete payment within ${PAYMENT_DEADLINE_HOURS} hours.
+Payment due by ${vars.payment_deadline}.
+Orders without payment by this time may be cancelled. If you need more time, reply to this email and we'll hold your order.
 
 PROCESSING
 Orders are processed once payment has been received and confirmed. We will notify you when your order is being prepared for shipment.
@@ -271,13 +364,19 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
   const amountFormatted = formatMoney(Number(total_amount), currency);
+  // Use `now` rather than the order's created_at so the deadline always reflects
+  // "from when the customer reads this email". The function fires synchronously
+  // after order creation so the drift is sub-second.
+  const paymentDeadline = formatDeadlineAEST(new Date().toISOString());
+  const bankDetails = await loadBankDetails(supabaseUrl, serviceKey);
   const templateVars = {
     customer_name: customer_name || 'Customer',
     order_reference,
     total_amount: amountFormatted,
-    bsb: BANK_BSB,
-    account_number: BANK_ACCOUNT,
-    account_name: BANK_NAME,
+    bsb: bankDetails.bsb,
+    account_number: bankDetails.account_number,
+    account_name: bankDetails.account_name,
+    payment_deadline: paymentDeadline,
   };
 
   const subject = `Laminin - Payment Instructions for Order ${order_reference}`;

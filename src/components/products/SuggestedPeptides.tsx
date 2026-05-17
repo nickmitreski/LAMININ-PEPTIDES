@@ -49,6 +49,8 @@ export default function SuggestedPeptides({
                 alt={`${peptide.name} — laboratory vial`}
                 className="relative block h-full w-full"
                 imgClassName="h-full w-full object-contain p-3 transition-transform duration-300 motion-safe:group-hover:scale-105"
+                width={400}
+                height={400}
               />
             </div>
             <div className="flex flex-1 flex-col p-3">

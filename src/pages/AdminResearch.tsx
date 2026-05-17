@@ -13,6 +13,7 @@ import {
 import AdminNavigation from '../components/admin/AdminNavigation';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import Button from '../components/ui/Button';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
@@ -30,6 +31,7 @@ export default function AdminResearch() {
   const [mechanism, setMechanism] = useState('');
   const [highlights, setHighlights] = useState('');
   const [saving, setSaving] = useState(false);
+  const [clearOverrideOpen, setClearOverrideOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,8 +88,10 @@ export default function AdminResearch() {
     }
   };
 
-  const clearOverride = async () => {
-    if (!profile || !confirm('Remove DB override and revert to static copy for this profile?')) return;
+  const requestClearOverride = () => setClearOverrideOpen(true);
+
+  const performClearOverride = async () => {
+    if (!profile) return;
     setSaving(true);
     try {
       const db = getAdminSupabase();
@@ -102,6 +106,7 @@ export default function AdminResearch() {
       showToast('Failed', 'error');
     } finally {
       setSaving(false);
+      setClearOverrideOpen(false);
     }
   };
 
@@ -178,7 +183,7 @@ export default function AdminResearch() {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => void clearOverride()}
+                      onClick={requestClearOverride}
                       disabled={saving || !overrides[profile.id]}
                       className="inline-flex items-center gap-2 text-error"
                     >
@@ -192,6 +197,17 @@ export default function AdminResearch() {
           )}
         </Card>
       </Section>
+
+      <ConfirmDialog
+        open={clearOverrideOpen}
+        title="Revert to static copy?"
+        message="This removes the DB override and shows the hard-coded research copy for this profile again."
+        confirmLabel="Clear override"
+        tone="warning"
+        loading={saving}
+        onConfirm={() => void performClearOverride()}
+        onCancel={() => setClearOverrideOpen(false)}
+      />
     </div>
   );
 }
