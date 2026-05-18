@@ -62,13 +62,14 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
    *  fall back to showing all static products so the page isn't blank. */
   const [catalogLoaded, setCatalogLoaded] = useState(false);
 
-  const cancelRef = useRef(false);
-
   /** Fetch all product data from Supabase and update state.
    *  `showLoading` controls whether the loading spinner appears (false for
-   *  silent background refreshes on tab-focus). */
-  const loadCatalog = useCallback(async (showLoading: boolean) => {
-    cancelRef.current = false;
+   *  silent background refreshes on tab-focus). The returned function lets the
+   *  caller mark its run as cancelled (used by effect cleanups). */
+  const loadCatalog = useCallback(async (
+    showLoading: boolean,
+    isCancelled: () => boolean = () => false
+  ) => {
     if (showLoading) setLoading(true);
     try {
       const [imageMap, saleByCfg, catalogByCfg] = await Promise.all([
@@ -76,7 +77,7 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
         fetchProductSaleInfo(),
         fetchLiveProductCatalog(),
       ]);
-      if (cancelRef.current) return;
+      if (isCancelled()) return;
 
       setOverrideByPeptideId(imageMap);
 
@@ -119,16 +120,23 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       setLiveProductMap(mappedLive);
       setDbOnlyProducts(newDbProducts);
       setCatalogLoaded(true);
+    } catch (e) {
+      // Don't strand `loading: true` on network error — finally always clears it
+      // and the user can retry by navigating or refocusing the tab.
+      if (!isCancelled()) {
+        console.error('Failed to load shop catalog:', e);
+      }
     } finally {
-      if (!cancelRef.current) setLoading(false);
+      if (!isCancelled() && showLoading) setLoading(false);
     }
   }, []);
 
   // Initial load
   useEffect(() => {
-    void loadCatalog(true);
+    let cancelled = false;
+    void loadCatalog(true, () => cancelled);
     return () => {
-      cancelRef.current = true;
+      cancelled = true;
     };
   }, [loadCatalog]);
 
@@ -138,15 +146,19 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
   const lastRefreshRef = useRef<number>(0);
   const VISIBILITY_REFRESH_MIN_MS = 60_000;
   useEffect(() => {
+    let cancelled = false;
     const onVisibilityChange = () => {
       if (document.visibilityState !== 'visible' || !catalogLoaded) return;
       const now = Date.now();
       if (now - lastRefreshRef.current < VISIBILITY_REFRESH_MIN_MS) return;
       lastRefreshRef.current = now;
-      void loadCatalog(false);
+      void loadCatalog(false, () => cancelled);
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [loadCatalog, catalogLoaded]);
 
   const resolveDisplayImage = useCallback(

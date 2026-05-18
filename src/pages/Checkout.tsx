@@ -63,7 +63,9 @@ function validateForm(data: ShippingFormData): FieldErrors {
   const errors: FieldErrors = {};
   if (!data.firstName.trim()) errors.firstName = 'Required';
   if (!data.lastName.trim()) errors.lastName = 'Required';
-  if (data.email.trim() && !EMAIL_RE.test(data.email.trim())) {
+  if (!data.email.trim()) {
+    errors.email = 'Required';
+  } else if (!EMAIL_RE.test(data.email.trim())) {
     errors.email = 'Enter a valid email address';
   }
   if (!data.phone.trim()) {
@@ -427,9 +429,10 @@ export default function Checkout() {
                       id="email"
                       name="email"
                       type="email"
-                      label="Email (optional)"
+                      label="Email"
                       value={formData.email}
                       onChange={handleChange}
+                      required
                       autoComplete="email"
                       disabled={isSubmitting}
                       error={fieldErrors.email}
