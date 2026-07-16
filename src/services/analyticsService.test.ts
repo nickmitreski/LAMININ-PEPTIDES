@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { funnelSteps } from '../components/analytics/CheckoutFunnelChart';
+import { funnelSteps } from '../features/analytics/funnel';
 
 describe('analyticsService helpers', () => {
   it('builds funnel steps in order', () => {

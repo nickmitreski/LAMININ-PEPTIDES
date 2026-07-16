@@ -20,8 +20,9 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
 import ClickHeatmapPreview from '../components/analytics/ClickHeatmapPreview';
-import CheckoutFunnelChart, { funnelSteps } from '../components/analytics/CheckoutFunnelChart';
+import CheckoutFunnelChart from '../components/analytics/CheckoutFunnelChart';
 import AbandonedCheckoutPanel from '../components/analytics/AbandonedCheckoutPanel';
+import { funnelSteps } from '../features/analytics/funnel';
 import { fetchAnalyticsSummary, type AnalyticsSummary } from '../services/analyticsService';
 
 type AnalyticsRow = {

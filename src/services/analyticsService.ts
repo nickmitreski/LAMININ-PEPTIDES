@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createLogger } from '../lib/logger';
 import type { HeatmapPoint } from '../components/analytics/ClickHeatmapPreview';
 import type { AbandonedSession } from '../components/analytics/AbandonedCheckoutPanel';
-import type { CheckoutFunnel } from '../components/analytics/CheckoutFunnelChart';
+import type { CheckoutFunnel } from '../features/analytics/funnel';
 
 const log = createLogger('analytics');
 
