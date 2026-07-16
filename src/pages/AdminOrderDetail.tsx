@@ -15,10 +15,12 @@ import {
   getOrderById,
   getOrderByReference,
   getOrderStatusHistory,
+  getPaymentEventsByReference,
   updateOrderStatus,
   type OrderReferenceRow,
   type OrderStatus,
   type OrderStatusHistoryRow,
+  type PaymentEventRow,
 } from '../services/supabaseService';
 import { resendOrderInstructionsEmail } from '../services/emailService';
 import { getAdminSupabase } from '../lib/supabaseAdminClient';
@@ -41,6 +43,7 @@ export default function AdminOrderDetail() {
 
   const [order, setOrder] = useState<OrderReferenceRow | null>(null);
   const [history, setHistory] = useState<OrderStatusHistoryRow[]>([]);
+  const [paymentEvents, setPaymentEvents] = useState<PaymentEventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,10 +60,15 @@ export default function AdminOrderDetail() {
         setError('Order not found.');
         setOrder(null);
         setHistory([]);
+        setPaymentEvents([]);
       } else {
         setOrder(result);
-        const rows = await getOrderStatusHistory(result.id, client);
+        const [rows, events] = await Promise.all([
+          getOrderStatusHistory(result.id, client),
+          getPaymentEventsByReference(result.peptide_order_id, client),
+        ]);
         setHistory(rows);
+        setPaymentEvents(events);
       }
       if (!opts?.silent) setLoading(false);
     },
@@ -167,8 +175,12 @@ export default function AdminOrderDetail() {
     const refreshed = await getOrderById(order.id, client);
     setOrder(refreshed);
     if (refreshed) {
-      const rows = await getOrderStatusHistory(refreshed.id, client);
+      const [rows, events] = await Promise.all([
+        getOrderStatusHistory(refreshed.id, client),
+        getPaymentEventsByReference(refreshed.peptide_order_id, client),
+      ]);
       setHistory(rows);
+      setPaymentEvents(events);
     }
   };
 
@@ -221,6 +233,7 @@ export default function AdminOrderDetail() {
             updated_at: order.updated_at,
           }}
           statusHistory={history}
+          paymentEvents={paymentEvents}
           onPaymentAction={handlePaymentAction}
           onClose={handleClose}
         />

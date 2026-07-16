@@ -11,6 +11,9 @@ import './styles/base.css';
 import './styles/components.css';
 import './styles/animations.css';
 import './styles/utilities.css';
+import { initSentry } from './lib/sentry';
+
+void initSentry();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

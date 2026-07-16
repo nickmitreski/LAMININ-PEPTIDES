@@ -253,7 +253,7 @@ export default function AdminPaymentTracking() {
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchPayments}
+            onClick={() => fetchPayments()}
             disabled={loading}
             className="inline-flex items-center gap-2"
           >

@@ -10,6 +10,9 @@ const ALLOWED_ORIGINS = new Set([
   'https://www.laminpeptides.com.au',
   'https://lamininpeptab.com.au',
   'https://www.lamininpeptab.com.au',
+  'http://localhost:5180',
+  'http://localhost:5175',
+  'http://localhost:4321',
   'http://localhost:5173',
   'http://localhost:3000',
 ]);

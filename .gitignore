@@ -50,5 +50,8 @@ credentials.md
 design-notes/
 .vercel
 
-# Playwright inspector screenshots
-tmp/
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

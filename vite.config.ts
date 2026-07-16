@@ -17,6 +17,14 @@ export default defineConfig(({ mode }) => ({
     clearMocks: true,
   },
   plugins: [react()],
+  server: {
+    port: 5180,
+    strictPort: true,
+  },
+  preview: {
+    port: 4173,
+    strictPort: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

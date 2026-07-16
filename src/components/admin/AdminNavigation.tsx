@@ -12,6 +12,7 @@ import {
   FolderOpen,
   ShieldCheck,
   Settings,
+  BarChart3,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -86,6 +87,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Audit',
     icon: ShieldCheck,
     description: 'Admin action history',
+  },
+  {
+    path: '/admin/analytics',
+    label: 'Analytics',
+    icon: BarChart3,
+    description: 'Visits and checkout insights',
   },
   {
     path: '/admin/settings',

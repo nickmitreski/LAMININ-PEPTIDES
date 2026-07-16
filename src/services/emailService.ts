@@ -58,7 +58,7 @@ export async function resendOrderInstructionsEmail(
       recipient: rest.customerEmail ?? null,
       success: result.success,
     },
-    note: result.success ? null : (result.error ?? 'send failed'),
+    note: result.success ? undefined : (result.error ?? 'send failed'),
   });
   return result;
 }

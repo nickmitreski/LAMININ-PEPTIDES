@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   X,
-  Upload,
-  Image as ImageIcon,
   Trash2,
-  Star,
   Loader2,
   CheckCircle,
   AlertCircle,
@@ -36,39 +33,15 @@ import { Heading, Text } from '../ui/Typography';
 import Card from '../ui/Card';
 import Modal from '../ui/Modal';
 import ConfirmDialog from '../ui/ConfirmDialog';
-
-interface ProductImage {
-  id: string;
-  image_url: string;
-  storage_path: string;
-  is_primary: boolean;
-  display_order: number;
-  file_name: string;
-}
-
-interface Product {
-  id: string;
-  cfg_code: string;
-  peptide_name: string;
-  protein_name: string;
-  description?: string;
-  price: number;
-  category?: string;
-  is_active: boolean;
-  stock_quantity?: number;
-  low_stock_threshold?: number;
-  track_inventory?: boolean;
-  compare_at_price?: number | null;
-  sale_label?: string | null;
-  sort_order?: number;
-  images?: ProductImage[];
-  overview_text?: string | null;
-  specifications_text?: string | null;
-  analytical_text?: string | null;
-  coa_link_url?: string | null;
-  product_type?: string | null;
-  bundle_items?: unknown;
-}
+import ProductEditorImageGallery from './ProductEditorImageGallery';
+import {
+  ProductEditorBasicInfo,
+  ProductEditorPricing,
+  ProductEditorInventory,
+  ProductEditorStorefrontCopy,
+  ProductEditorBundleCollections,
+} from './ProductEditorSections';
+import type { ProductEditorProduct, ProductImage } from './productEditorTypes';
 
 interface ProductEditorProps {
   productId: string;
@@ -82,7 +55,7 @@ export default function ProductEditor({
   onSave,
 }: ProductEditorProps) {
   const { user: adminUser } = useAdminAuth();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ProductEditorProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -123,7 +96,7 @@ export default function ProductEditor({
       const result = await getProductWithImages(productId, getAdminSupabase());
 
       if (result.success && result.product) {
-        const prod: Product = {
+        const prod: ProductEditorProduct = {
           id: result.product.id,
           cfg_code: result.product.cfg_code,
           peptide_name: result.product.peptide_name,
@@ -494,431 +467,72 @@ export default function ProductEditor({
           )}
 
           {/* Product information */}
-          <div>
-            <Heading level={3} className="mb-4">
-              Product information
-            </Heading>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Product name *
-                </label>
-                <input
-                  type="text"
-                  value={peptideName}
-                  onChange={(e) => setPeptideName(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="e.g., BPC-157 10mg"
-                />
-              </div>
+          <ProductEditorBasicInfo
+            peptideName={peptideName}
+            proteinName={proteinName}
+            cfgCode={product?.cfg_code || ''}
+            description={description}
+            category={category}
+            isActive={isActive}
+            onPeptideName={setPeptideName}
+            onProteinName={setProteinName}
+            onDescription={setDescription}
+            onCategory={setCategory}
+            onIsActive={setIsActive}
+          />
 
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Protein name *
-                </label>
-                <input
-                  type="text"
-                  value={proteinName}
-                  onChange={(e) => setProteinName(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="e.g., BPC-157"
-                />
-              </div>
+          <ProductEditorPricing
+            price={price}
+            compareAtPrice={compareAtPrice}
+            saleLabel={saleLabel}
+            sortOrder={sortOrder}
+            onPrice={setPrice}
+            onCompareAtPrice={setCompareAtPrice}
+            onSaleLabel={setSaleLabel}
+            onSortOrder={setSortOrder}
+          />
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  CFG code (read-only)
-                </label>
-                <input
-                  type="text"
-                  value={product?.cfg_code || ''}
-                  disabled
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm bg-carbon-50 text-carbon-500"
-                />
-              </div>
+          <ProductEditorInventory
+            stockQuantity={stockQuantity}
+            lowStockThreshold={lowStockThreshold}
+            trackInventory={trackInventory}
+            onStockQuantity={setStockQuantity}
+            onLowStockThreshold={setLowStockThreshold}
+            onTrackInventory={setTrackInventory}
+          />
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="Product description..."
-                />
-              </div>
+          <ProductEditorStorefrontCopy
+            overviewText={overviewText}
+            specificationsText={specificationsText}
+            analyticalText={analyticalText}
+            coaLinkUrl={coaLinkUrl}
+            onOverview={setOverviewText}
+            onSpecifications={setSpecificationsText}
+            onAnalytical={setAnalyticalText}
+            onCoaLink={setCoaLinkUrl}
+          />
 
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="e.g., Peptides"
-                />
-              </div>
+          <ProductEditorBundleCollections
+            productType={productType}
+            bundleItemsJson={bundleItemsJson}
+            allCollections={allCollections}
+            selectedCollectionIds={selectedCollectionIds}
+            onProductType={setProductType}
+            onBundleJson={setBundleItemsJson}
+            onToggleCollection={(cid) =>
+              setSelectedCollectionIds((prev) =>
+                prev.includes(cid) ? prev.filter((x) => x !== cid) : [...prev, cid]
+              )
+            }
+          />
 
-              <div className="flex items-center gap-4 pt-8">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                    className="w-4 h-4 text-accent-600 border-carbon-300 rounded focus:ring-accent-500"
-                  />
-                  <span className="text-sm font-medium text-carbon-700">
-                    Active product
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Pricing & Sale */}
-          <div>
-            <Heading level={3} className="mb-4">
-              Pricing
-            </Heading>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Price (AUD) *
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-carbon-600">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                    placeholder="99.00"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Compare-at Price (original before sale)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-carbon-600">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={compareAtPrice}
-                    onChange={(e) => setCompareAtPrice(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                    placeholder="Leave empty if not on sale"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Sale Label
-                </label>
-                <input
-                  type="text"
-                  value={saleLabel}
-                  onChange={(e) => setSaleLabel(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="e.g. SALE, 20% OFF"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Sort Order
-                </label>
-                <input
-                  type="number"
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Inventory */}
-          <div>
-            <Heading level={3} className="mb-4">
-              Inventory
-            </Heading>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Stock quantity
-                </label>
-                <input
-                  type="number"
-                  value={stockQuantity}
-                  onChange={(e) => setStockQuantity(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Low stock alert
-                </label>
-                <input
-                  type="number"
-                  value={lowStockThreshold}
-                  onChange={(e) => setLowStockThreshold(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                  placeholder="10"
-                />
-              </div>
-
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer pb-2">
-                  <input
-                    type="checkbox"
-                    checked={trackInventory}
-                    onChange={(e) => setTrackInventory(e.target.checked)}
-                    className="w-4 h-4 text-accent-600 border-carbon-300 rounded focus:ring-accent-500"
-                  />
-                  <span className="text-sm font-medium text-carbon-700">
-                    Track inventory
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Storefront copy (PDP) */}
-          <div>
-            <Heading level={3} className="mb-4">
-              Storefront copy
-            </Heading>
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Overview (plain text, line breaks preserved)
-                </label>
-                <textarea
-                  value={overviewText}
-                  onChange={(e) => setOverviewText(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm"
-                  placeholder="Shown in product overview when set"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Specifications (optional override)
-                </label>
-                <textarea
-                  value={specificationsText}
-                  onChange={(e) => setSpecificationsText(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Analytical verification copy
-                </label>
-                <textarea
-                  value={analyticalText}
-                  onChange={(e) => setAnalyticalText(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  External COA URL (optional)
-                </label>
-                <input
-                  type="url"
-                  value={coaLinkUrl}
-                  onChange={(e) => setCoaLinkUrl(e.target.value)}
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500 text-base md:text-sm min-h-11"
-                  placeholder="https://…"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Bundle + collections */}
-          <div>
-            <Heading level={3} className="mb-4">
-              Product type &amp; collections
-            </Heading>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-carbon-700 mb-1">
-                  Type
-                </label>
-                <select
-                  value={productType}
-                  onChange={(e) =>
-                    setProductType(e.target.value as 'standard' | 'bundle')
-                  }
-                  className="w-full px-3 py-2 border border-carbon-200 rounded-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent-500 min-h-11 text-base md:text-sm"
-                >
-                  <option value="standard">Standard</option>
-                  <option value="bundle">Bundle</option>
-                </select>
-              </div>
-              {productType === 'bundle' ? (
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-carbon-700 mb-1">
-                    Bundle items (JSON array)
-                  </label>
-                  <textarea
-                    value={bundleItemsJson}
-                    onChange={(e) => setBundleItemsJson(e.target.value)}
-                    rows={4}
-                    className="w-full font-mono text-sm px-3 py-2 border border-carbon-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
-                    placeholder='[{"cfg_code":"CFG-031","qty":1}]'
-                  />
-                </div>
-              ) : null}
-            </div>
-            <div className="mt-4">
-              <Text variant="small" weight="medium" className="mb-2 block text-carbon-700">
-                Collections
-              </Text>
-              <div className="max-h-40 overflow-y-auto rounded-sm border border-carbon-200 p-3 space-y-2">
-                {allCollections.length === 0 ? (
-                  <Text variant="caption" muted>
-                    No collections yet — create them under Admin → Collections.
-                  </Text>
-                ) : (
-                  allCollections.map((c) => (
-                    <label
-                      key={c.id}
-                      className="flex items-center gap-2 cursor-pointer text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCollectionIds.includes(c.id)}
-                        onChange={() =>
-                          setSelectedCollectionIds((prev) =>
-                            prev.includes(c.id)
-                              ? prev.filter((x) => x !== c.id)
-                              : [...prev, c.id]
-                          )
-                        }
-                        className="rounded border-carbon-300 text-accent-600"
-                      />
-                      <span>
-                        {c.name}{' '}
-                        <span className="text-carbon-500 font-mono text-xs">
-                          ({c.slug})
-                        </span>
-                      </span>
-                    </label>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Images */}
-          <div>
-            <Heading level={3} className="mb-4">
-              Product images
-            </Heading>
-
-            {/* Upload Area */}
-            <div className="mb-4">
-              <label className="block">
-                <div className="border-2 border-dashed border-carbon-300 rounded-sm p-6 text-center cursor-pointer hover:border-accent-500 transition-colors">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-carbon-400" />
-                  <Text className="text-carbon-600 mb-1">
-                    {uploading
-                      ? 'Uploading...'
-                      : 'Click to upload or drag and drop'}
-                  </Text>
-                  <Text className="text-sm text-carbon-500">
-                    PNG, JPG, WebP up to 5MB
-                  </Text>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileSelect}
-                    disabled={uploading}
-                    className="hidden"
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Image Gallery */}
-            {product?.images && product.images.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {product.images.map((image) => (
-                  <div
-                    key={image.id}
-                    className={`relative group border-2 rounded-sm overflow-hidden ${
-                      image.is_primary
-                        ? 'border-accent-500'
-                        : 'border-carbon-200'
-                    }`}
-                  >
-                    <img
-                      src={image.image_url}
-                      alt={image.file_name}
-                      className="w-full h-32 object-cover"
-                    />
-
-                    {image.is_primary && (
-                      <div className="absolute top-2 left-2 bg-accent-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        Primary
-                      </div>
-                    )}
-
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      {!image.is_primary && (
-                        <button
-                          onClick={() => handleSetPrimary(image.id)}
-                          className="p-2 bg-white rounded hover:bg-accent-50 transition-colors"
-                          title="Set as primary"
-                        >
-                          <Star className="w-4 h-4 text-accent-600" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() =>
-                          handleDeleteImage(image.id, image.storage_path)
-                        }
-                        className="p-2 bg-white rounded hover:bg-error-light transition-colors"
-                        title="Delete image"
-                      >
-                        <Trash2 className="w-4 h-4 text-error" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 border border-dashed border-carbon-300 rounded-sm">
-                <ImageIcon className="w-12 h-12 mx-auto mb-2 text-carbon-300" />
-                <Text className="text-carbon-500">No images yet</Text>
-                <Text className="text-sm text-carbon-400">
-                  Upload images to display them here
-                </Text>
-              </div>
-            )}
-          </div>
+          <ProductEditorImageGallery
+            images={product?.images}
+            uploading={uploading}
+            onFileSelect={(e) => void handleFileSelect(e)}
+            onSetPrimary={(id) => void handleSetPrimary(id)}
+            onDeleteImage={handleDeleteImage}
+          />
         </div>
 
         {/* Danger zone */}

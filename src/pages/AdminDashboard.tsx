@@ -3,24 +3,12 @@ import usePersistedState from '../hooks/usePersistedState';
 import usePaymentTrackingRealtime from '../hooks/usePaymentTrackingRealtime';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Package,
-  ShoppingCart,
   RefreshCw,
   Search,
-  Clock,
   CheckCircle,
-  Truck,
-  XCircle,
-  Eye,
   Trash2,
   AlertTriangle,
-  Copy,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Download,
-  Check,
-  ExternalLink,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -30,6 +18,8 @@ import {
   cancelOrder,
   getAllOrders,
   getOrderCounts,
+  getOrderStatusHistory,
+  getPaymentEventsByReference,
   getRecentEmailFailures,
   markPaymentReceived,
   updateOrderStatus,
@@ -37,154 +27,30 @@ import {
   type OrderCounts,
   type OrderReferenceRow,
   type OrderStatus,
+  type OrderStatusHistoryRow,
+  type PaymentEventRow,
 } from '../services/supabaseService';
 import Section from '../components/layout/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Skeleton from '../components/ui/Skeleton';
 import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
 import OrderDetailsModal from '../components/admin/OrderDetailsModal';
 import AdminNavigation from '../components/admin/AdminNavigation';
+import AdminOrdersTable from '../components/admin/AdminOrdersTable';
 import { formatPrice } from '../lib/formatCurrency';
-
-const STATUS_OPTIONS: { value: OrderStatus; label: string; icon: typeof Clock }[] = [
-  { value: 'pending', label: 'Pending', icon: Clock },
-  { value: 'viewed_instructions', label: 'Viewed', icon: Eye },
-  { value: 'payment_received', label: 'Paid', icon: CheckCircle },
-  { value: 'processing', label: 'Processing', icon: Package },
-  { value: 'shipped', label: 'Shipped', icon: Truck },
-  { value: 'delivered', label: 'Delivered', icon: CheckCircle },
-  { value: 'cancelled', label: 'Cancelled', icon: XCircle },
-];
-
-type StatusFilter = OrderStatus | 'all';
-type SortKey = 'date' | 'total' | 'customer' | 'status';
-type SortDir = 'asc' | 'desc';
-
-const ORDERS_PAGE_SIZE = 500;
-const AUTO_REFRESH_INTERVAL_MS = 60_000;
-
-const EMPTY_COUNTS: OrderCounts = {
-  total: 0,
-  pending: 0,
-  viewed_instructions: 0,
-  payment_received: 0,
-  processing: 0,
-  shipped: 0,
-  delivered: 0,
-  cancelled: 0,
-};
-
-// Each status pairs colour + a leading dot tone so paid/delivered (both green)
-// remain visually distinct.
-const STATUS_BADGE_COLORS: Record<OrderStatus, string> = {
-  pending: 'bg-warning-muted text-warning-text border-warning-border',
-  viewed_instructions: 'bg-blue-100 text-blue-800 border-blue-200',
-  payment_received: 'bg-success-muted text-success-text border-success-border',
-  processing: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  shipped: 'bg-purple-100 text-purple-800 border-purple-200',
-  delivered: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-  cancelled: 'bg-error-muted text-error-text border-error-border',
-};
-
-const STATUS_DOT_COLORS: Record<OrderStatus, string> = {
-  pending: 'bg-warning',
-  viewed_instructions: 'bg-blue-600',
-  payment_received: 'bg-success',
-  processing: 'bg-indigo-600',
-  shipped: 'bg-purple-600',
-  delivered: 'bg-emerald-700',
-  cancelled: 'bg-error',
-};
-
-/** Human-readable labels for status values */
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: 'Pending',
-  viewed_instructions: 'Viewed',
-  payment_received: 'Paid',
-  processing: 'Processing',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-};
-
-function StatusBadge({ status }: { status: OrderStatus }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${STATUS_BADGE_COLORS[status]}`}
-    >
-      <span
-        aria-hidden="true"
-        className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT_COLORS[status]}`}
-      />
-      {STATUS_LABELS[status] ?? status}
-    </span>
-  );
-}
-
-/** Friendly relative time, falls back to localized date for older entries. */
-function formatRelativeTime(iso: string): string {
-  const date = new Date(iso);
-  const diffMs = Date.now() - date.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHour < 24) return `${diffHour}h ago`;
-  if (diffDay === 1) return 'yesterday';
-  if (diffDay < 7) return `${diffDay}d ago`;
-  return date.toLocaleDateString();
-}
-
-/** Convert orders to CSV and trigger a browser download. */
-function exportOrdersCsv(orders: OrderReferenceRow[]) {
-  const headers = [
-    'Order ID',
-    'Status',
-    'Customer Name',
-    'Email',
-    'Phone',
-    'City',
-    'State',
-    'Postcode',
-    'Total',
-    'Created At',
-  ];
-  const escape = (v: unknown) => {
-    const s = v == null ? '' : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const rows = orders.map((o) =>
-    [
-      o.peptide_order_id,
-      o.status,
-      o.customer_name ?? '',
-      o.customer_email ?? '',
-      o.customer_phone ?? '',
-      o.customer_city ?? '',
-      o.customer_state ?? '',
-      o.customer_postcode ?? '',
-      o.total_price?.toFixed(2) ?? '',
-      o.created_at,
-    ]
-      .map(escape)
-      .join(',')
-  );
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+import {
+  AUTO_REFRESH_INTERVAL_MS,
+  EMPTY_COUNTS,
+  ORDERS_PAGE_SIZE,
+  type SortDir,
+  type SortKey,
+  type StatusFilter,
+} from '../features/admin/orders/orderConstants';
+import {
+  exportOrdersCsv,
+  filterAndSortOrders,
+} from '../features/admin/orders/orderUtils';
 
 export default function AdminDashboard() {
   useDocumentTitle("Orders Dashboard", "Manage orders, payments, and shipments.");
@@ -204,6 +70,8 @@ export default function AdminDashboard() {
   const [sortKey, setSortKey] = usePersistedState<SortKey>('admin.orders.sortKey', 'date');
   const [sortDir, setSortDir] = usePersistedState<SortDir>('admin.orders.sortDir', 'desc');
   const [selectedOrder, setSelectedOrder] = useState<OrderReferenceRow | null>(null);
+  const [selectedOrderHistory, setSelectedOrderHistory] = useState<OrderStatusHistoryRow[]>([]);
+  const [selectedPaymentEvents, setSelectedPaymentEvents] = useState<PaymentEventRow[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<OrderReferenceRow | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkMarkPaidOpen, setBulkMarkPaidOpen] = useState(false);
@@ -262,6 +130,23 @@ export default function AdminDashboard() {
       isMountedRef.current = false;
     };
   }, [loadOrders, authReady]);
+
+  useEffect(() => {
+    if (!selectedOrder) {
+      setSelectedOrderHistory([]);
+      setSelectedPaymentEvents([]);
+      return;
+    }
+    const client = getAdminSupabase();
+    void (async () => {
+      const [history, events] = await Promise.all([
+        getOrderStatusHistory(selectedOrder.id, client),
+        getPaymentEventsByReference(selectedOrder.peptide_order_id, client),
+      ]);
+      setSelectedOrderHistory(history);
+      setSelectedPaymentEvents(events);
+    })();
+  }, [selectedOrder]);
 
   // Realtime subscription: payment_tracking table-wide.
   usePaymentTrackingRealtime(
@@ -445,62 +330,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredOrders = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    const filtered = orders.filter((order) => {
-      if (!term) {
-        // skip search check
-      }
-      // Search across order ref, customer fields, AND product names inside the cart.
-      // The cart-item match lets operators answer "who ordered BPC-157 this week?"
-      // without leaving the dashboard.
-      const cartMatches =
-        Array.isArray(order.cart_items) &&
-        order.cart_items.some((it) => {
-          const item = it as { name?: unknown; id?: unknown };
-          const n = typeof item.name === 'string' ? item.name.toLowerCase() : '';
-          const i = typeof item.id === 'string' ? item.id.toLowerCase() : '';
-          return n.includes(term) || i.includes(term);
-        });
-      const matchesSearch =
-        !term ||
-        order.peptide_order_id.toLowerCase().includes(term) ||
-        order.customer_email?.toLowerCase().includes(term) ||
-        order.customer_name?.toLowerCase().includes(term) ||
-        order.customer_phone?.toLowerCase().includes(term) ||
-        order.customer_city?.toLowerCase().includes(term) ||
-        cartMatches;
+  const filteredOrders = useMemo(
+    () => filterAndSortOrders(orders, searchTerm, filterStatus, sortKey, sortDir),
+    [orders, searchTerm, filterStatus, sortKey, sortDir]
+  );
 
-      const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
-      return matchesSearch && matchesStatus;
-    });
-
-    const dir = sortDir === 'asc' ? 1 : -1;
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortKey) {
-        case 'total':
-          return ((a.total_price ?? 0) - (b.total_price ?? 0)) * dir;
-        case 'customer':
-          return (
-            (a.customer_name || a.customer_email || '').localeCompare(
-              b.customer_name || b.customer_email || ''
-            ) * dir
-          );
-        case 'status':
-          return a.status.localeCompare(b.status) * dir;
-        case 'date':
-        default:
-          return (
-            (new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime()) *
-            dir
-          );
-      }
-    });
-    return sorted;
-  }, [orders, searchTerm, filterStatus, sortKey, sortDir]);
-
-  // Reset selection when the visible filtered list changes
   useEffect(() => {
     setSelectedIds((prev) => {
       const visibleIds = new Set(filteredOrders.map((o) => o.id));
@@ -543,33 +377,6 @@ export default function AdminDashboard() {
     { value: 'delivered', label: 'Delivered', count: counts.delivered },
     { value: 'cancelled', label: 'Cancelled', count: counts.cancelled },
   ];
-
-  const SortHeader = ({
-    label,
-    sortKeyValue,
-  }: {
-    label: string;
-    sortKeyValue: SortKey;
-  }) => {
-    const active = sortKey === sortKeyValue;
-    const Icon = !active ? ArrowUpDown : sortDir === 'asc' ? ArrowUp : ArrowDown;
-    return (
-      <button
-        type="button"
-        onClick={() => toggleSort(sortKeyValue)}
-        className={`group inline-flex items-center gap-1.5 th-label transition-colors ${
-          active ? 'text-carbon-900' : 'text-carbon-900 hover:text-carbon-900'
-        }`}
-      >
-        {label}
-        <Icon
-          className={`h-3 w-3 transition-opacity ${
-            active ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'
-          }`}
-        />
-      </button>
-    );
-  };
 
   const totalPages = Math.max(1, Math.ceil(counts.total / ORDERS_PAGE_SIZE));
   const hasMore = page + 1 < totalPages;
@@ -738,222 +545,28 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Orders table */}
-        <Card padding="none">
-          {loading ? (
-            <div role="status" aria-busy="true" aria-label="Loading orders">
-              <div className="border-b border-carbon-900/10 bg-grey/30 px-6 py-3">
-                <Skeleton className="h-3 w-32" />
-              </div>
-              <div className="divide-y divide-carbon-900/10">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-6 px-6 py-4">
-                    <Skeleton className="h-4 w-4" rounded="sm" />
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 flex-1 max-w-[12rem]" />
-                    <Skeleton className="hidden h-3 w-32 md:block" />
-                    <Skeleton className="h-5 w-20" rounded="full" />
-                    <Skeleton className="h-3 w-16" />
-                    <Skeleton className="hidden h-3 w-20 md:block" />
-                    <Skeleton className="h-3 w-12" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="py-12 text-center">
-              <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-neutral-300" />
-              <Text variant="body" muted className="mb-1">
-                No orders found
-              </Text>
-              {(searchTerm || filterStatus !== 'all') && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setFilterStatus('all');
-                  }}
-                  className="text-xs text-accent-700 underline-offset-2 hover:underline"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b border-carbon-900/10 bg-grey/30">
-                  <tr>
-                    <th className="w-10 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={allVisibleSelected}
-                        onChange={toggleSelectAll}
-                        className="h-4 w-4 cursor-pointer rounded border-carbon-300 text-accent focus:ring-accent"
-                        aria-label="Select all visible orders"
-                      />
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <span className="th-label">
-                        Order ID
-                      </span>
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <SortHeader label="Customer" sortKeyValue="customer" />
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <span className="th-label">
-                        Contact
-                      </span>
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <SortHeader label="Status" sortKeyValue="status" />
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <SortHeader label="Total" sortKeyValue="total" />
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <SortHeader label="Date" sortKeyValue="date" />
-                    </th>
-                    <th className="px-6 py-3 text-left">
-                      <span className="th-label">
-                        Actions
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-carbon-900/10">
-                  {filteredOrders.map((order) => {
-                    const isSelected = selectedIds.has(order.id);
-                    return (
-                      <tr
-                        key={order.id}
-                        onClick={() => setSelectedOrder(order)}
-                        className={`cursor-pointer transition-colors ${
-                          isSelected ? 'bg-accent-50' : 'hover:bg-grey/20'
-                        }`}
-                      >
-                        <td
-                          className="px-4 py-4"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleSelectOne(order.id)}
-                            className="h-4 w-4 cursor-pointer rounded border-carbon-300 text-accent focus:ring-accent"
-                            aria-label={`Select order ${order.peptide_order_id}`}
-                          />
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-medium text-carbon-900">
-                              {order.peptide_order_id}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                void handleCopyId(order.peptide_order_id);
-                              }}
-                              className="rounded p-1 text-neutral-400 transition-colors hover:bg-grey/40 hover:text-carbon-700"
-                              title="Copy order ID"
-                            >
-                              {copiedId === order.peptide_order_id ? (
-                                <Check className="h-3.5 w-3.5 text-success" />
-                              ) : (
-                                <Copy className="h-3.5 w-3.5" />
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Text variant="small" weight="medium">
-                            {order.customer_name || 'N/A'}
-                          </Text>
-                          <Text variant="caption" muted className="block">
-                            {order.customer_city || 'N/A'},{' '}
-                            {order.customer_state || 'N/A'}
-                          </Text>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Text variant="small" className="block">
-                            {order.customer_email}
-                          </Text>
-                          {order.customer_phone && (
-                            <Text variant="caption" muted className="block">
-                              {order.customer_phone}
-                            </Text>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={order.status} />
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4">
-                          <Text variant="small" weight="medium">
-                            {formatPrice(order.total_price ?? 0)}
-                          </Text>
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4">
-                          <span
-                            title={new Date(order.created_at).toLocaleString()}
-                            className="text-sm text-carbon-700"
-                          >
-                            {formatRelativeTime(order.created_at)}
-                          </span>
-                        </td>
-                        <td
-                          className="px-6 py-4"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setSelectedOrder(order)}
-                              className="rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900"
-                              title="View details"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <Link
-                              to={`/admin/orders/${encodeURIComponent(order.peptide_order_id)}`}
-                              target="_blank"
-                              rel="noopener"
-                              className="hidden items-center rounded-sm border border-carbon-900/20 p-2 text-carbon-900 transition-colors hover:bg-grey/30 hover:text-carbon-900 sm:inline-flex"
-                              title="Open in new tab"
-                              aria-label="Open in new tab"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Link>
-                            <select
-                              value={order.status}
-                              onChange={(e) =>
-                                handleStatusUpdate(order, e.target.value as OrderStatus)
-                              }
-                              className="rounded-sm border border-carbon-900/20 px-2 py-1 text-xs focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20"
-                            >
-                              {STATUS_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => setDeleteTarget(order)}
-                              className="rounded-sm border border-error-border p-2 text-error transition-colors hover:bg-error-light hover:text-error-dark"
-                              title="Delete order"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
+        <AdminOrdersTable
+          loading={loading}
+          orders={filteredOrders}
+          searchTerm={searchTerm}
+          filterStatus={filterStatus}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          selectedIds={selectedIds}
+          copiedId={copiedId}
+          allVisibleSelected={allVisibleSelected}
+          onClearFilters={() => {
+            setSearchTerm('');
+            setFilterStatus('all');
+          }}
+          onToggleSelectAll={toggleSelectAll}
+          onToggleSelectOne={toggleSelectOne}
+          onSelectOrder={setSelectedOrder}
+          onCopyId={handleCopyId}
+          onStatusUpdate={(order, status) => void handleStatusUpdate(order, status)}
+          onDeleteOrder={setDeleteTarget}
+          onToggleSort={toggleSort}
+        />
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -1004,6 +617,8 @@ export default function AdminDashboard() {
             created_at: selectedOrder.created_at,
             updated_at: selectedOrder.updated_at,
           }}
+          statusHistory={selectedOrderHistory}
+          paymentEvents={selectedPaymentEvents}
           onPaymentAction={async (action, trackingId, reason) => {
             const client = getAdminSupabase();
             if (action === 'resend_email') {

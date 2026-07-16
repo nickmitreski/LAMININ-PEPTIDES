@@ -16,6 +16,7 @@ import EntryGate from './components/entry/EntryGate';
 import ChatLauncher from './components/chat/ChatLauncher';
 import { ShopImagesProvider } from './context/ShopImagesContext';
 import AdminErrorBoundary from './components/admin/AdminErrorBoundary';
+import AnalyticsTracker from './components/analytics/AnalyticsTracker';
 
 const Home = lazy(() => import('./pages/Home'));
 const Library = lazy(() => import('./pages/Library'));
@@ -40,6 +41,7 @@ const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminOrderDetail = lazy(() => import('./pages/AdminOrderDetail'));
 const AdminAudit = lazy(() => import('./pages/AdminAudit'));
+const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
@@ -55,6 +57,7 @@ function App() {
     <Router>
       <AdminAuthProvider>
         <EntryGate>
+          <AnalyticsTracker />
           <SkipLink />
           <ScrollToTop />
           <ChatLauncher />
@@ -89,6 +92,16 @@ function App() {
                     <ProtectedRoute>
                       <AdminErrorBoundary pageName="Audit log">
                         <AdminAudit />
+                      </AdminErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <AdminErrorBoundary pageName="Analytics">
+                        <AdminAnalytics />
                       </AdminErrorBoundary>
                     </ProtectedRoute>
                   }

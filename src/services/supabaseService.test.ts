@@ -84,7 +84,6 @@ describe('paymentRowToOrder — order items shape transform', () => {
 
   it('coerces missing/invalid price or quantity to 0 without throwing', () => {
     const row = makeRow({
-      // @ts-expect-error — exercise defensive coercion
       cart_items: [{ id: 'a', name: 'A', price: null, quantity: undefined }],
     });
     const items = paymentRowToOrder(row).peptide_items as Array<Record<string, unknown>>;
@@ -94,7 +93,6 @@ describe('paymentRowToOrder — order items shape transform', () => {
   });
 
   it('passes cart_items through unchanged when not an array (defensive)', () => {
-    // @ts-expect-error — testing non-array path
     const row = makeRow({ cart_items: null });
     const out = paymentRowToOrder(row);
     expect(out.peptide_items).toBeNull();
