@@ -49,8 +49,10 @@ export {
   getOrderStatusHistory,
   getPaymentEventsByReference,
   getRecentEmailFailures,
+  replaceAdminOrderLines,
   updateOrderStatus,
 } from './ordersService';
+export type { ReplaceAdminOrderLinesResult } from './ordersService';
 
 export {
   adminUpdateCustomer,

@@ -17,6 +17,7 @@ import { resendOrderInstructionsEmail } from '../services/emailService';
 import {
   cancelOrder,
   getAllOrders,
+  getOrderById,
   getOrderCounts,
   getOrderStatusHistory,
   getPaymentEventsByReference,
@@ -157,6 +158,16 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
+  };
+
+  const handleOrderLinesSaved = async () => {
+    if (!selectedOrder) return;
+    const refreshed = await getOrderById(selectedOrder.id, getAdminSupabase());
+    if (refreshed) {
+      setSelectedOrder(refreshed);
+    }
+    await loadOrders({ silent: true });
+    showToast('Order lines and totals updated.', 'success');
   };
 
   const handleStatusUpdate = async (order: OrderReferenceRow, newStatus: OrderStatus) => {
@@ -619,6 +630,7 @@ export default function AdminDashboard() {
           }}
           statusHistory={selectedOrderHistory}
           paymentEvents={selectedPaymentEvents}
+          onOrderLinesSaved={handleOrderLinesSaved}
           onPaymentAction={async (action, trackingId, reason) => {
             const client = getAdminSupabase();
             if (action === 'resend_email') {

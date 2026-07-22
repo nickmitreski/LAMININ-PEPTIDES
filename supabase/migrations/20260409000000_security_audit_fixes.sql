@@ -58,7 +58,16 @@ CREATE POLICY "Admin delete payment_tracking"
 -- FIX 2: adjust_inventory — revoke from anon + add admin check inside
 -- =====================================================================
 
-REVOKE EXECUTE ON FUNCTION public.adjust_inventory(TEXT, INTEGER, TEXT, TEXT, TEXT) FROM anon;
+DO $$
+BEGIN
+  IF to_regprocedure(
+    'public.adjust_inventory(text,integer,text,text,text)'
+  ) IS NOT NULL THEN
+    REVOKE EXECUTE ON FUNCTION public.adjust_inventory(
+      TEXT, INTEGER, TEXT, TEXT, TEXT
+    ) FROM anon;
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.adjust_inventory(
   p_cfg_code TEXT,
@@ -126,8 +135,15 @@ $$;
 --         + add admin check inside function bodies
 -- =====================================================================
 
-REVOKE EXECUTE ON FUNCTION public.delete_customer_and_orders(TEXT) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.delete_order(UUID) FROM anon;
+DO $$
+BEGIN
+  IF to_regprocedure('public.delete_customer_and_orders(text)') IS NOT NULL THEN
+    REVOKE EXECUTE ON FUNCTION public.delete_customer_and_orders(TEXT) FROM anon;
+  END IF;
+  IF to_regprocedure('public.delete_order(uuid)') IS NOT NULL THEN
+    REVOKE EXECUTE ON FUNCTION public.delete_order(UUID) FROM anon;
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.delete_customer_and_orders(
   p_customer_email TEXT

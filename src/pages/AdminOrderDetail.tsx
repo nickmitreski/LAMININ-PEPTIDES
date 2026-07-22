@@ -16,6 +16,7 @@ import {
   getOrderByReference,
   getOrderStatusHistory,
   getPaymentEventsByReference,
+  markPaymentReceived,
   updateOrderStatus,
   type OrderReferenceRow,
   type OrderStatus,
@@ -37,7 +38,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default function AdminOrderDetail() {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { logout } = useAdminAuth();
+  const { logout, user: adminUser } = useAdminAuth();
   const { showToast } = useToast();
   useDocumentTitle(`Order ${id}`, 'Order detail');
 
@@ -142,7 +143,31 @@ export default function AdminOrderDetail() {
       return;
     }
 
-    if (action === 'cancel' || action === 'refund') {
+    if (action === 'mark_paid') {
+      const result = await markPaymentReceived(
+        trackingId,
+        adminUser?.email ?? 'admin',
+        null,
+        client
+      );
+      if (!result.success) {
+        showToast(result.error ?? 'Could not mark payment received.', 'error');
+        return;
+      }
+      if (result.notifySmsError) {
+        showToast(`Payment saved. SMS not sent: ${result.notifySmsError}`, 'error');
+      } else if (
+        result.notifySmsSkipped &&
+        result.notifySmsSkipReason === 'no_phone'
+      ) {
+        showToast(
+          'Payment marked as received. No customer phone — SMS skipped.',
+          'success'
+        );
+      } else {
+        showToast('Payment marked as received. Confirmation SMS sent.', 'success');
+      }
+    } else if (action === 'cancel' || action === 'refund') {
       if (!reason || !reason.trim()) {
         showToast('A reason is required.', 'error', 3000);
         return;
@@ -162,13 +187,13 @@ export default function AdminOrderDetail() {
         2500
       );
     } else {
-      const next: OrderStatus = action === 'mark_paid' ? 'payment_received' : 'cancelled';
+      const next: OrderStatus = 'cancelled';
       const ok = await updateOrderStatus(order.peptide_order_id, next, client);
       if (!ok) {
         showToast('Could not update order — try again.', 'error', 3000);
         return;
       }
-      showToast(action === 'mark_paid' ? 'Marked as paid.' : 'Order archived.', 'success', 2500);
+      showToast('Order archived.', 'success', 2500);
     }
 
     // Refresh order + history after the action.
@@ -234,6 +259,7 @@ export default function AdminOrderDetail() {
           }}
           statusHistory={history}
           paymentEvents={paymentEvents}
+          onOrderLinesSaved={() => loadOrder({ silent: true })}
           onPaymentAction={handlePaymentAction}
           onClose={handleClose}
         />

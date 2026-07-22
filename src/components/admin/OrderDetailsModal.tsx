@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Mail, Phone, MapPin, Package, ExternalLink } from 'lucide-react';
+import { X, Mail, Phone, MapPin, Package, ExternalLink, Pencil } from 'lucide-react';
 import type { OrderReferenceRow, OrderStatusHistoryRow, PaymentTrackingRow } from '../../services/supabaseService';
 import { Heading, Text } from '../ui/Typography';
 import Button from '../ui/Button';
@@ -12,6 +12,7 @@ import { mergeTimeline } from '../../features/admin/orders/orderTimeline';
 import OrderDetailsStatusTimeline from './OrderDetailsStatusTimeline';
 import OrderCancelConfirmModal from './OrderCancelConfirmModal';
 import OrderDetailsReconstitution from './OrderDetailsReconstitution';
+import OrderLineEditor from './OrderLineEditor';
 import type { PaymentEventRow } from '../../services/orderTypes';
 
 interface OrderDetailsModalProps {
@@ -24,6 +25,7 @@ interface OrderDetailsModalProps {
     trackingId: string,
     reason?: string
   ) => void;
+  onOrderLinesSaved?: () => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -33,10 +35,12 @@ export default function OrderDetailsModal({
   statusHistory,
   paymentEvents,
   onPaymentAction,
+  onOrderLinesSaved,
   onClose,
 }: OrderDetailsModalProps) {
   const [showReconstitution, setShowReconstitution] = useState(false);
   const [cancelMode, setCancelMode] = useState<null | 'cancel' | 'refund'>(null);
+  const [lineEditorOpen, setLineEditorOpen] = useState(false);
 
   const peptideItems = Array.isArray(order.peptide_items) ? order.peptide_items : [];
 
@@ -48,7 +52,7 @@ export default function OrderDetailsModal({
   return (
     <>
       <Modal
-        open={true}
+        open={!lineEditorOpen}
         onClose={onClose}
         aria-label="Order details"
         backdropClassName="bg-carbon-900/50 sm:p-4"
@@ -194,10 +198,25 @@ export default function OrderDetailsModal({
           </div>
 
           <Card padding="lg">
-            <Heading level={5} className="mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 text-accent" />
-              Order items ({peptideItems.length})
-            </Heading>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <Heading level={5} className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-accent" />
+                Order items ({peptideItems.length})
+              </Heading>
+              {onOrderLinesSaved &&
+                (order.status === 'pending' ||
+                  order.status === 'viewed_instructions') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLineEditorOpen(true)}
+                    className="min-h-11 touch-manipulation"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit lines
+                  </Button>
+                )}
+            </div>
             <div className="space-y-3">
               {peptideItems.length > 0 ? (
                 peptideItems.map((rawItem: Record<string, unknown>, idx: number) => {
@@ -320,6 +339,15 @@ export default function OrderDetailsModal({
             onPaymentAction(cancelMode, paymentTracking.id, reason);
             setCancelMode(null);
           }}
+        />
+      )}
+
+      {lineEditorOpen && onOrderLinesSaved && (
+        <OrderLineEditor
+          open={lineEditorOpen}
+          order={order}
+          onClose={() => setLineEditorOpen(false)}
+          onSaved={onOrderLinesSaved}
         />
       )}
     </>

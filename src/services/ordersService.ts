@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { createLogger } from '../lib/logger';
+import type { AdminOrderLine } from '../features/admin/orders/orderLineEditor';
 import { logAdminAction } from './auditLog';
 import { paymentRowToOrder } from './orderMappers';
 import type {
@@ -14,6 +15,70 @@ import type {
 } from './orderTypes';
 
 const log = createLogger('orders');
+
+export type ReplaceAdminOrderLinesResult = {
+  success: boolean;
+  error?: string;
+  subtotal?: number;
+  shipping?: number;
+  tax?: number;
+  discountAmount?: number;
+  totalAmount?: number;
+};
+
+export async function replaceAdminOrderLines(
+  trackingId: string,
+  lines: AdminOrderLine[],
+  reason: string,
+  client: SupabaseClient | null = supabase
+): Promise<ReplaceAdminOrderLinesResult> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    return {
+      success: false,
+      error: 'A reason is required when changing order lines.',
+    };
+  }
+
+  const { data, error } = await client.rpc('admin_replace_order_lines', {
+    p_tracking_id: trackingId,
+    p_lines: lines,
+    p_reason: trimmedReason,
+  });
+
+  if (error) {
+    log.error('replaceAdminOrderLines failed', error);
+    return { success: false, error: error.message };
+  }
+
+  const result = data as {
+    success?: boolean;
+    error?: string;
+    subtotal?: number;
+    shipping?: number;
+    tax?: number;
+    discount_amount?: number;
+    total_amount?: number;
+  } | null;
+
+  if (!result?.success) {
+    return {
+      success: false,
+      error: result?.error ?? 'Could not update order lines.',
+    };
+  }
+
+  return {
+    success: true,
+    subtotal: Number(result.subtotal ?? 0),
+    shipping: Number(result.shipping ?? 0),
+    tax: Number(result.tax ?? 0),
+    discountAmount: Number(result.discount_amount ?? 0),
+    totalAmount: Number(result.total_amount ?? 0),
+  };
+}
 
 export async function createOrderReference(orderData: {
   peptide_order_id: string;
