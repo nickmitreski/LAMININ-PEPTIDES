@@ -34,13 +34,10 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const navLinks = [
-    { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
-    { path: '/coa', label: 'Certificate of analysis' },
-    { path: '/research', label: 'Peptide science' },
-    { path: '/guarantee', label: 'Purity guarantee' },
-    { path: '/faq', label: 'FAQ' },
-    { path: '/shipping', label: 'Shipping' },
+    { path: '/coa', label: 'COA' },
+    { path: '/research', label: 'Science' },
+    { path: '/faq', label: 'Support' },
   ];
 
   return (

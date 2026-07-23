@@ -8,7 +8,6 @@ import ProductQuantityStepper from '../components/products/ProductQuantitySteppe
 import ProductPageAccordion, {
   ProductOverviewBody,
 } from '../components/products/ProductPageAccordion';
-import ProductDescriptionModal from '../components/products/ProductDescriptionModal';
 import ProductStickyAddToCart from '../components/products/ProductStickyAddToCart';
 import SuggestedPeptides from '../components/products/SuggestedPeptides';
 import Button from '../components/ui/Button';
@@ -46,7 +45,6 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [accordionOpenId, setAccordionOpenId] = useState<string | null>(null);
-  const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
   const inPageCtaRef = useRef<HTMLDivElement | null>(null);
 
   // Look up peptide by slug: first try static content slugs, then try as a peptide ID
@@ -256,10 +254,10 @@ export default function ProductPage() {
                 </div>
               )}
 
-              <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-6 sm:gap-y-2">
+              <div className="mt-5 flex flex-col gap-3 sm:mt-6">
                 {priceLine ? (
                   saleInfo ? (
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <span className="text-lg text-carbon-400 line-through">
                         ${saleInfo.compareAtPrice.toFixed(2)}
                       </span>
@@ -267,12 +265,15 @@ export default function ProductPage() {
                         as="span"
                         variant="lead"
                         weight="medium"
-                        className="text-2xl font-bold text-error"
+                        className="text-2xl font-bold text-carbon-900"
                       >
                         {priceLine}
                       </Text>
-                      <span className="rounded bg-error px-2 py-0.5 text-xs font-bold uppercase text-white">
-                        {saleInfo.saleLabel || 'SALE'}
+                      <span className="rounded border border-carbon-900/15 bg-platinum px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-carbon-900">
+                        {saleInfo.saleLabel?.trim() &&
+                        !/^sale$/i.test(saleInfo.saleLabel.trim())
+                          ? saleInfo.saleLabel
+                          : 'Reduced'}
                       </span>
                     </div>
                   ) : (
@@ -290,15 +291,12 @@ export default function ProductPage() {
                     Contact for current pricing
                   </Text>
                 )}
-                <Button
-                  type="button"
-                  variant="accent"
-                  size="sm"
-                  onClick={() => setDescriptionModalOpen(true)}
-                  className="uppercase tracking-[0.14em]"
-                >
-                  Description
-                </Button>
+
+                {overviewParagraphs[0] ? (
+                  <Text variant="small" className="max-w-prose leading-relaxed text-carbon-900/80">
+                    {overviewParagraphs[0]}
+                  </Text>
+                ) : null}
               </div>
 
               <div className="mt-8 flex flex-col gap-5" ref={inPageCtaRef}>
@@ -331,12 +329,6 @@ export default function ProductPage() {
           </div>
 
           <div className="mx-auto mt-12 w-full max-w-6xl border-t border-carbon-900/10 pt-8 md:mt-16 md:pt-10">
-            <Text variant="caption" className="mb-2 block uppercase tracking-[0.16em] text-carbon-900/70">
-              Suggested compounds
-            </Text>
-            <SuggestedPeptides currentPeptide={peptide} />
-
-            <div className="mt-6 border-t border-carbon-900/10 pt-6 md:pt-8">
             {bundleLines.length > 0 && (
               <div className="mb-6 rounded-xl border border-carbon-900/10 bg-white p-4 shadow-sm ring-1 ring-carbon-900/[0.03] md:p-5">
                 <Text
@@ -505,17 +497,16 @@ export default function ProductPage() {
                 },
               ]}
             />
+
+            <div className="mt-10 border-t border-carbon-900/10 pt-8 md:mt-12 md:pt-10">
+              <Text variant="caption" className="mb-2 block uppercase tracking-[0.16em] text-carbon-900/70">
+                Suggested compounds
+              </Text>
+              <SuggestedPeptides currentPeptide={peptide} />
             </div>
           </div>
         </Section>
       </main>
-
-      <ProductDescriptionModal
-        open={descriptionModalOpen}
-        onClose={() => setDescriptionModalOpen(false)}
-        productTitle={peptide.name}
-        paragraphs={overviewParagraphs}
-      />
 
       <ProductStickyAddToCart
         watchRef={inPageCtaRef}

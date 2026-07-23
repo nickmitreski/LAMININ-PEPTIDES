@@ -111,9 +111,9 @@ export default function Footer() {
                 </Link>
                 <Link
                   to="/admin/login"
-                  className="inline-flex min-h-11 items-center rounded-sm text-xs text-white/45 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
+                  className="inline-flex min-h-11 items-center rounded-sm text-[0.65rem] text-white/25 transition-colors hover:text-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900 touch-manipulation"
                 >
-                  Staff sign-in
+                  Staff
                 </Link>
               </div>
             </div>

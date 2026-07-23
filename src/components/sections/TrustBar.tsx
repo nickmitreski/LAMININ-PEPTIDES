@@ -1,4 +1,5 @@
-import { ShieldCheck, FlaskConical, FileCheck2, Award } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ShieldCheck, FileCheck2, Award } from 'lucide-react';
 import Container from '../layout/Container';
 import { Label } from '../ui/Typography';
 import useScrollReveal from '../../hooks/useScrollReveal';
@@ -6,13 +7,13 @@ import useScrollReveal from '../../hooks/useScrollReveal';
 type Highlight = {
   icon: typeof ShieldCheck;
   titleLines: [string, string];
+  to: string;
 };
 
 const trustHighlights: Highlight[] = [
-  { icon: ShieldCheck, titleLines: ['99%+ PURITY', 'GUARANTEE'] },
-  { icon: FlaskConical, titleLines: ['ANALYTICAL', 'VERIFICATION'] },
-  { icon: FileCheck2, titleLines: ['CERTIFICATE OF', 'ANALYSIS'] },
-  { icon: Award, titleLines: ['LABORATORY', 'GRADE'] },
+  { icon: ShieldCheck, titleLines: ['99%+ PURITY', 'GUARANTEE'], to: '/guarantee' },
+  { icon: FileCheck2, titleLines: ['CERTIFICATE OF', 'ANALYSIS'], to: '/coa' },
+  { icon: Award, titleLines: ['LABORATORY', 'GRADE'], to: '/library' },
 ];
 
 export default function TrustBar() {
@@ -26,16 +27,17 @@ export default function TrustBar() {
       />
       <Container>
         <div ref={ref} className="relative py-10 md:py-14">
-          <div className="grid grid-cols-2 gap-y-10 gap-x-4 lg:grid-cols-4 lg:gap-8">
-            {trustHighlights.map(({ icon: Icon, titleLines }, idx) => (
-              <div
+          <div className="grid grid-cols-1 gap-y-8 sm:grid-cols-3 sm:gap-8">
+            {trustHighlights.map(({ icon: Icon, titleLines, to }, idx) => (
+              <Link
                 key={titleLines.join('-')}
+                to={to}
                 data-revealed={revealed}
-                className={`reveal reveal-delay-${idx} group flex flex-col items-center text-center`}
+                className={`reveal reveal-delay-${idx} group flex flex-col items-center text-center touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900`}
               >
                 <div
                   aria-hidden="true"
-                  className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent ring-1 ring-accent/30 transition-all duration-300 group-hover:scale-110 group-hover:bg-accent/20 group-hover:ring-accent/60 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                  className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent ring-1 ring-accent/30 transition-colors duration-300 group-hover:bg-accent/20 group-hover:ring-accent/60"
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
@@ -50,7 +52,7 @@ export default function TrustBar() {
                     </Label>
                   ))}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

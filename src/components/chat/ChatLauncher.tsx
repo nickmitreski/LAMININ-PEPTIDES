@@ -9,7 +9,6 @@ export default function ChatLauncher() {
   const [isMinimized, setIsMinimized] = useState(false);
   const onProductPage = location.pathname.startsWith('/products/');
 
-  // Restore minimized state on mount
   useEffect(() => {
     const minimized = sessionStorage.getItem('laminin_chat_minimized') === 'true';
     setIsMinimized(minimized);
@@ -35,41 +34,35 @@ export default function ChatLauncher() {
 
   return (
     <>
-      {/* Chat launcher button — lift above sticky ATC on product mobile */}
       {!isOpen && (
         <button
           type="button"
           onClick={handleOpen}
           className={`
-            fixed right-4 z-[100]
-            flex min-h-11 min-w-11 items-center gap-2
-            px-4 py-2 sm:right-6 sm:gap-3 sm:px-6
-            bg-accent text-white
-            rounded-full shadow-lg
-            border-2 border-black
-            hover:brightness-110 active:brightness-95
-            transition-all duration-200
+            fixed right-4 z-[100] sm:right-6
+            inline-flex min-h-11 min-w-11 items-center justify-center gap-2
+            rounded-full border border-carbon-900/15 bg-white/95 px-3
+            text-carbon-900 shadow-md backdrop-blur-sm
+            hover:bg-accent/20 active:bg-accent/30
+            transition-colors duration-200
             touch-manipulation
-            ${isMinimized ? 'ring-2 ring-accent ring-offset-2' : ''}
+            ${isMinimized ? 'ring-2 ring-accent/60 ring-offset-2' : ''}
             ${
               onProductPage
                 ? 'bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:bottom-6'
                 : 'bottom-6'
             }
           `}
-          aria-label="Open chat assistant"
+          aria-label="Ask about compounds"
+          title="Ask about compounds"
         >
-          <MessageCircle className="h-6 w-6" strokeWidth={2.5} />
-          <span className="hidden font-bold text-xs sm:inline sm:text-sm">
-            {isMinimized ? 'Peptide Science AI (1)' : 'Peptide Science AI'}
-          </span>
-          <span className="font-bold text-xs sm:hidden">
-            {isMinimized ? 'AI (1)' : 'AI'}
+          <MessageCircle className="h-5 w-5 text-accent-700" strokeWidth={2} />
+          <span className="hidden pr-1 text-xs font-medium text-carbon-900 sm:inline">
+            {isMinimized ? 'Ask (1)' : 'Ask about compounds'}
           </span>
         </button>
       )}
 
-      {/* Chat panel */}
       {isOpen && (
         <ChatPanel
           onClose={handleClose}

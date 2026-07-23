@@ -87,8 +87,11 @@ function PeptideCard({ peptide, priority = false }: PeptideCardProps) {
             fetchPriority={priority ? 'high' : 'auto'}
           />
           {saleInfo && (
-            <span className="absolute left-2 top-2 z-10 rounded bg-error px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
-              {saleInfo.saleLabel || 'SALE'}
+            <span className="absolute left-2 top-2 z-10 rounded border border-carbon-900/15 bg-white/95 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-carbon-900 shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+              {saleInfo.saleLabel?.trim() &&
+              !/^sale$/i.test(saleInfo.saleLabel.trim())
+                ? saleInfo.saleLabel
+                : 'Reduced'}
             </span>
           )}
           <span
@@ -114,7 +117,7 @@ function PeptideCard({ peptide, priority = false }: PeptideCardProps) {
             {' · '}
             <span className="text-carbon-400 line-through">${saleInfo.compareAtPrice.toFixed(0)}</span>
             {' '}
-            <span className="font-semibold text-error">{priceLabel}</span>
+            <span className="font-semibold text-accent-700">{priceLabel}</span>
           </>
         ) : (
           priceLabel ? ` · ${priceLabel}` : ''
