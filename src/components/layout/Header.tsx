@@ -34,6 +34,7 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const navLinks = [
+    { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
     { path: '/coa', label: 'COA' },
     { path: '/research', label: 'Science' },
