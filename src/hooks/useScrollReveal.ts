@@ -16,7 +16,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
   options: { rootMargin?: string; threshold?: number; once?: boolean } = {}
 ) {
-  const { rootMargin = '0px 0px -10% 0px', threshold = 0.15, once = true } =
+  // threshold 0 = reveal as soon as any pixel enters the viewport.
+  // A high threshold (e.g. 0.15) never fires on tall grids (COA cards, etc.):
+  // only the top peeks in, intersectionRatio stays tiny, content stays opacity-0.
+  const { rootMargin = '0px 0px -8% 0px', threshold = 0, once = true } =
     options;
   const [revealed, setRevealed] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -47,6 +50,14 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
         window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
       if (prefersReducedMotion || typeof IntersectionObserver === 'undefined') {
+        setRevealed(true);
+        return;
+      }
+
+      // Already on-screen (e.g. short pages / restored scroll) — show immediately.
+      const rect = node.getBoundingClientRect();
+      const vh = window.innerHeight || 0;
+      if (rect.top < vh && rect.bottom > 0) {
         setRevealed(true);
         return;
       }

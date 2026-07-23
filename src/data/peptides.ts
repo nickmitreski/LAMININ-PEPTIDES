@@ -313,7 +313,8 @@ export const peptides: Peptide[] = [
     category: 'Healing',
     libraryFilters: ['Healing'],
     purity: 'N/A',
-    coaVerified: true,
+    /** Ancillary liquid — no peptide COA PDF. */
+    coaVerified: false,
     image: productImageFile(cfgProductFiles.acetic),
   },
   {
@@ -322,7 +323,8 @@ export const peptides: Peptide[] = [
     category: 'Healing',
     libraryFilters: ['Healing'],
     purity: 'N/A',
-    coaVerified: true,
+    /** Ancillary liquid — no peptide COA PDF. */
+    coaVerified: false,
     image: productImageFile(cfgProductFiles.bacWater),
   },
   {
