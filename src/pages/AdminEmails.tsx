@@ -25,7 +25,16 @@ import {
   ChevronUp,
   Save,
   X,
+  Bell,
+  RotateCcw,
 } from 'lucide-react';
+import {
+  listDuePaymentReminders,
+  markPaymentReminderSent,
+  type PaymentReminderRow,
+} from '../services/ordersService';
+import { resendOrderInstructionsEmail } from '../services/emailService';
+import { formatPrice } from '../lib/formatCurrency';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -120,6 +129,9 @@ export default function AdminEmails() {
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [templateDraft, setTemplateDraft] = useState({ name: '', subject: '', body_html: '', body_text: '' });
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [reminders, setReminders] = useState<PaymentReminderRow[]>([]);
+  const [reminderBusyId, setReminderBusyId] = useState<string | null>(null);
+  const [resendBusyId, setResendBusyId] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -127,6 +139,13 @@ export default function AdminEmails() {
   };
 
   /* ---- data fetching ---- */
+
+  const fetchReminders = async () => {
+    const supabaseAdmin = getAdminSupabase();
+    if (!supabaseAdmin) return;
+    const rows = await listDuePaymentReminders(supabaseAdmin);
+    setReminders(rows);
+  };
 
   const fetchLogs = async () => {
     try {
@@ -168,9 +187,87 @@ export default function AdminEmails() {
   };
 
   useEffect(() => {
-    if (tab === 'logs') fetchLogs();
-    else fetchTemplates();
+    if (tab === 'logs') {
+      void fetchLogs();
+      void fetchReminders();
+    } else fetchTemplates();
   }, [tab]);
+
+  const handleResendFromLog = async (log: EmailLog) => {
+    if (!log.order_reference || !log.recipient_email) {
+      showToast('Missing order reference or email on this log.', 'error');
+      return;
+    }
+    setResendBusyId(log.id);
+    try {
+      const supabaseAdmin = getAdminSupabase();
+      if (!supabaseAdmin) return;
+      const { data: tracking } = await supabaseAdmin
+        .from('payment_tracking')
+        .select('id, total_amount, customer_name, customer_phone')
+        .eq('order_reference', log.order_reference)
+        .maybeSingle();
+
+      if (!tracking?.id) {
+        showToast('Could not find the related order.', 'error');
+        return;
+      }
+
+      const result = await resendOrderInstructionsEmail({
+        trackingId: tracking.id,
+        orderReference: log.order_reference,
+        customerEmail: log.recipient_email,
+        customerName: tracking.customer_name || log.recipient_name || 'Customer',
+        customerPhone: tracking.customer_phone || undefined,
+        totalAmount: Number(tracking.total_amount ?? 0),
+        emailType: 'payment_followup',
+      });
+
+      if (!result.success) {
+        showToast(result.error ?? 'Resend failed.', 'error');
+        return;
+      }
+      showToast('Follow-up / payment email resent.', 'success');
+      void fetchLogs();
+    } finally {
+      setResendBusyId(null);
+    }
+  };
+
+  const handleSendDueReminder = async (row: PaymentReminderRow) => {
+    setReminderBusyId(row.id);
+    try {
+      const result = await resendOrderInstructionsEmail({
+        trackingId: row.id,
+        orderReference: row.order_reference,
+        customerEmail: row.customer_email,
+        customerName: row.customer_name,
+        customerPhone: row.customer_phone || undefined,
+        totalAmount: Number(row.total_amount ?? 0),
+        emailType: 'payment_reminder',
+      });
+      if (!result.success) {
+        showToast(result.error ?? 'Reminder failed.', 'error');
+        return;
+      }
+      const marked = await markPaymentReminderSent(row.id, getAdminSupabase());
+      if (!marked.success) {
+        showToast(
+          `Reminder emailed, but tracking update failed: ${marked.error ?? 'unknown'}`,
+          'error'
+        );
+      } else {
+        showToast(
+          `Reminder #${row.due_reminder_number ?? row.payment_reminder_count + 1} sent for ${row.order_reference}.`,
+          'success'
+        );
+      }
+      void fetchReminders();
+      void fetchLogs();
+    } finally {
+      setReminderBusyId(null);
+    }
+  };
 
   /* ---- template editing ---- */
 
@@ -285,18 +382,72 @@ export default function AdminEmails() {
                 Manage email templates and view sent email history
               </Text>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => (tab === 'logs' ? fetchLogs() : fetchTemplates())}
-                className="flex items-center gap-2"
+                onClick={() => navigate('/admin/invoices/new')}
+                className="flex min-h-11 items-center gap-2 touch-manipulation"
+              >
+                <Send className="h-4 w-4" />
+                New invoice
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  tab === 'logs'
+                    ? (void fetchLogs(), void fetchReminders())
+                    : fetchTemplates()
+                }
+                className="flex min-h-11 items-center gap-2 touch-manipulation"
               >
                 <RefreshCw className="h-4 w-4" />
                 Refresh
               </Button>
             </div>
           </div>
+
+          {tab === 'logs' && reminders.length > 0 && (
+            <Card className="mb-6 border border-warning/30 bg-warning-muted/40 p-4 sm:p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <Bell className="h-5 w-5 text-warning-text" />
+                <Heading level={5}>Payment reminders due</Heading>
+              </div>
+              <Text variant="small" muted className="mb-4 block">
+                Unpaid invoices at 3 days and again at 6 days.
+              </Text>
+              <div className="space-y-3">
+                {reminders.map((row) => (
+                  <div
+                    key={row.id}
+                    className="flex flex-col gap-3 rounded-lg border border-carbon-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <Text variant="small" weight="medium" className="font-mono">
+                        {row.order_reference}
+                      </Text>
+                      <Text variant="caption" muted className="block truncate">
+                        {row.customer_name} · {row.customer_email} ·{' '}
+                        {formatPrice(Number(row.total_amount))}
+                      </Text>
+                      <Text variant="caption" muted>
+                        Reminder #{row.due_reminder_number ?? 1} due
+                      </Text>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="min-h-11 touch-manipulation"
+                      disabled={reminderBusyId === row.id}
+                      onClick={() => void handleSendDueReminder(row)}
+                    >
+                      {reminderBusyId === row.id ? 'Sending…' : 'Send reminder'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {/* Stats Cards */}
           <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -506,6 +657,22 @@ export default function AdminEmails() {
                                   {log.sent_at ? formatDate(log.sent_at) : 'Not sent yet'}
                                 </Text>
                               </div>
+                              {log.order_reference && (
+                                <div className="sm:col-span-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="min-h-11 touch-manipulation"
+                                    disabled={resendBusyId === log.id}
+                                    onClick={() => void handleResendFromLog(log)}
+                                  >
+                                    <RotateCcw className="mr-2 h-4 w-4" />
+                                    {resendBusyId === log.id
+                                      ? 'Sending…'
+                                      : 'Resend / follow-up email'}
+                                  </Button>
+                                </div>
+                              )}
                               {log.resend_id && (
                                 <div>
                                   <Text variant="caption" muted className="mb-1 block text-xs uppercase tracking-wide">

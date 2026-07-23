@@ -49,10 +49,17 @@ export {
   getOrderStatusHistory,
   getPaymentEventsByReference,
   getRecentEmailFailures,
+  createAdminInvoice,
+  listDuePaymentReminders,
+  markPaymentReminderSent,
   replaceAdminOrderLines,
   updateOrderStatus,
 } from './ordersService';
-export type { ReplaceAdminOrderLinesResult } from './ordersService';
+export type {
+  ReplaceAdminOrderLinesResult,
+  CreateAdminInvoiceResult,
+  PaymentReminderRow,
+} from './ordersService';
 
 export {
   adminUpdateCustomer,

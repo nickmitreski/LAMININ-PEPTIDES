@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import {
   hasCheckoutCompleted,
+  isAnalyticsExcludedPath,
   resetCheckoutComplete,
   trackEvent,
 } from '../../lib/analytics';
@@ -33,6 +34,11 @@ export default function AnalyticsTracker() {
   }, [state.itemCount, state.total]);
 
   useEffect(() => {
+    if (isAnalyticsExcludedPath(location.pathname)) {
+      checkoutStartedAt.current = null;
+      return;
+    }
+
     const cart = cartRef.current;
     const previousDuration = Date.now() - pageStartedAt.current;
     if (previousDuration > 250) {
@@ -74,6 +80,10 @@ export default function AnalyticsTracker() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
+    if (isAnalyticsExcludedPath(location.pathname)) {
+      return;
+    }
+
     const onClick = (event: MouseEvent) => {
       const el = closestTrackable(event.target);
       if (!el) return;
@@ -133,7 +143,7 @@ export default function AnalyticsTracker() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pagehide', flush);
     };
-  }, [state.itemCount, state.total]);
+  }, [location.pathname, state.itemCount, state.total]);
 
   return null;
 }

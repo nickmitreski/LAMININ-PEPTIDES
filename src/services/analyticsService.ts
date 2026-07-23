@@ -8,6 +8,7 @@ const log = createLogger('analytics');
 
 export type AnalyticsSummary = {
   visits: number;
+  uniqueVisitors: number;
   pageViews: number;
   clicks: number;
   checkoutStarts: number;
@@ -77,6 +78,7 @@ export async function fetchAnalyticsSummary(
 
   return {
     visits: Number(raw.visits ?? 0),
+    uniqueVisitors: Number(raw.unique_visitors ?? raw.visits ?? 0),
     pageViews: Number(raw.page_views ?? 0),
     clicks: Number(raw.clicks ?? 0),
     checkoutStarts: starts,

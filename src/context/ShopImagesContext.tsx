@@ -48,19 +48,62 @@ type ShopImagesContextValue = {
   allProducts: Peptide[];
 };
 
+const CATALOG_CACHE_KEY = 'laminin-shop-catalog-v1';
+const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CatalogCachePayload = {
+  savedAt: number;
+  overrideByPeptideId: Record<string, string>;
+  saleInfoMap: Record<string, SaleInfo>;
+  liveProductMap: Record<string, LiveProductInfo>;
+  dbOnlyProducts: Peptide[];
+};
+
+function readCatalogCache(): CatalogCachePayload | null {
+  try {
+    const raw = sessionStorage.getItem(CATALOG_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CatalogCachePayload;
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > CATALOG_CACHE_TTL_MS) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCatalogCache(payload: Omit<CatalogCachePayload, 'savedAt'>) {
+  try {
+    sessionStorage.setItem(
+      CATALOG_CACHE_KEY,
+      JSON.stringify({ ...payload, savedAt: Date.now() })
+    );
+  } catch {
+    // Ignore quota / private mode failures.
+  }
+}
+
 const ShopImagesContext = createContext<ShopImagesContextValue | null>(null);
 
 export function ShopImagesProvider({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(true);
+  const cached = typeof window !== 'undefined' ? readCatalogCache() : null;
+  const [loading, setLoading] = useState(!cached);
   const [overrideByPeptideId, setOverrideByPeptideId] = useState<
     Record<string, string>
-  >({});
-  const [saleInfoMap, setSaleInfoMap] = useState<Record<string, SaleInfo>>({});
-  const [liveProductMap, setLiveProductMap] = useState<Record<string, LiveProductInfo>>({});
-  const [dbOnlyProducts, setDbOnlyProducts] = useState<Peptide[]>([]);
+  >(cached?.overrideByPeptideId ?? {});
+  const [saleInfoMap, setSaleInfoMap] = useState<Record<string, SaleInfo>>(
+    cached?.saleInfoMap ?? {}
+  );
+  const [liveProductMap, setLiveProductMap] = useState<Record<string, LiveProductInfo>>(
+    cached?.liveProductMap ?? {}
+  );
+  const [dbOnlyProducts, setDbOnlyProducts] = useState<Peptide[]>(
+    cached?.dbOnlyProducts ?? []
+  );
   /** True once the live catalog has been fetched at least once — before that we
    *  fall back to showing all static products so the page isn't blank. */
-  const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const [catalogLoaded, setCatalogLoaded] = useState(Boolean(cached));
 
   /** Fetch all product data from Supabase and update state.
    *  `showLoading` controls whether the loading spinner appears (false for
@@ -120,6 +163,12 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       setLiveProductMap(mappedLive);
       setDbOnlyProducts(newDbProducts);
       setCatalogLoaded(true);
+      writeCatalogCache({
+        overrideByPeptideId: imageMap,
+        saleInfoMap: mappedSale,
+        liveProductMap: mappedLive,
+        dbOnlyProducts: newDbProducts,
+      });
     } catch (e) {
       // Don't strand `loading: true` on network error — finally always clears it
       // and the user can retry by navigating or refocusing the tab.
@@ -131,13 +180,14 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Initial load
+  // Initial load — use cache for first paint, refresh in background when cached.
   useEffect(() => {
     let cancelled = false;
-    void loadCatalog(true, () => cancelled);
+    void loadCatalog(!cached, () => cancelled);
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only mount once
   }, [loadCatalog]);
 
   // Re-fetch silently when the tab regains focus (picks up admin changes like

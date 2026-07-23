@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Heading, Text } from './Typography';
-import useScrollReveal from '../../hooks/useScrollReveal';
 
 /* ── Info tile ────────────────────────────────────────────── */
 
@@ -48,13 +47,9 @@ export default function PageHero({
   tiles,
   className = '',
 }: PageHeroProps) {
-  const { ref, revealed } = useScrollReveal<HTMLDivElement>();
-
   return (
     <div
-      ref={ref}
-      data-revealed={revealed}
-      className={`reveal mx-auto max-w-6xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm sm:px-10 sm:py-12 ${className}`}
+      className={`mx-auto max-w-6xl rounded-xl border border-carbon-900/10 bg-white/95 px-6 py-10 shadow-sm sm:px-10 sm:py-12 ${className}`}
     >
       <div className="mx-auto mb-6 w-full max-w-6xl rounded-xl border border-carbon-900/20 bg-accent px-5 py-7 sm:px-8 sm:py-8">
         <Heading level={2} className="!font-bold">

@@ -26,6 +26,120 @@ export type ReplaceAdminOrderLinesResult = {
   totalAmount?: number;
 };
 
+export type CreateAdminInvoiceResult = {
+  success: boolean;
+  error?: string;
+  trackingId?: string;
+  orderReference?: string;
+  subtotal?: number;
+  shipping?: number;
+  tax?: number;
+  totalAmount?: number;
+  sendEmail?: boolean;
+};
+
+export type PaymentReminderRow = {
+  id: string;
+  order_reference: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone: string | null;
+  total_amount: number;
+  payment_status: string;
+  payment_reminder_count: number;
+  last_payment_reminder_at: string | null;
+  created_at: string;
+  due_reminder_number: number | null;
+};
+
+export async function createAdminInvoice(
+  input: {
+    customerEmail: string;
+    customerName: string;
+    customerPhone?: string;
+    lines: AdminOrderLine[];
+    shipping?: number;
+    note?: string;
+    sendEmail?: boolean;
+  },
+  client: SupabaseClient | null = supabase
+): Promise<CreateAdminInvoiceResult> {
+  if (!client) return { success: false, error: 'No database client' };
+
+  const { data, error } = await client.rpc('admin_create_invoice', {
+    p_customer_email: input.customerEmail,
+    p_customer_name: input.customerName,
+    p_customer_phone: input.customerPhone ?? null,
+    p_lines: input.lines,
+    p_shipping: input.shipping ?? 0,
+    p_note: input.note ?? null,
+    p_send_email: input.sendEmail !== false,
+  });
+
+  if (error) {
+    log.error('createAdminInvoice failed', error);
+    return { success: false, error: error.message };
+  }
+
+  const result = data as {
+    success?: boolean;
+    error?: string;
+    tracking_id?: string;
+    order_reference?: string;
+    subtotal?: number;
+    shipping?: number;
+    tax?: number;
+    total_amount?: number;
+    send_email?: boolean;
+  } | null;
+
+  if (!result?.success) {
+    return {
+      success: false,
+      error: result?.error ?? 'Could not create invoice.',
+    };
+  }
+
+  return {
+    success: true,
+    trackingId: result.tracking_id,
+    orderReference: result.order_reference,
+    subtotal: Number(result.subtotal ?? 0),
+    shipping: Number(result.shipping ?? 0),
+    tax: Number(result.tax ?? 0),
+    totalAmount: Number(result.total_amount ?? 0),
+    sendEmail: result.send_email !== false,
+  };
+}
+
+export async function listDuePaymentReminders(
+  client: SupabaseClient | null = supabase
+): Promise<PaymentReminderRow[]> {
+  if (!client) return [];
+  const { data, error } = await client.rpc('admin_list_payment_reminders');
+  if (error) {
+    log.warn('listDuePaymentReminders failed', error.message);
+    return [];
+  }
+  return (Array.isArray(data) ? data : []) as PaymentReminderRow[];
+}
+
+export async function markPaymentReminderSent(
+  trackingId: string,
+  client: SupabaseClient | null = supabase
+): Promise<{ success: boolean; error?: string }> {
+  if (!client) return { success: false, error: 'No database client' };
+  const { data, error } = await client.rpc('admin_mark_payment_reminder_sent', {
+    p_tracking_id: trackingId,
+  });
+  if (error) return { success: false, error: error.message };
+  const result = data as { success?: boolean; error?: string } | null;
+  if (!result?.success) {
+    return { success: false, error: result?.error ?? 'Could not mark reminder' };
+  }
+  return { success: true };
+}
+
 export async function replaceAdminOrderLines(
   trackingId: string,
   lines: AdminOrderLine[],

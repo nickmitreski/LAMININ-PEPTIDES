@@ -9,6 +9,8 @@ interface SendOrderEmailParams {
   customerPhone?: string;
   totalAmount: number;
   currency?: string;
+  /** invoice | payment_reminder | payment_followup */
+  emailType?: 'invoice' | 'payment_reminder' | 'payment_followup';
 }
 
 interface SendContactMessageParams {
@@ -90,6 +92,7 @@ export async function sendOrderEmail(
           customer_phone: params.customerPhone ?? '',
           total_amount: params.totalAmount,
           currency: params.currency || 'AUD',
+          email_type: params.emailType || 'invoice',
         },
       });
 

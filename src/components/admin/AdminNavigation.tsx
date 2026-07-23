@@ -12,6 +12,7 @@ import {
   FolderOpen,
   ShieldCheck,
   Settings,
+  FileText,
   BarChart3,
 } from 'lucide-react';
 import Button from '../ui/Button';
@@ -33,6 +34,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Orders',
     icon: ShoppingCart,
     description: 'Manage customer orders',
+  },
+  {
+    path: '/admin/invoices/new',
+    label: 'Invoice',
+    icon: FileText,
+    description: 'Create custom customer invoices',
   },
   {
     path: '/admin/inventory',

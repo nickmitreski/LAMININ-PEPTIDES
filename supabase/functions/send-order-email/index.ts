@@ -99,6 +99,8 @@ interface OrderEmailRequest {
   currency?: string;
   /** Customer phone (shown in admin WhatsApp alert) */
   customer_phone?: string;
+  /** invoice | payment_reminder | payment_followup */
+  email_type?: string;
 }
 
 function formatMoney(amount: number, currency: string): string {
@@ -333,6 +335,7 @@ Deno.serve(async (req) => {
     customer_phone,
     total_amount,
     currency = 'AUD',
+    email_type = 'invoice',
   } = body;
 
   if (
@@ -379,7 +382,10 @@ Deno.serve(async (req) => {
     payment_deadline: paymentDeadline,
   };
 
-  const subject = `Laminin - Payment Instructions for Order ${order_reference}`;
+  const subject =
+    email_type === 'payment_reminder' || email_type === 'payment_followup'
+      ? `Laminin - Payment reminder for Order ${order_reference}`
+      : `Laminin - Payment Instructions for Order ${order_reference}`;
   const htmlBody = buildEmailHtml(templateVars);
   const textBody = buildEmailText(templateVars);
 
@@ -424,7 +430,10 @@ Deno.serve(async (req) => {
     try {
       const supabase = createClient(supabaseUrl, serviceKey);
       await supabase.rpc('log_email_sent', {
-        p_template_name: 'payment_instructions',
+        p_template_name:
+          email_type === 'payment_reminder' || email_type === 'payment_followup'
+            ? 'payment_reminder'
+            : 'payment_instructions',
         p_recipient_email: routing.deliveryEmail,
         p_recipient_name: customer_name || null,
         p_subject: subject,

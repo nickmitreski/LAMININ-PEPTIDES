@@ -210,7 +210,11 @@ export default function AdminAnalytics() {
     if (rpcData) return rpcData;
 
     const sessions = new Set(rows.map((row) => row.session_id));
-    const pageViews = rows.filter((row) => row.event_name === 'page_view');
+    const pageViews = rows.filter(
+      (row) =>
+        row.event_name === 'page_view' &&
+        !(row.path || '').toLowerCase().startsWith('/admin')
+    );
     const clicks = rows.filter((row) => row.event_name === 'click');
     const checkoutStarts = rows.filter((row) =>
       row.event_name === 'checkout_start' || row.event_name === 'checkout_started'
@@ -234,6 +238,7 @@ export default function AdminAnalytics() {
 
     return {
       visits: sessions.size,
+      uniqueVisitors: sessions.size,
       pageViews: pageViews.length,
       clicks: clicks.length,
       checkoutStarts: checkoutStarts.length,
@@ -352,7 +357,7 @@ export default function AdminAnalytics() {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <StatCard icon={Activity} label="Visits" value={String(summary.visits)} detail={`${summary.pageViews} page views`} />
+              <StatCard icon={Activity} label="Visits" value={String(summary.visits)} detail={`${summary.uniqueVisitors ?? summary.visits} unique · ${summary.pageViews} page views`} />
               <StatCard icon={Clock} label="Avg time on page" value={formatDuration(summary.averageDuration)} detail="Based on page leave events" />
               <StatCard icon={MousePointerClick} label="Total clicks" value={String(summary.clicks)} detail={`${summary.heatmapEvents} heatmap-ready clicks`} />
               <StatCard icon={ShoppingCart} label="Checkout starts" value={String(summary.checkoutStarts)} detail={`${summary.checkoutSuccess} completed`} />

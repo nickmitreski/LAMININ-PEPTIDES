@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import EntryScreen from './EntryScreen';
 
@@ -20,19 +20,18 @@ function isAdminPath(pathname: string): boolean {
   return pathname.startsWith('/admin');
 }
 
+function readEntryVerified(): boolean {
+  try {
+    return localStorage.getItem(ENTRY_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export default function EntryGate({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const [verified, setVerified] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    try {
-      setVerified(localStorage.getItem(ENTRY_STORAGE_KEY) === '1');
-    } catch {
-      setVerified(false);
-    }
-    setHydrated(true);
-  }, []);
+  // Sync-read so returning visitors never flash a blank carbon screen.
+  const [verified, setVerified] = useState(readEntryVerified);
 
   const handleComplete = () => {
     try {
@@ -42,16 +41,6 @@ export default function EntryGate({ children }: { children: ReactNode }) {
     }
     setVerified(true);
   };
-
-  if (!hydrated) {
-    return (
-      <div
-        className="min-h-screen bg-carbon-900"
-        aria-busy="true"
-        aria-label="Loading"
-      />
-    );
-  }
 
   // Admin paths bypass the entry gate entirely
   if (isAdminPath(location.pathname)) {

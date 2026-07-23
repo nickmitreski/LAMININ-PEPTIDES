@@ -109,10 +109,10 @@ export default function Library() {
     }
   };
 
-  const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
   const { ref: ctaRef, revealed: ctaRevealed } = useScrollReveal<HTMLDivElement>();
-  const { loading, catalogLoaded, isProductActive, allProducts } = useShopImages();
-  const showSkeleton = loading || collectionLoading || !catalogLoaded;
+  const { isProductActive, allProducts } = useShopImages();
+  // Paint static catalogue immediately; only collection slug fetches block.
+  const showSkeleton = collectionLoading;
 
   // Use merged catalog (static + DB-only products), filtered by category and active status
   const categoryPeptides = activeCategory === 'All'
@@ -184,7 +184,7 @@ export default function Library() {
           </div>
         ) : (
           <>
-            <div ref={gridRef} data-revealed={gridRevealed} className="reveal mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4 md:gap-6">
               {filteredPeptides.map((peptide, idx) => (
                 <PeptideCard key={peptide.id} peptide={peptide} priority={idx < 4} />
               ))}

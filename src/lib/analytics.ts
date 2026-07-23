@@ -46,8 +46,17 @@ export function hasCheckoutCompleted(): boolean {
   }
 }
 
+/** Admin / operator surfaces must never inflate storefront analytics. */
+export function isAnalyticsExcludedPath(pathname: string): boolean {
+  return pathname === '/admin' || pathname.startsWith('/admin/');
+}
+
 export function trackEvent(payload: AnalyticsPayload, keepalive = false): void {
   if (typeof window === 'undefined') return;
+
+  if (isAnalyticsExcludedPath(window.location.pathname)) {
+    return;
+  }
 
   const url = endpoint();
   if (!url) {

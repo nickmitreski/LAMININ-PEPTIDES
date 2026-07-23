@@ -45,6 +45,7 @@ const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
+const AdminCreateInvoice = lazy(() => import('./pages/AdminCreateInvoice'));
 const AdminDiscounts = lazy(() => import('./pages/AdminDiscounts'));
 const AdminEmails = lazy(() => import('./pages/AdminEmails'));
 const AdminTools = lazy(() => import('./pages/AdminTools'));
@@ -153,6 +154,16 @@ function App() {
                     <ProtectedRoute>
                       <AdminErrorBoundary pageName="Customers">
                         <AdminCustomers />
+                      </AdminErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/invoices/new"
+                  element={
+                    <ProtectedRoute>
+                      <AdminErrorBoundary pageName="Create invoice">
+                        <AdminCreateInvoice />
                       </AdminErrorBoundary>
                     </ProtectedRoute>
                   }

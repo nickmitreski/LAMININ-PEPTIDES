@@ -69,17 +69,40 @@ Deno.serve(async (req) => {
   }
 
   const geo = readGeo(req);
+  const ua = h(req, 'user-agent') || '';
+  // Skip admin paths even if a client still sends them.
+  const path =
+    typeof payload.path === 'string' ? payload.path.slice(0, 400) : null;
+  if (path && path.toLowerCase().startsWith('/admin')) {
+    return jsonResponse(req, { ok: true, skipped: 'admin' });
+  }
+
+  // Privacy-preserving unique visitor key (never store raw IP).
+  const visitorMaterial = `${ip}|${ua.split(/\s+/).slice(0, 4).join(' ')}`;
+  const visitorKey = Array.from(
+    new Uint8Array(
+      await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(visitorMaterial)
+      )
+    )
+  )
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 64);
+
   const sb = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   const { error } = await sb.from('analytics_events').insert({
     session_id: sessionId,
+    visitor_key: visitorKey,
     event_name: eventName,
-    path: typeof payload.path === 'string' ? payload.path.slice(0, 400) : null,
+    path,
     page_title: typeof payload.page_title === 'string' ? payload.page_title.slice(0, 300) : null,
     referrer: typeof payload.referrer === 'string' ? payload.referrer.slice(0, 600) : null,
-    user_agent: h(req, 'user-agent'),
+    user_agent: ua || null,
     country: geo.country,
     region: geo.region,
     city: geo.city,
