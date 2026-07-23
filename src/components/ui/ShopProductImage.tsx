@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { imgFetchPriorityProps } from '../../lib/imgFetchPriority';
 import { buildOptimizedSources } from '../../lib/optimizedImage';
 
@@ -32,6 +32,9 @@ const DEFAULT_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 400px'
  * /images/products/optimized/ (produced by scripts/optimize-product-images.sh).
  * Falls back gracefully to the original src for Supabase storage URLs and
  * admin uploads, which the optimiser doesn't touch.
+ *
+ * Cached images often skip `onLoad` if already complete — we sync via ref so
+ * they never stay opacity-0 behind the pulse placeholder.
  */
 export default function ShopProductImage({
   src,
@@ -49,12 +52,20 @@ export default function ShopProductImage({
   const [ready, setReady] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
   const [didFallback, setDidFallback] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     setReady(false);
     setCurrentSrc(src);
     setDidFallback(false);
   }, [src]);
+
+  useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth > 0) {
+      setReady(true);
+    }
+  }, [currentSrc, didFallback]);
 
   const handleError = () => {
     if (!didFallback && currentSrc !== fallbackSrc) {
@@ -92,6 +103,7 @@ export default function ShopProductImage({
           <source type="image/avif" srcSet={optimised.avifSrcSet} sizes={sizes} />
           <source type="image/webp" srcSet={optimised.webpSrcSet} sizes={sizes} />
           <img
+            ref={imgRef}
             src={optimised.fallbackSrc}
             srcSet={optimised.pngSrcSet}
             sizes={sizes}
@@ -108,6 +120,7 @@ export default function ShopProductImage({
         </picture>
       ) : (
         <img
+          ref={imgRef}
           src={currentSrc}
           alt={alt}
           loading={loading}
