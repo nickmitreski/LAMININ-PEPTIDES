@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { imgFetchPriorityProps } from '@/lib/imgFetchPriority';
+import { buildOptimizedSources } from '@/lib/optimizedImage';
 import Button from '@/components/ui/Button';
 
 export interface FinancialHeroProps {
@@ -21,6 +22,54 @@ export interface FinancialHeroProps {
   imageAlt1?: string;
   imageAlt2?: string;
   className?: string;
+}
+
+function HeroProductPicture({
+  src,
+  alt,
+  className,
+  priority,
+  motionProps,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  priority?: boolean;
+  motionProps: Record<string, unknown>;
+}) {
+  const optimised = buildOptimizedSources(src);
+  const sizes = '(max-width: 640px) 160px, (max-width: 1024px) 224px, 288px';
+
+  if (!optimised) {
+    return (
+      <motion.img
+        src={src}
+        alt={alt}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        {...(priority ? imgFetchPriorityProps('high') : {})}
+        {...motionProps}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <motion.picture {...motionProps} className={className}>
+      <source type="image/avif" srcSet={optimised.avifSrcSet} sizes={sizes} />
+      <source type="image/webp" srcSet={optimised.webpSrcSet} sizes={sizes} />
+      <source type="image/png" srcSet={optimised.pngSrcSet} sizes={sizes} />
+      <img
+        src={optimised.fallbackSrc}
+        alt={alt}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        sizes={sizes}
+        className="h-full w-full rounded-2xl object-cover"
+        {...(priority ? imgFetchPriorityProps('high') : {})}
+      />
+    </motion.picture>
+  );
 }
 
 function useHeroMotionVariants(reduce: boolean | null) {
@@ -183,40 +232,40 @@ export function FinancialHero({
             className="pointer-events-none absolute inset-x-6 inset-y-10 -z-10 rounded-full bg-white/35 blur-3xl"
           />
           {/* Rear card — sits lower & further right, tilted the other way */}
-          <motion.img
+          <HeroProductPicture
             src={imageUrl2}
             alt={imageAlt2}
-            variants={v.cardItem}
-            loading="eager"
-            decoding="async"
-            {...(!reduceMotion
-              ? {
-                  whileHover: {
-                    y: -6,
-                    rotate: 16,
-                    transition: { duration: 0.25 },
-                  },
-                }
-              : {})}
+            motionProps={{
+              variants: v.cardItem,
+              ...(!reduceMotion
+                ? {
+                    whileHover: {
+                      y: -6,
+                      rotate: 16,
+                      transition: { duration: 0.25 },
+                    },
+                  }
+                : {}),
+            }}
             className="absolute bottom-2 right-0 z-0 h-40 w-40 rounded-2xl object-cover shadow-[0_20px_50px_-12px_rgb(0_0_0/0.35)] sm:bottom-4 sm:right-2 sm:h-56 sm:w-56 md:bottom-8 md:right-8 md:h-64 md:w-64 lg:bottom-10 lg:right-4 lg:h-72 lg:w-72 rotate-[14deg] sm:rotate-[16deg]"
           />
           {/* Front card — upper left, counter-angled so they read as a pair, not a stack */}
-          <motion.img
+          <HeroProductPicture
             src={imageUrl1}
             alt={imageAlt1}
-            variants={v.cardItem}
-            loading="eager"
-            decoding="async"
-            {...imgFetchPriorityProps('high')}
-            {...(!reduceMotion
-              ? {
-                  whileHover: {
-                    y: -8,
-                    rotate: -13,
-                    transition: { duration: 0.25 },
-                  },
-                }
-              : {})}
+            priority
+            motionProps={{
+              variants: v.cardItem,
+              ...(!reduceMotion
+                ? {
+                    whileHover: {
+                      y: -8,
+                      rotate: -13,
+                      transition: { duration: 0.25 },
+                    },
+                  }
+                : {}),
+            }}
             className="absolute left-0 top-4 z-10 h-40 w-40 rounded-2xl object-cover shadow-[0_24px_55px_-10px_rgb(0_0_0/0.4)] sm:left-2 sm:top-8 sm:h-56 sm:w-56 md:left-4 md:top-10 md:h-64 md:w-64 lg:left-6 lg:top-12 lg:h-72 lg:w-72 -rotate-[11deg] sm:-rotate-[13deg]"
           />
         </motion.div>

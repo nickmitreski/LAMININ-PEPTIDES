@@ -221,7 +221,7 @@ export default function ResearchLibrary() {
             <Heading level={4} className="mb-4 text-center">
               Filter by category
             </Heading>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
               {CATEGORY_FILTERS.map((filter) => {
                 const theme = themeFor(filter.id);
                 const Icon = theme.icon;
@@ -232,12 +232,12 @@ export default function ResearchLibrary() {
                     type="button"
                     onClick={() => toggleFilter(filter.id)}
                     className={`
-                      inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium
-                      transition-all duration-200 touch-manipulation
+                      inline-flex min-h-11 items-center gap-2 rounded-md border px-4 py-2.5 text-xs font-medium
+                      transition-colors touch-manipulation sm:min-h-0 sm:px-6 sm:text-sm
                       ${
                         isActive
-                          ? `${theme.pillActive} shadow-sm`
-                          : `border-carbon-900/15 bg-white text-carbon-900 hover:border-carbon-900/30 hover:bg-neutral-50`
+                          ? 'border-transparent bg-accent text-carbon-900 hover:bg-accent-dark'
+                          : 'border-carbon-900/15 bg-white text-carbon-900 hover:border-carbon-900/30 hover:bg-neutral-50'
                       }
                     `}
                     title={filter.description}
@@ -252,7 +252,7 @@ export default function ResearchLibrary() {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex items-center rounded-full border border-carbon-900/20 px-4 py-2 text-sm font-medium text-carbon-900 transition-colors hover:bg-neutral-50 touch-manipulation"
+                  className="inline-flex min-h-11 items-center rounded-md border border-carbon-900/20 px-4 py-2.5 text-xs font-medium text-carbon-900 transition-colors hover:bg-neutral-50 touch-manipulation sm:min-h-0 sm:text-sm"
                 >
                   Clear all
                 </button>

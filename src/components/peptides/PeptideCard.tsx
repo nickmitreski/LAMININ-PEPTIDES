@@ -101,12 +101,12 @@ function PeptideCard({ peptide, priority = false }: PeptideCardProps) {
 
         <Label
           inheritColor
-          className="mb-1 line-clamp-2 text-[0.65rem] leading-tight text-carbon-900 sm:text-xs"
+          className="mb-1 line-clamp-2 text-xs leading-tight text-carbon-900 sm:text-xs"
         >
           {title}
         </Label>
       </Link>
-      <Text variant="caption" muted className="mb-2 line-clamp-2 text-[0.65rem] leading-snug sm:mb-3 sm:text-xs">
+      <Text variant="caption" muted className="mb-2 line-clamp-2 text-xs leading-snug sm:mb-3">
         {peptide.category}
         {peptide.coaVerified ? ' · COA verified' : ''} · {peptide.purity} purity
         {saleInfo ? (
@@ -125,7 +125,7 @@ function PeptideCard({ peptide, priority = false }: PeptideCardProps) {
         <Button
           variant="accent"
           size="sm"
-          className="min-h-10 w-full touch-manipulation text-[0.65rem] sm:min-h-0 sm:text-xs gap-2"
+          className="min-h-11 w-full touch-manipulation text-xs sm:min-h-0 sm:text-xs gap-2"
           aria-label={hasVariants ? `Choose options for ${peptide.name}` : `Add ${peptide.name} to cart`}
           onClick={handleAdd}
         >
@@ -141,11 +141,14 @@ function PeptideCard({ peptide, priority = false }: PeptideCardProps) {
             </>
           )}
         </Button>
-        <Link to={productPath} className="block touch-manipulation">
+        <Link
+          to={productPath}
+          className="hidden touch-manipulation sm:block"
+        >
           <Button
             variant="outline"
             size="sm"
-            className="group/btn min-h-10 w-full touch-manipulation text-[0.65rem] sm:min-h-0 sm:text-xs"
+            className="group/btn min-h-10 w-full touch-manipulation text-xs"
           >
             View details
             <ArrowRight className="ml-2 inline-block h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5" />
