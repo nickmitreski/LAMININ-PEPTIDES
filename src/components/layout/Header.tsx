@@ -36,15 +36,17 @@ export default function Header() {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/library', label: 'Library' },
-    { path: '/coa', label: 'COA' },
-    { path: '/research', label: 'Science' },
-    { path: '/faq', label: 'Support' },
+    { path: '/coa', label: 'Certificate of analysis' },
+    { path: '/research', label: 'Peptide science' },
+    { path: '/guarantee', label: 'Purity guarantee' },
+    { path: '/faq', label: 'FAQ' },
+    { path: '/shipping', label: 'Shipping' },
   ];
 
   return (
     <header className="bg-carbon-900 sticky top-0 z-50 border-b border-white/5 pt-safe">
       <Container>
-        <div className="flex min-h-[4.25rem] w-full items-center gap-2 py-2 md:min-h-24 md:gap-4 md:py-0">
+        <div className="flex min-h-[4.25rem] w-full items-center gap-2 py-2 md:min-h-24 md:gap-3 md:py-0 xl:gap-4">
           <div className="shrink-0">
             <Link
               to="/"
@@ -61,19 +63,20 @@ export default function Header() {
             </Link>
           </div>
 
-          <nav className="hidden lg:flex ml-auto shrink-0 items-center space-x-1">
+          <nav className="ml-auto hidden min-w-0 shrink items-center gap-0.5 lg:flex xl:gap-1">
             {navLinks.map((link) => (
               <Link
-                key={link.label}
+                key={link.path}
                 to={link.path}
                 aria-current={isActive(link.path) ? 'page' : undefined}
                 className={`
-                  px-5 py-2.5 text-sm font-medium tracking-wide rounded-sm transition-all duration-200
+                  whitespace-nowrap rounded-sm px-2.5 py-2.5 text-xs font-medium tracking-wide transition-all duration-200
+                  xl:px-3.5 xl:text-sm
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900
                   ${
                     isActive(link.path)
-                      ? 'text-carbon-900 bg-accent'
-                      : 'text-white hover:text-white hover:bg-white/5'
+                      ? 'bg-accent text-carbon-900'
+                      : 'text-white hover:bg-white/5 hover:text-white'
                   }
                 `}
               >
@@ -123,7 +126,7 @@ export default function Header() {
             <nav className="space-y-1 py-4 pb-safe sm:py-6">
               {navLinks.map((link) => (
                 <Link
-                  key={link.label}
+                  key={link.path}
                   to={link.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   aria-current={isActive(link.path) ? 'page' : undefined}
