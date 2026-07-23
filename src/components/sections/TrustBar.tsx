@@ -26,14 +26,17 @@ export default function TrustBar() {
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"
       />
       <Container>
-        <div ref={ref} className="relative py-10 md:py-14">
+        <div
+          ref={ref}
+          data-revealed={revealed}
+          className="reveal relative py-10 md:py-14"
+        >
           <div className="grid grid-cols-1 gap-y-8 sm:grid-cols-3 sm:gap-8">
-            {trustHighlights.map(({ icon: Icon, titleLines, to }, idx) => (
+            {trustHighlights.map(({ icon: Icon, titleLines, to }) => (
               <Link
                 key={titleLines.join('-')}
                 to={to}
-                data-revealed={revealed}
-                className={`reveal reveal-delay-${idx} group flex flex-col items-center text-center touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900`}
+                className="group flex flex-col items-center text-center touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-900"
               >
                 <div
                   aria-hidden="true"

@@ -61,14 +61,11 @@ export default function PeptideToggleSection() {
       />
       <div
         ref={gridRef}
-        className="grid grid-cols-1 items-stretch md:grid-cols-2 lg:grid-cols-3 gap-6"
+        data-revealed={gridRevealed}
+        className="reveal grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
-        {pillars.map((item, idx) => (
-          <div
-            key={item.id}
-            data-revealed={gridRevealed}
-            className={`reveal reveal-delay-${idx + 1} flex h-full`}
-          >
+        {pillars.map((item) => (
+          <div key={item.id} className="flex h-full">
             <Card padding="lg" hover className="flex h-full w-full flex-col">
               <div
                 className={`aspect-[4/3] w-full shrink-0 rounded-lg overflow-hidden border border-carbon-900/10 mb-5 ${

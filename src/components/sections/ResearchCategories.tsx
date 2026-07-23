@@ -93,55 +93,41 @@ export default function ResearchCategories() {
       </div>
       <div
         ref={gridRef}
+        data-revealed={gridRevealed}
         className="
-          grid grid-cols-1 gap-4 md:gap-6
+          reveal grid grid-cols-1 gap-4 md:gap-6
           md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(12rem,auto)]
         "
       >
-        <div
-          data-revealed={gridRevealed}
-          className="reveal reveal-delay-1 md:col-span-2 md:row-start-1 md:min-h-[18rem] min-h-[12rem]"
-        >
+        <div className="min-h-[12rem] md:col-span-2 md:row-start-1 md:min-h-[18rem]">
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.retatrutide)}
             title="Metabolic research"
             categoryId="Metabolic"
           />
         </div>
-        <div
-          data-revealed={gridRevealed}
-          className="reveal reveal-delay-2 md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]"
-        >
+        <div className="min-h-[12rem] md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0">
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.nad)}
             title="Longevity & cellular research"
             categoryId="Longevity"
           />
         </div>
-        <div
-          data-revealed={gridRevealed}
-          className="reveal reveal-delay-3 md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0 min-h-[12rem]"
-        >
+        <div className="min-h-[12rem] md:col-span-1 md:row-start-1 md:aspect-square md:min-h-0">
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.semax)}
             title="Cognitive & neurological research"
             categoryId="Cognitive"
           />
         </div>
-        <div
-          data-revealed={gridRevealed}
-          className="reveal reveal-delay-3 md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]"
-        >
+        <div className="min-h-[12rem] md:col-span-2 md:row-start-2 md:min-h-[14rem]">
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.bpcTb)}
             title="Tissue regeneration"
             categoryId="Healing"
           />
         </div>
-        <div
-          data-revealed={gridRevealed}
-          className="reveal reveal-delay-4 md:col-span-2 md:row-start-2 md:min-h-[14rem] min-h-[12rem]"
-        >
+        <div className="min-h-[12rem] md:col-span-2 md:row-start-2 md:min-h-[14rem]">
           <CategoryTile
             imageSrc={productImageFile(cfgProductFiles.cjcNoDac)}
             title="Performance biology"

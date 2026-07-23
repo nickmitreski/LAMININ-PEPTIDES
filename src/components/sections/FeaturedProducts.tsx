@@ -25,17 +25,17 @@ export default function FeaturedProducts() {
 
       <div
         ref={ref}
-        className="mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6"
+        data-revealed={revealed}
+        className="reveal mb-10 grid grid-cols-2 gap-3 sm:mb-12 sm:gap-4 md:grid-cols-4 md:gap-6"
       >
-        {featuredProducts.map((product, idx) => {
+        {featuredProducts.map((product) => {
           const saleInfo = resolveSaleInfo(product.peptideId);
           const priceLabel = getDisplayPriceForPeptide(product.peptideId);
           return (
             <Link
               key={product.peptideId}
               to={`/products/${getProductSlug(product.peptideId)}`}
-              data-revealed={revealed}
-              className={`reveal reveal-delay-${Math.min(idx, 4)} group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1`}
+              className="group flex touch-manipulation flex-col motion-safe:transition-transform motion-safe:duration-300 active:opacity-90 md:hover:-translate-y-1"
             >
               <div className="relative mb-3 aspect-square overflow-hidden rounded-lg bg-neutral-50 sm:mb-4">
                 {saleInfo && (

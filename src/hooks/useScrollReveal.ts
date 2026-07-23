@@ -1,31 +1,52 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * Reveal-on-scroll hook. Adds a `data-revealed="true"` attribute to the
- * referenced element once it scrolls into view, which CSS uses to drive an
- * entrance animation. Honours `prefers-reduced-motion` by revealing immediately.
+ * Reveal-on-scroll hook. Sets `data-revealed="true"` once the node nears the
+ * viewport (CSS `.reveal` starts at opacity 0).
  *
- * Uses a callback ref so the observer is (re-)attached whenever the underlying
- * DOM node mounts — fixes the case where the element is conditionally rendered
- * (e.g. hidden behind a loading gate) and doesn't exist on first render.
- *
- * Usage:
- *   const { ref, revealed } = useScrollReveal<HTMLDivElement>();
- *   <div ref={ref} data-revealed={revealed} className="reveal" />
+ * Fail-safes so content never stays invisible:
+ * - prefers-reduced-motion → reveal immediately
+ * - already on-screen → reveal immediately
+ * - IntersectionObserver errors → reveal immediately
+ * - still hidden after `fallbackMs` → force reveal
  */
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
-  options: { rootMargin?: string; threshold?: number; once?: boolean } = {}
+  options: {
+    rootMargin?: string;
+    threshold?: number;
+    once?: boolean;
+    /** Hard cap so content cannot stay opacity-0 forever. */
+    fallbackMs?: number;
+  } = {}
 ) {
-  // threshold 0 = reveal as soon as any pixel enters the viewport.
-  // A high threshold (e.g. 0.15) never fires on tall grids (COA cards, etc.):
-  // only the top peeks in, intersectionRatio stays tiny, content stays opacity-0.
-  const { rootMargin = '0px 0px -8% 0px', threshold = 0, once = true } =
-    options;
+  // Generous margins so sections reveal just before they enter view.
+  // Use px only — % rootMargin has been flaky across engines.
+  const {
+    rootMargin = '120px 0px 120px 0px',
+    threshold = 0,
+    once = true,
+    fallbackMs = 900,
+  } = options;
   const [revealed, setRevealed] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const nodeRef = useRef<T | null>(null);
+  const revealedRef = useRef(false);
 
-  // Tear down any existing observer when options change or on unmount.
+  const markRevealed = useCallback(() => {
+    if (revealedRef.current) return;
+    revealedRef.current = true;
+    setRevealed(true);
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+  }, []);
+
+  // Absolute fallback: never leave storefront content invisible.
+  useEffect(() => {
+    if (revealed) return;
+    const id = window.setTimeout(markRevealed, fallbackMs);
+    return () => window.clearTimeout(id);
+  }, [revealed, fallbackMs, markRevealed]);
+
   useEffect(() => {
     return () => {
       observerRef.current?.disconnect();
@@ -33,10 +54,8 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
     };
   }, [rootMargin, threshold, once]);
 
-  // Callback ref: called whenever the DOM node mounts or unmounts.
   const ref = useCallback(
     (node: T | null) => {
-      // Clean up previous observer
       if (observerRef.current) {
         observerRef.current.disconnect();
         observerRef.current = null;
@@ -44,42 +63,50 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
 
       nodeRef.current = node;
       if (!node) return;
+      if (revealedRef.current) {
+        setRevealed(true);
+        return;
+      }
 
       const prefersReducedMotion =
         typeof window !== 'undefined' &&
         window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
       if (prefersReducedMotion || typeof IntersectionObserver === 'undefined') {
-        setRevealed(true);
+        markRevealed();
         return;
       }
 
-      // Already on-screen (e.g. short pages / restored scroll) — show immediately.
       const rect = node.getBoundingClientRect();
       const vh = window.innerHeight || 0;
-      if (rect.top < vh && rect.bottom > 0) {
-        setRevealed(true);
+      // Already in or near the viewport (including slightly below).
+      if (rect.top < vh + 120 && rect.bottom > -120) {
+        markRevealed();
         return;
       }
 
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              setRevealed(true);
-              if (once) observer.disconnect();
-            } else if (!once) {
-              setRevealed(false);
+      try {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                markRevealed();
+                if (once) observer.disconnect();
+              } else if (!once) {
+                revealedRef.current = false;
+                setRevealed(false);
+              }
             }
-          }
-        },
-        { rootMargin, threshold }
-      );
-
-      observer.observe(node);
-      observerRef.current = observer;
+          },
+          { rootMargin, threshold }
+        );
+        observer.observe(node);
+        observerRef.current = observer;
+      } catch {
+        markRevealed();
+      }
     },
-    [rootMargin, threshold, once]
+    [rootMargin, threshold, once, markRevealed]
   );
 
   return { ref, revealed };

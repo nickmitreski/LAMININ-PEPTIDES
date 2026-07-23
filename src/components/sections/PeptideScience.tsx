@@ -73,15 +73,15 @@ export default function PeptideScience() {
 
       <div
         ref={gridRef}
-        className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6"
+        data-revealed={gridRevealed}
+        className="reveal mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6"
       >
-        {pillars.map((p, idx) => {
+        {pillars.map((p) => {
           const Icon = p.icon;
           return (
             <div
               key={p.title}
-              data-revealed={gridRevealed}
-              className={`reveal reveal-delay-${idx + 1} group relative flex h-full flex-col rounded-lg border border-carbon-900/10 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-dark/40 hover:shadow-md`}
+              className="group relative flex h-full flex-col rounded-lg border border-carbon-900/10 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-dark/40 hover:shadow-md"
             >
               <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-md bg-accent-50 text-accent-dark ring-1 ring-accent-200">
                 <Icon className="h-6 w-6" strokeWidth={1.75} />

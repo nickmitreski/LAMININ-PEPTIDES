@@ -9,26 +9,23 @@ export default function CTASection() {
 
   return (
     <Section background="accent" spacing="lg">
-      <div ref={ref} className="text-center">
-        <div data-revealed={revealed} className="reveal">
-          <Heading level={2} className="text-carbon-900 mb-4">
+      <div ref={ref} data-revealed={revealed} className="reveal text-center">
+        <div>
+          <Heading level={2} className="mb-4 text-carbon-900">
             Ready to start your research?
           </Heading>
         </div>
-        <div data-revealed={revealed} className="reveal reveal-delay-1">
+        <div>
           <Text
             variant="body"
             weight="light"
-            className="mb-10 max-w-3xl mx-auto text-carbon-900"
+            className="mx-auto mb-10 max-w-3xl text-carbon-900"
           >
             Explore our complete catalogue of laboratory-grade peptides backed
             by third-party verification and comprehensive analysis.
           </Text>
         </div>
-        <div
-          data-revealed={revealed}
-          className="reveal reveal-delay-2 flex flex-col sm:flex-row gap-4 justify-center items-center"
-        >
+        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link to="/library">
             <Button variant="white" size="lg" className="min-w-[200px] uppercase">
               Browse compounds
