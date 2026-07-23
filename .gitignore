@@ -55,3 +55,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Local audit / tooling artifacts
+tmp/
+video/
