@@ -267,7 +267,7 @@ export default function AdminCustomers() {
   const totalOrders = customers.reduce((sum, c) => sum + c.total_orders, 0);
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">

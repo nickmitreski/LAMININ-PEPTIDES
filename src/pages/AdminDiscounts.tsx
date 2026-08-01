@@ -315,7 +315,7 @@ export default function AdminDiscounts() {
   const totalRedemptions = codes.reduce((sum, c) => sum + c.redemption_count, 0);
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">

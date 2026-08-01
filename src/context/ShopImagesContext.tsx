@@ -127,8 +127,8 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       // Map CFG-code-keyed sale data to peptide IDs
       const mappedSale: Record<string, SaleInfo> = {};
       for (const [cfgCode, info] of Object.entries(saleByCfg)) {
-        const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
-        if (pid) mappedSale[pid] = info;
+        const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode] ?? cfgCode.toLowerCase();
+        mappedSale[pid] = info;
       }
       setSaleInfoMap(mappedSale);
 
@@ -147,13 +147,22 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
           const syntheticId = cfgCode.toLowerCase();
           if (!staticPeptideIds.has(syntheticId)) {
             const primaryImage = imageMap[syntheticId] ?? '/images/purity.png';
+            const validCategory = [
+              'Healing',
+              'Cognitive',
+              'Metabolic',
+              'Performance',
+              'Longevity',
+            ].includes(info.category ?? '')
+              ? (info.category as LibraryTheme)
+              : ('Healing' as LibraryTheme);
             newDbProducts.push({
               id: syntheticId,
               name: info.name,
-              category: 'Healing' as LibraryTheme,
-              libraryFilters: ['Healing'] as LibraryTheme[],
+              category: validCategory,
+              libraryFilters: [validCategory],
               purity: '99%+',
-              coaVerified: false,
+              coaVerified: Boolean(info.coaLinkUrl),
               image: primaryImage,
             });
             mappedLive[syntheticId] = info;

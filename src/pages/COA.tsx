@@ -10,7 +10,7 @@ import { Heading, Text } from '../components/ui/Typography';
 import IconTile from '../components/ui/IconTile';
 import PolicySectionHeading from '../components/legal/PolicySectionHeading';
 import type { Peptide } from '../data/peptides';
-import { allPeptides, isLiquidAncillaryPeptide } from '../data/peptides';
+import { isLiquidAncillaryPeptide } from '../data/peptides';
 import { getVariants } from '../data/productPricing';
 import {
   coaDownloadButtonLabel,
@@ -19,6 +19,7 @@ import {
 import { CheckCircle, FileCheck, Award, FlaskConical, Target, FileText } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import useScrollReveal from '../hooks/useScrollReveal';
+import { useShopImages } from '../context/ShopImagesContext';
 
 type CoaCardEntry = {
   key: string;
@@ -58,15 +59,18 @@ export default function COA() {
   );
   const [searchTerm, setSearchTerm] = useState('');
   const { ref: gridRef, revealed: gridRevealed } = useScrollReveal<HTMLDivElement>();
+  const { allProducts, getLiveCatalogEntry } = useShopImages();
 
   const coaEntries = useMemo(() => {
-    const verified = allPeptides.filter(
-      (p) => p.coaVerified && !isLiquidAncillaryPeptide(p.id)
+    const verified = allProducts.filter(
+      (p) =>
+        !isLiquidAncillaryPeptide(p.id) &&
+        (p.coaVerified || Boolean(getLiveCatalogEntry(p.id)?.coaLinkUrl))
     );
     return buildCoaCardEntries(verified).sort((a, b) =>
       a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
     );
-  }, []);
+  }, [allProducts, getLiveCatalogEntry]);
 
   const filteredEntries = useMemo(() => {
     const q = searchTerm.toLowerCase().trim();
@@ -116,6 +120,7 @@ export default function COA() {
         >
           {filteredEntries.map(({ key, peptide, variantId, title }) => {
             const coa = getCoaDownload(peptide.id, variantId);
+            const liveCoaUrl = getLiveCatalogEntry(peptide.id)?.coaLinkUrl;
             return (
               <Card key={key} padding="lg">
                 <div className="mb-4 flex items-start justify-between">
@@ -165,7 +170,18 @@ export default function COA() {
                   </div>
                 </div>
 
-                {coa ? (
+                {liveCoaUrl ? (
+                  <Button
+                    variant="accent"
+                    size="md"
+                    className="w-full"
+                    href={liveCoaUrl}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    View current COA
+                  </Button>
+                ) : coa ? (
                   <Button
                     variant="accent"
                     size="md"

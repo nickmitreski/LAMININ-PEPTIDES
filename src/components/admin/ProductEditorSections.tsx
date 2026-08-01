@@ -44,7 +44,7 @@ export function ProductEditorBasicInfo({
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-carbon-700">Protein name *</label>
+          <label className="mb-1 block text-sm font-medium text-carbon-700">Protein name</label>
           <input
             type="text"
             value={proteinName}
@@ -67,12 +67,16 @@ export function ProductEditorBasicInfo({
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-carbon-700">Category</label>
-          <input
-            type="text"
+          <select
             value={category}
             onChange={(e) => onCategory(e.target.value)}
-            className="input min-h-11 w-full rounded-sm border border-carbon-200 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-accent-500 md:text-sm"
-          />
+            className="input min-h-11 w-full rounded-sm border border-carbon-200 bg-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-accent-500 md:text-sm"
+          >
+            <option value="">Choose a category</option>
+            {['Healing', 'Cognitive', 'Metabolic', 'Performance', 'Longevity'].map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-4 pt-8">
           <label className="flex min-h-11 cursor-pointer items-center gap-2">
@@ -250,37 +254,47 @@ export function ProductEditorStorefrontCopy({
         Storefront copy
       </Heading>
       <div className="grid grid-cols-1 gap-4">
-        <textarea
-          value={overviewText}
-          onChange={(e) => onOverview(e.target.value)}
-          rows={4}
-          placeholder="Overview"
-          aria-label="Overview"
-          className="input w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
-        />
-        <textarea
-          value={specificationsText}
-          onChange={(e) => onSpecifications(e.target.value)}
-          rows={3}
-          placeholder="Specifications"
-          aria-label="Specifications"
-          className="input w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
-        />
-        <textarea
-          value={analyticalText}
-          onChange={(e) => onAnalytical(e.target.value)}
-          rows={3}
-          placeholder="Analytical verification"
-          aria-label="Analytical verification"
-          className="input w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
-        />
-        <input
-          type="url"
-          value={coaLinkUrl}
-          onChange={(e) => onCoaLink(e.target.value)}
-          placeholder="External COA URL"
-          className="input min-h-11 w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
-        />
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-carbon-700">Overview</span>
+          <textarea
+            value={overviewText}
+            onChange={(e) => onOverview(e.target.value)}
+            rows={5}
+            placeholder="Explain what this product is and how it is supplied."
+            className="input w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-carbon-700">Specifications</span>
+          <textarea
+            value={specificationsText}
+            onChange={(e) => onSpecifications(e.target.value)}
+            rows={4}
+            placeholder="Strength, form, purity and packaging details."
+            className="input w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-carbon-700">Analytical verification</span>
+          <textarea
+            value={analyticalText}
+            onChange={(e) => onAnalytical(e.target.value)}
+            rows={4}
+            placeholder="Describe the verification or testing information shown on the product page."
+            className="input w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-carbon-700">External COA fallback link</span>
+          <input
+            type="url"
+            value={coaLinkUrl}
+            onChange={(e) => onCoaLink(e.target.value)}
+            placeholder="https://…"
+            className="input min-h-11 w-full rounded-sm border border-carbon-200 px-3 py-2 text-base md:text-sm"
+          />
+          <span className="mt-1 block text-xs text-carbon-500">The Images &amp; COA tab manages uploaded certificates. Use this only for a trusted external document.</span>
+        </label>
       </div>
     </div>
   );

@@ -210,7 +210,7 @@ export default function AdminOrderDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">

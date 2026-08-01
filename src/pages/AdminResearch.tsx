@@ -111,7 +111,7 @@ export default function AdminResearch() {
   };
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
       <Section spacing="lg">
         <div className="mb-6 flex items-start gap-3">

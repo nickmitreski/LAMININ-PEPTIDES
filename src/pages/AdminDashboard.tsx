@@ -38,6 +38,7 @@ import { Heading, Text } from '../components/ui/Typography';
 import { useToast } from '../context/ToastContext';
 import OrderDetailsModal from '../components/admin/OrderDetailsModal';
 import AdminNavigation from '../components/admin/AdminNavigation';
+import AdminPageHeader from '../components/admin/AdminPageHeader';
 import AdminOrdersTable from '../components/admin/AdminOrdersTable';
 import { formatPrice } from '../lib/formatCurrency';
 import {
@@ -394,21 +395,16 @@ export default function AdminDashboard() {
   const selectedCount = selectedIds.size;
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <Heading level={1} className="mb-1">
-              Orders
-            </Heading>
-            <Text className="text-carbon-600">
-              Manage customer orders, fulfilment, and status updates.
-            </Text>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+        <AdminPageHeader
+          eyebrow="Commerce"
+          title="Orders"
+          description="Manage customer orders, payments, fulfilment and status updates."
+          actions={
+            <>
             {refreshing && (
               <span className="inline-flex items-center gap-1.5 text-xs text-accent-700">
                 <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -440,8 +436,9 @@ export default function AdminDashboard() {
               />
               Refresh
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Recent email failures banner — surfaces silent send errors */}
         {emailFailureCount > 0 && !emailBannerDismissed && (

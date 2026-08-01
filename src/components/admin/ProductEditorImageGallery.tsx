@@ -25,10 +25,10 @@ export default function ProductEditorImageGallery({
 
       <div className="mb-4">
         <label className="block">
-          <div className="border-2 border-dashed border-carbon-300 rounded-sm p-6 text-center cursor-pointer hover:border-accent-500 transition-colors">
+          <div className="cursor-pointer rounded-xl border-2 border-dashed border-carbon-300 bg-carbon-50/70 p-6 text-center transition-colors hover:border-accent-500 hover:bg-accent-50/40">
             <Upload className="w-8 h-8 mx-auto mb-2 text-carbon-400" />
             <Text className="text-carbon-600 mb-1">
-              {uploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+              {uploading ? 'Uploading…' : 'Choose product images'}
             </Text>
             <Text className="text-sm text-carbon-500">PNG, JPG, WebP up to 5MB</Text>
             <input
@@ -65,7 +65,7 @@ export default function ProductEditorImageGallery({
                 </div>
               )}
 
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/20 opacity-100 transition-opacity md:bg-black/50 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                 {!image.is_primary && (
                   <button
                     type="button"
