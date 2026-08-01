@@ -10,6 +10,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import { useToast } from '../context/ToastContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import AdminNavigation from '../components/admin/AdminNavigation';
+import AdminPageHeader from '../components/admin/AdminPageHeader';
 import { formatPrice } from '../lib/formatCurrency';
 
 interface Product {
@@ -235,21 +236,16 @@ export default function AdminInventory() {
   };
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section background="white" spacing="lg">
         <Container size="lg">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <Heading level={3} className="mb-2">
-                Inventory management
-              </Heading>
-              <Text variant="small" muted className="max-w-xl">
-                Real-time inventory tracking powered by the Supabase database with full transaction history and low-stock alerts.
-              </Text>
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <AdminPageHeader
+            eyebrow="Catalog"
+            title="Inventory"
+            description="Track stock levels, adjustments, transaction history and low-stock alerts."
+            actions={
               <Button
                 type="button"
                 variant="outline"
@@ -258,8 +254,8 @@ export default function AdminInventory() {
               >
                 View library
               </Button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Low Stock Alert Banner */}
           {lowStockProducts.length > 0 && (

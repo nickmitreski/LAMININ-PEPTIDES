@@ -18,6 +18,11 @@ test.describe('Admin', () => {
     await expect(page).toHaveURL(/\/admin\/login/);
   });
 
+  test('certificates redirects unauthenticated users to login', async ({ page }) => {
+    await page.goto('/admin/coas');
+    await expect(page).toHaveURL(/\/admin\/login/);
+  });
+
   test('shows error on invalid credentials', async ({ page }) => {
     await page.goto('/admin/login');
     await page.getByLabel(/email/i).fill('not-an-admin@example.com');

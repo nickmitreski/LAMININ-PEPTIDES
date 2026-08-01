@@ -25,21 +25,21 @@ export default function Home() {
 
   useEffect(() => {
     let idleId: number | undefined;
-    let timeoutId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const run = () => prefetchLibrary();
 
     if ('requestIdleCallback' in window) {
       idleId = window.requestIdleCallback(run, { timeout: 2500 });
     } else {
-      timeoutId = window.setTimeout(run, 1200);
+      timeoutId = globalThis.setTimeout(run, 1200);
     }
 
     return () => {
       if (idleId !== undefined && 'cancelIdleCallback' in window) {
         window.cancelIdleCallback(idleId);
       }
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
     };
   }, []);
 

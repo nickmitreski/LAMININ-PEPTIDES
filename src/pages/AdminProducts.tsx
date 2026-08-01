@@ -24,6 +24,7 @@ import {
   duplicateProduct,
 } from '../services/supabaseService';
 import AdminNavigation from '../components/admin/AdminNavigation';
+import AdminPageHeader from '../components/admin/AdminPageHeader';
 import ProductEditor from '../components/admin/ProductEditor';
 import CreateProductModal from '../components/admin/CreateProductModal';
 import Section from '../components/layout/Section';
@@ -47,6 +48,7 @@ interface ProductMapping {
   description: string | null;
   category: string | null;
   stock_quantity: number;
+  coa_link_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +63,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<ProductMapping[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editorInitialTab, setEditorInitialTab] = useState<'details' | 'media'>('details');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -191,18 +194,15 @@ export default function AdminProducts() {
     if (selectedIds.size === 0) return;
     setBulkToggling(true);
     const db = getAdminSupabase();
-    let success = 0;
-    let failed = 0;
-
-    for (const id of Array.from(selectedIds)) {
-      try {
-        const r = await updateProduct(id, { is_active: makeActive }, db);
-        if (r.success) success += 1;
-        else failed += 1;
-      } catch {
-        failed += 1;
-      }
-    }
+    const results = await Promise.allSettled(
+      Array.from(selectedIds).map((id) =>
+        updateProduct(id, { is_active: makeActive }, db)
+      )
+    );
+    const success = results.filter(
+      (result) => result.status === 'fulfilled' && result.value.success
+    ).length;
+    const failed = results.length - success;
 
     setBulkToggling(false);
     setSelectedIds(new Set());
@@ -226,8 +226,15 @@ export default function AdminProducts() {
     try {
       const r = await duplicateProduct(productId, getAdminSupabase());
       if (r.success) {
-        showToast(`Duplicated as ${r.cfg_code ?? 'new product'} (inactive copy)`, 'success');
+        showToast(
+          r.error ?? `Duplicated as ${r.cfg_code ?? 'new product'} (inactive copy)`,
+          r.error ? 'warning' : 'success'
+        );
         void loadProducts();
+        if (r.product_id) {
+          setEditorInitialTab('details');
+          setEditingProductId(r.product_id);
+        }
       } else {
         showToast(r.error || 'Duplicate failed', 'error');
       }
@@ -239,22 +246,16 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
-          <div>
-            <Heading level={1} className="mb-2">
-              Product management
-            </Heading>
-            <Text className="text-carbon-600">
-              CFG code to peptide product mappings. Manage pricing, sales, stock,
-              and visibility.
-            </Text>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+        <AdminPageHeader
+          eyebrow="Catalog"
+          title="Products"
+          description="Manage products, pricing, availability, storefront content, media and Certificates of Analysis."
+          actions={
+            <>
             <Button
               variant="outline"
               size="sm"
@@ -268,10 +269,11 @@ export default function AdminProducts() {
             </Button>
             <Button size="sm" onClick={() => setShowCreateModal(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Product
+              Add product
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Stats */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -565,7 +567,10 @@ export default function AdminProducts() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setEditingProductId(product.id)}
+                              onClick={() => {
+                                setEditorInitialTab('details');
+                                setEditingProductId(product.id);
+                              }}
                               className="inline-flex items-center gap-1"
                             >
                               <Edit className="h-3 w-3" />
@@ -594,6 +599,7 @@ export default function AdminProducts() {
       {editingProductId && (
         <ProductEditor
           productId={editingProductId}
+          initialTab={editorInitialTab}
           onClose={() => setEditingProductId(null)}
           onSave={() => {
             setEditingProductId(null);
@@ -607,10 +613,14 @@ export default function AdminProducts() {
       {showCreateModal && (
         <CreateProductModal
           onClose={() => setShowCreateModal(false)}
-          onCreated={() => {
+          onCreated={(productId) => {
             setShowCreateModal(false);
-            loadProducts();
-            showToast('Product created', 'success');
+            void loadProducts();
+            if (productId) {
+              setEditorInitialTab('media');
+              setEditingProductId(productId);
+            }
+            showToast('Product created. Add images and its COA next.', 'success');
           }}
         />
       )}

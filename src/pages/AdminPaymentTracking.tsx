@@ -192,7 +192,7 @@ export default function AdminPaymentTracking() {
     .reduce((sum, p) => sum + p.total_amount, 0);
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={handleLogout} />
 
       <Section spacing="lg">

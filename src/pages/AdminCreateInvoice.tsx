@@ -129,7 +129,7 @@ export default function AdminCreateInvoice() {
   };
 
   return (
-    <div className="min-h-screen bg-platinum">
+    <div className="admin-page min-h-screen bg-platinum">
       <AdminNavigation onLogout={() => { logout(); navigate('/admin/login'); }} />
       <Section background="white" spacing="lg">
         <div className="mx-auto max-w-3xl">

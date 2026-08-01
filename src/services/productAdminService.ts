@@ -4,6 +4,10 @@ import { supabase } from '../lib/supabase';
 import { createLogger } from '../lib/logger';
 import { CFG_CODE_TO_PEPTIDE_ID } from '../data/productMappings';
 import { logAdminAction } from './auditLog';
+import {
+  getCollectionIdsForProduct,
+  setProductCollections,
+} from './collectionsService';
 
 const log = createLogger('products');
 
@@ -23,6 +27,7 @@ export async function getAllProductMappings(
     description: string | null;
     category: string | null;
     stock_quantity: number;
+    coa_link_url: string | null;
     created_at: string;
     updated_at: string;
   }>
@@ -126,11 +131,11 @@ export async function updateProduct(
     p_peptide_name: updates.peptide_name || null,
     p_protein_name: updates.protein_name || null,
     p_description: updates.description || null,
-    p_price: updates.price || null,
+    p_price: updates.price ?? null,
     p_category: updates.category || null,
     p_is_active: updates.is_active !== undefined ? updates.is_active : null,
     p_stock_quantity: updates.stock_quantity !== undefined ? updates.stock_quantity : null,
-    p_low_stock_threshold: updates.low_stock_threshold || null,
+    p_low_stock_threshold: updates.low_stock_threshold ?? null,
     p_track_inventory: updates.track_inventory !== undefined ? updates.track_inventory : null,
     p_compare_at_price: updates.compare_at_price ?? null,
     p_sale_label: updates.sale_label ?? null,
@@ -302,8 +307,7 @@ export async function fetchShopPrimaryImageOverrides(): Promise<Record<string, s
   for (const row of (data ?? []) as ProductMappingImagesRow[]) {
     const picked = pickBestProductImage(row.product_images);
     if (!picked) continue;
-    const peptideId = CFG_CODE_TO_PEPTIDE_ID[row.cfg_code];
-    if (!peptideId) continue;
+    const peptideId = CFG_CODE_TO_PEPTIDE_ID[row.cfg_code] ?? row.cfg_code.toLowerCase();
     out[peptideId] = appendImageCacheVersion(picked.url, picked.versionToken);
   }
   return out;
@@ -385,6 +389,29 @@ export async function deleteProduct(
     .eq('id', productId)
     .maybeSingle();
 
+  const [{ data: imageRows }, { data: coaRows }] = await Promise.all([
+    client.from('product_images').select('storage_path').eq('product_id', productId),
+    client.from('product_coas').select('storage_path').eq('product_id', productId),
+  ]);
+
+  const imagePaths = (imageRows ?? [])
+    .map((row) => row.storage_path as string)
+    .filter(Boolean);
+  const coaPaths = (coaRows ?? [])
+    .map((row) => row.storage_path as string)
+    .filter(Boolean);
+
+  let removableImagePaths = imagePaths;
+  if (imagePaths.length > 0) {
+    const { data: sharedRows } = await client
+      .from('product_images')
+      .select('storage_path')
+      .in('storage_path', imagePaths)
+      .neq('product_id', productId);
+    const sharedPaths = new Set((sharedRows ?? []).map((row) => row.storage_path as string));
+    removableImagePaths = imagePaths.filter((path) => !sharedPaths.has(path));
+  }
+
   const { data: result, error } = await client.rpc('delete_product', {
     p_product_id: productId,
   });
@@ -397,6 +424,25 @@ export async function deleteProduct(
   const r = result as { success: boolean; error?: string };
 
   if (r.success) {
+    const cleanupTasks: Array<Promise<unknown>> = [];
+    if (removableImagePaths.length > 0) {
+      cleanupTasks.push(client.storage.from('product-images').remove(removableImagePaths));
+    }
+    if (coaPaths.length > 0) {
+      cleanupTasks.push(client.storage.from('coa-documents').remove(coaPaths));
+    }
+    if (cleanupTasks.length > 0) {
+      const cleanupResults = await Promise.allSettled(cleanupTasks);
+      const cleanupFailed = cleanupResults.some((cleanup) => {
+        if (cleanup.status === 'rejected') return true;
+        const value = cleanup.value as { error?: unknown } | null;
+        return Boolean(value?.error);
+      });
+      if (cleanupFailed) {
+        log.warn('Product deleted but one or more storage files need manual cleanup');
+      }
+    }
+
     await logAdminAction(
       {
         action: 'product.delete',
@@ -417,17 +463,62 @@ export async function duplicateProduct(
   client: SupabaseClient | null
 ): Promise<{ success: boolean; product_id?: string; cfg_code?: string; error?: string }> {
   if (!client) return { success: false, error: 'No client' };
+  const [sourceResult, collectionIds, nextCfg] = await Promise.all([
+    getProductWithImages(productId, client),
+    getCollectionIdsForProduct(productId, client),
+    suggestNextCfgCode(client),
+  ]);
 
-  const { data: result, error } = await client.rpc('duplicate_product', {
-    p_product_id: productId,
-  });
-
-  if (error) {
-    log.error('duplicateProduct failed', error);
-    return { success: false, error: error.message };
+  const source = sourceResult.product;
+  if (!sourceResult.success || !source) {
+    return { success: false, error: sourceResult.error || 'Product not found' };
   }
 
-  return result as { success: boolean; product_id?: string; cfg_code?: string; error?: string };
+  const created = await createProduct(
+    {
+      cfg_code: nextCfg,
+      peptide_name: `${source.peptide_name} (Copy)`,
+      protein_name: source.protein_name,
+      price: source.price,
+      description: source.description ?? undefined,
+      category: source.category ?? undefined,
+      is_active: false,
+      stock_quantity: source.stock_quantity ?? 0,
+      compare_at_price: source.compare_at_price ?? null,
+      sale_label: source.sale_label ?? null,
+      sort_order: source.sort_order ?? 0,
+      overview_text: source.overview_text ?? null,
+      specifications_text: source.specifications_text ?? null,
+      analytical_text: source.analytical_text ?? null,
+      product_type: source.product_type === 'bundle' ? 'bundle' : 'standard',
+      bundle_items: source.bundle_items ?? [],
+    },
+    client
+  );
+
+  if (!created.success || !created.product_id) return created;
+  const collections = await setProductCollections(created.product_id, collectionIds, client);
+  if (!collections.success) {
+    return {
+      success: true,
+      product_id: created.product_id,
+      cfg_code: created.cfg_code,
+      error: 'Product copied, but collections need to be assigned manually.',
+    };
+  }
+
+  await logAdminAction(
+    {
+      action: 'product.duplicate',
+      target_table: 'product_mappings',
+      target_id: created.product_id,
+      after: { source_product_id: productId, media_copied: false },
+      note: 'Images and COAs intentionally require new files to avoid shared storage references.',
+    },
+    client
+  );
+
+  return created;
 }
 
 export async function suggestNextCfgCode(client: SupabaseClient | null): Promise<string> {
@@ -467,6 +558,9 @@ export type LiveCatalogEntry = {
   price: number;
   isActive: boolean;
   name: string;
+  proteinName: string;
+  description: string | null;
+  category: string | null;
   stockQuantity: number;
   overviewText: string | null;
   specificationsText: string | null;
@@ -495,7 +589,7 @@ export async function fetchLiveProductCatalog(): Promise<Record<string, LiveCata
   const { data, error } = await supabase
     .from('product_mappings')
     .select(
-      'cfg_code, peptide_name, price, is_active, stock_quantity, overview_text, specifications_text, analytical_text, coa_link_url, product_type, bundle_items'
+      'cfg_code, peptide_name, protein_name, description, category, price, is_active, stock_quantity, overview_text, specifications_text, analytical_text, coa_link_url, product_type, bundle_items'
     );
 
   if (error || !data) return {};
@@ -508,6 +602,9 @@ export async function fetchLiveProductCatalog(): Promise<Record<string, LiveCata
       price: Number(row.price),
       isActive: Boolean(row.is_active),
       name: String(row.peptide_name ?? ''),
+      proteinName: String(row.protein_name ?? ''),
+      description: (row.description as string | null) ?? null,
+      category: (row.category as string | null) ?? null,
       stockQuantity: Number(row.stock_quantity ?? 0),
       overviewText: (row.overview_text as string | null) ?? null,
       specificationsText: (row.specifications_text as string | null) ?? null,

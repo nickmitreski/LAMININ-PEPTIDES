@@ -9,7 +9,7 @@ import Modal from '../ui/Modal';
 
 interface CreateProductModalProps {
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (productId?: string) => void;
 }
 
 const CATEGORIES = ['Healing', 'Cognitive', 'Metabolic', 'Performance', 'Longevity'];
@@ -82,9 +82,9 @@ export default function CreateProductModal({
       );
 
       if (result.success) {
-        setSuccess('Product created successfully!');
+        setSuccess('Product created. Opening media and certificate setup…');
         setTimeout(() => {
-          onCreated();
+          onCreated(result.product_id);
         }, 800);
       } else {
         setError(result.error || 'Failed to create product');
@@ -115,7 +115,7 @@ export default function CreateProductModal({
           <div className="min-w-0">
             <Heading level={2} className="truncate">Add new product</Heading>
             <Text className="text-carbon-600 mt-1 hidden sm:block">
-              Create a new product mapping
+              Step 1 of 2 · Create the product, then add images and its COA
             </Text>
           </div>
           <button
@@ -341,7 +341,7 @@ export default function CreateProductModal({
             ) : (
               <>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Product
+                Create and add media
               </>
             )}
           </Button>

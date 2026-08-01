@@ -27,3 +27,20 @@
 .th-label {
   @apply text-xs font-medium uppercase tracking-wider text-carbon-900;
 }
+
+/* Shared admin shell. The navigation is fixed, so every admin page receives a
+   consistent mobile header offset and desktop sidebar gutter. */
+.admin-page {
+  min-width: 0;
+  padding-top: 4rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(137, 209, 209, 0.14), transparent 28rem),
+    #f7f8f8;
+}
+
+@media (min-width: 1024px) {
+  .admin-page {
+    padding-top: 0;
+    padding-left: 17rem;
+  }
+}

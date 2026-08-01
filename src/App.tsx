@@ -44,6 +44,7 @@ const AdminAudit = lazy(() => import('./pages/AdminAudit'));
 const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
+const AdminCoas = lazy(() => import('./pages/AdminCoas'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminCreateInvoice = lazy(() => import('./pages/AdminCreateInvoice'));
 const AdminDiscounts = lazy(() => import('./pages/AdminDiscounts'));
@@ -164,6 +165,16 @@ function App() {
                     <ProtectedRoute>
                       <AdminErrorBoundary pageName="Create invoice">
                         <AdminCreateInvoice />
+                      </AdminErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/coas"
+                  element={
+                    <ProtectedRoute>
+                      <AdminErrorBoundary pageName="Certificates of Analysis">
+                        <AdminCoas />
                       </AdminErrorBoundary>
                     </ProtectedRoute>
                   }

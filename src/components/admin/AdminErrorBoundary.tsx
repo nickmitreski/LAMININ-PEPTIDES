@@ -37,7 +37,7 @@ export default class AdminErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-platinum">
+        <div className="admin-page min-h-screen bg-platinum">
           <AdminNavigation onLogout={() => { window.location.href = '/admin/login'; }} />
           <Section spacing="lg">
             <Card padding="lg" className="mx-auto max-w-lg text-center">

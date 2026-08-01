@@ -6,6 +6,10 @@ import {
   CheckCircle,
   AlertCircle,
   ExternalLink,
+  FileText,
+  Images,
+  Info,
+  Layers3,
 } from 'lucide-react';
 import { getAdminSupabase } from '../../lib/supabaseAdminClient';
 import {
@@ -34,6 +38,7 @@ import Card from '../ui/Card';
 import Modal from '../ui/Modal';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import ProductEditorImageGallery from './ProductEditorImageGallery';
+import ProductEditorCoaManager from './ProductEditorCoaManager';
 import {
   ProductEditorBasicInfo,
   ProductEditorPricing,
@@ -47,12 +52,27 @@ interface ProductEditorProps {
   productId: string;
   onClose: () => void;
   onSave: () => void;
+  initialTab?: ProductEditorTab;
 }
+
+type ProductEditorTab = 'details' | 'storefront' | 'media' | 'organization';
+
+const EDITOR_TABS: Array<{
+  id: ProductEditorTab;
+  label: string;
+  icon: typeof Info;
+}> = [
+  { id: 'details', label: 'Details', icon: Info },
+  { id: 'storefront', label: 'Storefront', icon: FileText },
+  { id: 'media', label: 'Images & COA', icon: Images },
+  { id: 'organization', label: 'Organization', icon: Layers3 },
+];
 
 export default function ProductEditor({
   productId,
   onClose,
   onSave,
+  initialTab = 'details',
 }: ProductEditorProps) {
   const { user: adminUser } = useAdminAuth();
   const [product, setProduct] = useState<ProductEditorProduct | null>(null);
@@ -63,6 +83,7 @@ export default function ProductEditor({
   const [success, setSuccess] = useState<string | null>(null);
   const [imageDeleteTarget, setImageDeleteTarget] = useState<{ imageId: string; storagePath: string } | null>(null);
   const [imageDeleting, setImageDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<ProductEditorTab>(initialTab);
 
   // Form fields
   const [peptideName, setPeptideName] = useState('');
@@ -304,7 +325,7 @@ export default function ProductEditor({
 
         // Save to database
         const isFirst = !product?.images || product.images.length === 0;
-        await saveProductImage(
+        const saved = await saveProductImage(
           productId,
           uploaded.url,
           uploaded.path,
@@ -313,6 +334,10 @@ export default function ProductEditor({
           isFirst, // Set as primary if it's the first image
           getAdminSupabase()
         );
+        if (!saved.success) {
+          await deleteProductImage(uploaded.path);
+          throw new Error(saved.error || `Could not save ${file.name}`);
+        }
       }
 
       // Reload product
@@ -413,7 +438,7 @@ export default function ProductEditor({
       className=""
     >
       <Card
-        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-5xl flex-col"
       >
         {/* Sticky header */}
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-carbon-200 bg-white p-4 sm:p-6 rounded-t-lg">
@@ -449,6 +474,32 @@ export default function ProductEditor({
           </button>
         </div>
 
+        <div className="shrink-0 overflow-x-auto border-b border-carbon-200 bg-carbon-50 px-3 sm:px-5" role="tablist" aria-label="Product editor sections">
+          <div className="flex min-w-max gap-1 py-2">
+            {EDITOR_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
+                    active
+                      ? 'bg-carbon-950 text-white shadow-sm'
+                      : 'text-carbon-600 hover:bg-white hover:text-carbon-950'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Scrolling body */}
         <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Alerts */}
@@ -466,73 +517,90 @@ export default function ProductEditor({
             </div>
           )}
 
-          {/* Product information */}
-          <ProductEditorBasicInfo
-            peptideName={peptideName}
-            proteinName={proteinName}
-            cfgCode={product?.cfg_code || ''}
-            description={description}
-            category={category}
-            isActive={isActive}
-            onPeptideName={setPeptideName}
-            onProteinName={setProteinName}
-            onDescription={setDescription}
-            onCategory={setCategory}
-            onIsActive={setIsActive}
-          />
+          {activeTab === 'details' ? (
+            <div className="space-y-8" role="tabpanel">
+              <ProductEditorBasicInfo
+                peptideName={peptideName}
+                proteinName={proteinName}
+                cfgCode={product?.cfg_code || ''}
+                description={description}
+                category={category}
+                isActive={isActive}
+                onPeptideName={setPeptideName}
+                onProteinName={setProteinName}
+                onDescription={setDescription}
+                onCategory={setCategory}
+                onIsActive={setIsActive}
+              />
+              <ProductEditorPricing
+                price={price}
+                compareAtPrice={compareAtPrice}
+                saleLabel={saleLabel}
+                sortOrder={sortOrder}
+                onPrice={setPrice}
+                onCompareAtPrice={setCompareAtPrice}
+                onSaleLabel={setSaleLabel}
+                onSortOrder={setSortOrder}
+              />
+              <ProductEditorInventory
+                stockQuantity={stockQuantity}
+                lowStockThreshold={lowStockThreshold}
+                trackInventory={trackInventory}
+                onStockQuantity={setStockQuantity}
+                onLowStockThreshold={setLowStockThreshold}
+                onTrackInventory={setTrackInventory}
+              />
+            </div>
+          ) : null}
 
-          <ProductEditorPricing
-            price={price}
-            compareAtPrice={compareAtPrice}
-            saleLabel={saleLabel}
-            sortOrder={sortOrder}
-            onPrice={setPrice}
-            onCompareAtPrice={setCompareAtPrice}
-            onSaleLabel={setSaleLabel}
-            onSortOrder={setSortOrder}
-          />
+          {activeTab === 'storefront' ? (
+            <div role="tabpanel">
+              <ProductEditorStorefrontCopy
+                overviewText={overviewText}
+                specificationsText={specificationsText}
+                analyticalText={analyticalText}
+                coaLinkUrl={coaLinkUrl}
+                onOverview={setOverviewText}
+                onSpecifications={setSpecificationsText}
+                onAnalytical={setAnalyticalText}
+                onCoaLink={setCoaLinkUrl}
+              />
+            </div>
+          ) : null}
 
-          <ProductEditorInventory
-            stockQuantity={stockQuantity}
-            lowStockThreshold={lowStockThreshold}
-            trackInventory={trackInventory}
-            onStockQuantity={setStockQuantity}
-            onLowStockThreshold={setLowStockThreshold}
-            onTrackInventory={setTrackInventory}
-          />
+          {activeTab === 'media' ? (
+            <div className="space-y-8" role="tabpanel">
+              <ProductEditorImageGallery
+                images={product?.images}
+                uploading={uploading}
+                onFileSelect={(e) => void handleFileSelect(e)}
+                onSetPrimary={(id) => void handleSetPrimary(id)}
+                onDeleteImage={handleDeleteImage}
+              />
+              <ProductEditorCoaManager
+                productId={productId}
+                onCurrentChange={setCoaLinkUrl}
+              />
+            </div>
+          ) : null}
 
-          <ProductEditorStorefrontCopy
-            overviewText={overviewText}
-            specificationsText={specificationsText}
-            analyticalText={analyticalText}
-            coaLinkUrl={coaLinkUrl}
-            onOverview={setOverviewText}
-            onSpecifications={setSpecificationsText}
-            onAnalytical={setAnalyticalText}
-            onCoaLink={setCoaLinkUrl}
-          />
-
-          <ProductEditorBundleCollections
-            productType={productType}
-            bundleItemsJson={bundleItemsJson}
-            allCollections={allCollections}
-            selectedCollectionIds={selectedCollectionIds}
-            onProductType={setProductType}
-            onBundleJson={setBundleItemsJson}
-            onToggleCollection={(cid) =>
-              setSelectedCollectionIds((prev) =>
-                prev.includes(cid) ? prev.filter((x) => x !== cid) : [...prev, cid]
-              )
-            }
-          />
-
-          <ProductEditorImageGallery
-            images={product?.images}
-            uploading={uploading}
-            onFileSelect={(e) => void handleFileSelect(e)}
-            onSetPrimary={(id) => void handleSetPrimary(id)}
-            onDeleteImage={handleDeleteImage}
-          />
+          {activeTab === 'organization' ? (
+            <div role="tabpanel">
+              <ProductEditorBundleCollections
+                productType={productType}
+                bundleItemsJson={bundleItemsJson}
+                allCollections={allCollections}
+                selectedCollectionIds={selectedCollectionIds}
+                onProductType={setProductType}
+                onBundleJson={setBundleItemsJson}
+                onToggleCollection={(cid) =>
+                  setSelectedCollectionIds((prev) =>
+                    prev.includes(cid) ? prev.filter((x) => x !== cid) : [...prev, cid]
+                  )
+                }
+              />
+            </div>
+          ) : null}
         </div>
 
         {/* Danger zone */}
