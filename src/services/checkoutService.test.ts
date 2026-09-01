@@ -86,4 +86,54 @@ describe('createCheckoutOrder', () => {
       warnSpy.mockRestore();
     }
   });
+
+  it('returns the real Edge Function database error without attempting a second write', async () => {
+    const error = {
+      name: 'FunctionsHttpError',
+      message: 'Edge Function returned a non-2xx status code',
+      context: new Response(
+        JSON.stringify({ error: 'unrecognized format() type specifier "."' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      ),
+    };
+    invoke.mockResolvedValue({ data: null, error });
+
+    const result = await createCheckoutOrder(basePayload);
+
+    expect(result).toMatchObject({
+      success: false,
+      via: 'edge',
+      error: 'unrecognized format() type specifier "."',
+    });
+    expect(createPaymentTracking).not.toHaveBeenCalled();
+  });
+
+  it('does not mask a business error returned by the Edge Function', async () => {
+    invoke.mockResolvedValue({
+      data: { success: false, error: 'Product option is unavailable' },
+      error: null,
+    });
+
+    const result = await createCheckoutOrder(basePayload);
+
+    expect(result).toMatchObject({
+      success: false,
+      via: 'edge',
+      error: 'Product option is unavailable',
+    });
+    expect(createPaymentTracking).not.toHaveBeenCalled();
+  });
+
+  it('falls back when the function cannot be reached', async () => {
+    invoke.mockResolvedValue({
+      data: null,
+      error: { name: 'FunctionsFetchError', message: 'Failed to send a request' },
+    });
+    createPaymentTracking.mockResolvedValue({ success: true, trackingId: 'legacy-2' });
+
+    const result = await createCheckoutOrder(basePayload);
+
+    expect(result).toMatchObject({ success: true, via: 'rpc', trackingId: 'legacy-2' });
+    expect(createPaymentTracking).toHaveBeenCalledWith(basePayload);
+  });
 });

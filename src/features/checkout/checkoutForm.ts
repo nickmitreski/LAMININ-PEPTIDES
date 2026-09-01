@@ -27,7 +27,7 @@ export const initialShippingFormData: ShippingFormData = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const AU_POSTCODE_RE = /^\d{4}$/;
 const NZ_POSTCODE_RE = /^\d{4}$/;
-const PHONE_RE = /^[\d\s+()-]{6,}$/;
+const PHONE_CHARS_RE = /^[\d\s+()-]+$/;
 
 export function validateCheckoutForm(data: ShippingFormData): FieldErrors {
   const errors: FieldErrors = {};
@@ -40,7 +40,10 @@ export function validateCheckoutForm(data: ShippingFormData): FieldErrors {
   }
   if (!data.phone.trim()) {
     errors.phone = 'Required';
-  } else if (!PHONE_RE.test(data.phone.trim())) {
+  } else if (
+    !PHONE_CHARS_RE.test(data.phone.trim()) ||
+    data.phone.replace(/\D/g, '').length < 10
+  ) {
     errors.phone = 'Enter a valid phone number';
   }
   if (!data.address.trim()) errors.address = 'Required';

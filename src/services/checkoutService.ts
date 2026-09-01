@@ -32,10 +32,47 @@ function mapServerTotals(raw: Record<string, unknown> | undefined): ServerTotals
   };
 }
 
+type FunctionInvokeError = {
+  name?: string;
+  message?: string;
+  context?: Response | { clone?: () => Response; json?: () => Promise<unknown> };
+};
+
+async function extractFunctionErrorDetail(error: unknown): Promise<{
+  message?: string;
+  code?: string;
+}> {
+  const fnError = error as FunctionInvokeError | null;
+  const context = fnError?.context;
+  if (!context) return {};
+
+  try {
+    const response =
+      typeof (context as Response).clone === 'function'
+        ? (context as Response).clone()
+        : context;
+    if (typeof response.json !== 'function') return {};
+    const body = (await response.json()) as { error?: unknown; detail?: unknown; code?: unknown };
+    const message =
+      typeof body?.error === 'string'
+        ? body.error
+        : typeof body?.detail === 'string'
+          ? body.detail
+          : undefined;
+    return {
+      message,
+      code: typeof body?.code === 'string' ? body.code : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Prefer the create-order Edge Function (service-role + normalized tables).
- * Falls back to the legacy upsert_payment_tracking RPC when the function or
- * migration is not deployed yet.
+ * Falls back to the legacy upsert_payment_tracking RPC only when the function
+ * is genuinely unavailable. Business/database failures are returned directly
+ * so the real cause is not hidden by a second write attempt.
  */
 export async function createCheckoutOrder(
   data: BankTransferPaymentData
@@ -77,14 +114,22 @@ export async function createCheckoutOrder(
       };
     }
 
-    const errMsg = fnError?.message ?? (fnData as { error?: string })?.error ?? '';
+    const fnBody = fnData as { error?: string; code?: string } | null;
+    const detail = await extractFunctionErrorDetail(fnError);
+    const errMsg =
+      detail.message ?? fnBody?.error ?? fnError?.message ?? 'Order creation failed';
+    const errorCode = detail.code ?? fnBody?.code;
     const notDeployed =
-      /not deployed|NOT_DEPLOYED|create_order not/i.test(errMsg) ||
-      fnError?.name === 'FunctionsFetchError';
+      errorCode === 'NOT_DEPLOYED' ||
+      /not deployed|NOT_DEPLOYED|create_order not|function .* not found/i.test(errMsg) ||
+      fnError?.name === 'FunctionsFetchError' ||
+      fnError?.name === 'FunctionsRelayError';
 
-    if (!notDeployed && errMsg) {
-      log.warn('create-order edge failed, trying RPC fallback', errMsg);
+    if (!notDeployed) {
+      log.error('create-order edge failed', errMsg);
+      return { success: false, error: errMsg, orderReference: data.orderReference, via: 'edge' };
     }
+    log.warn('create-order edge unavailable, trying RPC fallback', errMsg);
   } catch (err) {
     log.warn('create-order edge exception, trying RPC fallback', err);
   }

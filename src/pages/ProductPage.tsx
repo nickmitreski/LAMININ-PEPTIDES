@@ -125,12 +125,14 @@ export default function ProductPage() {
   const staticPriceLine = variants?.length && effectiveVariantId
     ? getDisplayPriceForVariant(peptide.id, effectiveVariantId)
     : getDisplayPriceForPeptide(peptide.id);
-  // DB price is authoritative (admin can change it); fall back to static only
-  // when the product hasn't been onboarded to the database yet.
+  // The current DB catalog owns base-SKU prices. Multi-strength products have
+  // a separate server-side variant price table, mirrored by PRODUCT_VARIANTS.
   const dbPrice = getDbPrice(peptide.id);
-  const priceLine = dbPrice != null
-    ? formatPrice(dbPrice)
-    : staticPriceLine ?? null;
+  const priceLine = variants?.length
+    ? staticPriceLine ?? null
+    : dbPrice != null
+      ? formatPrice(dbPrice)
+      : staticPriceLine ?? null;
 
   const coaDownload = getCoaDownload(
     peptide.id,
@@ -138,10 +140,9 @@ export default function ProductPage() {
   );
   const headline = getProductHeadline(peptide.id, peptide.name);
   const liquidAncillary = isLiquidAncillaryPeptide(peptide.id);
-  const price = dbPrice ?? getNumericPriceForVariantOrPeptide(
-    peptide.id,
-    variants?.length ? effectiveVariantId : undefined
-  );
+  const price = variants?.length
+    ? getNumericPriceForVariantOrPeptide(peptide.id, effectiveVariantId)
+    : dbPrice ?? getNumericPriceForVariantOrPeptide(peptide.id);
   const displayImage = resolveDisplayImage(
     peptide.id,
     variants?.length ? effectiveVariantId : undefined,

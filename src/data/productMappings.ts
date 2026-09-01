@@ -150,9 +150,30 @@ export const PRODUCT_MAPPINGS: Record<string, ProductMapping> = {
     proteinName: 'Partner Muscle Builder Kit',
     price: 189,
   },
+  // Hidden server-side checkout aliases for non-reference variant prices.
+  'CFG-043': {
+    peptideName: 'Retatrutide 20mg',
+    proteinName: 'Partner Casein Protein 2kg (Vanilla Bean)',
+    price: 249,
+  },
+  'CFG-044': {
+    peptideName: 'Retatrutide 30mg',
+    proteinName: 'Partner Casein Protein 2kg (Vanilla Bean)',
+    price: 339,
+  },
+  'CFG-045': {
+    peptideName: 'BPC-157 5mg',
+    proteinName: 'Partner Pump Matrix Pre-Workout',
+    price: 69,
+  },
+  'CFG-046': {
+    peptideName: 'GHK-Cu 50mg',
+    proteinName: 'Partner Collagen Protein Blend',
+    price: 69,
+  },
 };
 
-/** Maps catalogue `peptide.id` to CFG code (variants share code; line item carries variant). */
+/** Maps catalogue `peptide.id` to its canonical/base CFG code. */
 export const PEPTIDE_ID_TO_CFG: Record<string, string> = {
   'cjc-1295-no-dac': 'CFG-001',
   'melanotan-1': 'CFG-002',
@@ -182,6 +203,42 @@ export const PEPTIDE_ID_TO_CFG: Record<string, string> = {
   semax: 'CFG-034',
   klow: 'CFG-035',
 };
+
+/**
+ * Hidden checkout-only aliases for variants whose legitimate prices differ
+ * from the canonical CFG row. These rows are server-owned in product_mappings
+ * and remain inactive so they never appear as duplicate storefront products.
+ *
+ * The dedicated variant-price migration also supports the shared canonical
+ * codes. These aliases keep checkout correct on databases where that migration
+ * has not yet been applied.
+ */
+export const CHECKOUT_VARIANT_CFG: Partial<Record<string, Record<string, string>>> = {
+  retatrutide: {
+    '20mg': 'CFG-043',
+    '30mg': 'CFG-044',
+  },
+  'bpc-157': {
+    '5mg': 'CFG-045',
+  },
+  'ghk-cu': {
+    '50mg': 'CFG-046',
+  },
+};
+
+export const HIDDEN_CHECKOUT_CFG_CODES = new Set(
+  Object.values(CHECKOUT_VARIANT_CFG).flatMap((variants) =>
+    variants ? Object.values(variants) : []
+  )
+);
+
+export function getCheckoutCfgCode(peptideId: string, variantId?: string): string | null {
+  if (variantId) {
+    const variantCfg = CHECKOUT_VARIANT_CFG[peptideId]?.[variantId];
+    if (variantCfg) return variantCfg;
+  }
+  return PEPTIDE_ID_TO_CFG[peptideId] ?? null;
+}
 
 /** Inverse map: CFG code → storefront `peptide.id` for shop image overrides. */
 export const CFG_CODE_TO_PEPTIDE_ID: Record<string, string> = (() => {
