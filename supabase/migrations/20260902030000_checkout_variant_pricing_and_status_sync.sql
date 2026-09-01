@@ -8,6 +8,52 @@
 BEGIN;
 
 -- ---------------------------------------------------------------------------
+-- Checkout-only CFG aliases.
+--
+-- These inactive rows are deliberately hidden from the product catalogue. They
+-- keep exact variant checkout pricing compatible with databases that have not
+-- yet received the product_variant_prices helper, because the older helper
+-- already treats product_mappings as its authoritative price source.
+-- ---------------------------------------------------------------------------
+
+INSERT INTO public.product_mappings (
+  cfg_code, peptide_name, protein_name, price, is_active,
+  description, category, stock_quantity, track_inventory, sort_order
+)
+VALUES
+  (
+    'CFG-043', 'Retatrutide 20mg', 'Partner Casein Protein 2kg (Vanilla Bean)', 249.00, false,
+    'Internal checkout pricing alias. Do not activate as a catalogue product.',
+    '__checkout_variant__', 0, false, 9043
+  ),
+  (
+    'CFG-044', 'Retatrutide 30mg', 'Partner Casein Protein 2kg (Vanilla Bean)', 339.00, false,
+    'Internal checkout pricing alias. Do not activate as a catalogue product.',
+    '__checkout_variant__', 0, false, 9044
+  ),
+  (
+    'CFG-045', 'BPC-157 5mg', 'Partner Pump Matrix Pre-Workout', 69.00, false,
+    'Internal checkout pricing alias. Do not activate as a catalogue product.',
+    '__checkout_variant__', 0, false, 9045
+  ),
+  (
+    'CFG-046', 'GHK-Cu 50mg', 'Partner Collagen Protein Blend', 69.00, false,
+    'Internal checkout pricing alias. Do not activate as a catalogue product.',
+    '__checkout_variant__', 0, false, 9046
+  )
+ON CONFLICT (cfg_code) DO UPDATE SET
+  peptide_name = EXCLUDED.peptide_name,
+  protein_name = EXCLUDED.protein_name,
+  price = EXCLUDED.price,
+  is_active = false,
+  description = EXCLUDED.description,
+  category = EXCLUDED.category,
+  stock_quantity = 0,
+  track_inventory = false,
+  sort_order = EXCLUDED.sort_order,
+  updated_at = now();
+
+-- ---------------------------------------------------------------------------
 -- Protected, server-owned prices for multi-strength products.
 -- ---------------------------------------------------------------------------
 
@@ -77,6 +123,7 @@ DECLARE
   v_qty_text TEXT;
   v_qty INTEGER;
   v_canonical_price NUMERIC;
+  v_variant_price NUMERIC;
   v_line_total NUMERIC;
   v_normalized_name TEXT;
   v_dc_row RECORD;
@@ -108,7 +155,10 @@ BEGIN
       INTO v_canonical_cfg, v_canonical_price
       FROM public.product_mappings pm
      WHERE lower(pm.cfg_code) = lower(v_id)
-       AND COALESCE(pm.is_active, true) = true
+       AND (
+         COALESCE(pm.is_active, true) = true
+         OR pm.category = '__checkout_variant__'
+       )
      LIMIT 1;
 
     IF NOT FOUND THEN
@@ -143,14 +193,20 @@ BEGIN
 
     IF v_variant_id <> '' THEN
       SELECT pvp.price
-        INTO v_canonical_price
+        INTO v_variant_price
         FROM public.product_variant_prices pvp
        WHERE pvp.cfg_code = v_canonical_cfg
          AND lower(pvp.variant_id) = v_variant_id
          AND pvp.is_active = true
        LIMIT 1;
 
-      IF NOT FOUND THEN
+      IF FOUND THEN
+        v_canonical_price := v_variant_price;
+      ELSIF EXISTS (
+        SELECT 1
+          FROM public.product_variant_prices pvp
+         WHERE pvp.cfg_code = v_canonical_cfg
+      ) THEN
         RAISE EXCEPTION 'Product option % is unavailable for %', v_variant_id, v_canonical_cfg
           USING ERRCODE = '22023';
       END IF;

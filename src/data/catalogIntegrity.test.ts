@@ -9,7 +9,10 @@ import {
 } from './peptides';
 import {
   PRODUCT_MAPPINGS,
+  CHECKOUT_VARIANT_CFG,
+  HIDDEN_CHECKOUT_CFG_CODES,
   PEPTIDE_ID_TO_CFG,
+  getCheckoutCfgCode,
   getCfgCodeForPeptideId,
 } from './productMappings';
 import { RETATRUTIDE_CFG_CODE } from './peptides';
@@ -88,5 +91,23 @@ describe('catalog ↔ CFG integrity', () => {
         ).toBe(n);
       }
     }
+  });
+
+  it('assigns hidden checkout aliases only to variants that differ from the canonical price', () => {
+    const expected = {
+      retatrutide: { '20mg': 'CFG-043', '30mg': 'CFG-044' },
+      'bpc-157': { '5mg': 'CFG-045' },
+      'ghk-cu': { '50mg': 'CFG-046' },
+    };
+    expect(CHECKOUT_VARIANT_CFG).toEqual(expected);
+    expect([...HIDDEN_CHECKOUT_CFG_CODES].sort()).toEqual([
+      'CFG-043',
+      'CFG-044',
+      'CFG-045',
+      'CFG-046',
+    ]);
+    expect(getCheckoutCfgCode('retatrutide', '30mg')).toBe('CFG-044');
+    expect(getCheckoutCfgCode('retatrutide', '10mg')).toBe('CFG-023');
+    expect(getCheckoutCfgCode('bacteriostatic-water')).toBe('CFG-028');
   });
 });

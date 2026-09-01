@@ -1,4 +1,4 @@
-import { PEPTIDE_ID_TO_CFG } from '../../data/productMappings';
+import { getCheckoutCfgCode } from '../../data/productMappings';
 import type { CartItem } from '../../types/cart';
 import type { BankTransferPaymentData } from '../../services/bankTransferPayment';
 
@@ -12,7 +12,7 @@ export function toCheckoutCartItems(
   items: CartItem[]
 ): BankTransferPaymentData['cartItems'] {
   return items.map((item) => ({
-    id: PEPTIDE_ID_TO_CFG[item.peptideId] ?? item.peptideId,
+    id: getCheckoutCfgCode(item.peptideId, item.variantId) ?? item.peptideId,
     variant_id: item.variantId,
     name: item.name,
     price: item.price,

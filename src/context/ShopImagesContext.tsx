@@ -21,7 +21,11 @@ import {
   fetchLiveProductCatalog,
   type LiveCatalogEntry,
 } from '../services/supabaseService';
-import { CFG_CODE_TO_PEPTIDE_ID, PEPTIDE_ID_TO_CFG } from '../data/productMappings';
+import {
+  CFG_CODE_TO_PEPTIDE_ID,
+  HIDDEN_CHECKOUT_CFG_CODES,
+  PEPTIDE_ID_TO_CFG,
+} from '../data/productMappings';
 
 type SaleInfo = { compareAtPrice: number; saleLabel: string | null };
 type LiveProductInfo = LiveCatalogEntry;
@@ -139,6 +143,8 @@ export function ShopImagesProvider({ children }: { children: ReactNode }) {
       const newDbProducts: Peptide[] = [];
 
       for (const [cfgCode, info] of Object.entries(catalogByCfg)) {
+        // Internal pricing aliases are deliberately not sellable catalogue rows.
+        if (HIDDEN_CHECKOUT_CFG_CODES.has(cfgCode)) continue;
         const pid = CFG_CODE_TO_PEPTIDE_ID[cfgCode];
         if (pid) {
           mappedLive[pid] = info;
