@@ -1,7 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { expressShippingAud } from '../../lib/shippingPolicy';
-import { PEPTIDE_ID_TO_CFG } from '../../data/productMappings';
 import { supabase } from '../../lib/supabase';
 import {
   markPaymentInstructionsViewed,
@@ -22,6 +21,7 @@ import {
 import { markCheckoutComplete, resetCheckoutComplete, trackEvent } from '../../lib/analytics';
 import { createLogger } from '../../lib/logger';
 import type { CartState } from '../../types/cart';
+import { toCheckoutCartItems } from './checkoutPayload';
 
 const log = createLogger('checkout');
 
@@ -131,13 +131,7 @@ export function useCheckoutSubmit({
           postcode: formData.postcode,
           country: formData.country,
         },
-        cartItems: state.items.map((item) => ({
-          id: PEPTIDE_ID_TO_CFG[item.peptideId] ?? item.peptideId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })),
+        cartItems: toCheckoutCartItems(state.items),
         subtotal: state.total,
         shipping,
         tax: 0,

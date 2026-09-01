@@ -14,6 +14,8 @@ export interface BankTransferPaymentData {
   };
   cartItems: Array<{
     id: string;
+    /** Exact size/strength for products whose variants share one CFG code. */
+    variant_id?: string;
     name: string;
     price: number;
     quantity: number;
